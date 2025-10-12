@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sonia: Your AI Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --background: #111827; /* gray-900 */
+        --primary: #4c1d95;   /* violet-900 */
+        --secondary: #3730a3; /* indigo-800 */
+        --accent: #d946ef;    /* fuchsia-500 */
+        --accent-hover: #c026d3; /* fuchsia-600 */
+        --text-light: #f3e8ff; /* purple-50 */
+        --text-dim: #a78bfa;   /* violet-400 */
+        --text-muted: #6b7280; /* gray-500 */
+        --surface: #1f2937;   /* gray-800 */
+        --surface-light: #374151; /* gray-700 */
+        --border: rgba(255, 255, 255, 0.1);
+      }
+      body {
+        overscroll-behavior: none;
+        background-color: var(--background);
+        color: var(--text-light);
+      }
+      /* Custom scrollbar for webkit browsers */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: var(--secondary);
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: var(--accent);
+      }
+      /* Animation for reaction text */
+      @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+        15% { opacity: 1; transform: translateY(0) scale(1); }
+        85% { opacity: 1; transform: translateY(0) scale(1); }
+        100% { opacity: 0; transform: translateY(-10px) scale(0.95); }
+      }
+      .animate-fade-in-out {
+        animation: fadeInOut 3s ease-in-out forwards;
+      }
+      /* Animation for avatar presence */
+      @keyframes breathing {
+        0%, 100% { transform: scale(1.0); }
+        50% { transform: scale(1.02); }
+      }
+      .animate-breathing {
+        animation: breathing 8s ease-in-out infinite;
+      }
+      /* New idle animations */
+      @keyframes sway {
+        0%, 100% { transform: translateX(-2px) rotate(-0.5deg); }
+        50% { transform: translateX(2px) rotate(0.5deg); }
+      }
+      .animate-sway {
+        animation: sway 7s ease-in-out infinite alternate;
+      }
+      @keyframes fidget {
+        0% { transform: translate(0, 0); }
+        15% { transform: translate(-1px, 1px) rotate(-0.2deg); }
+        30% { transform: translate(1px, -1px) rotate(0.2deg); }
+        45% { transform: translate(-1px, -1px); }
+        60% { transform: translate(1px, 1px) rotate(0.1deg); }
+        100% { transform: translate(0, 0); }
+      }
+      .animate-fidget {
+        animation: fidget 3s ease-in-out infinite;
+      }
+      /* Animation for speaking */
+      @keyframes speaking {
+        0%, 100% { transform: scale(1.02); filter: brightness(1.0); }
+        50% { transform: scale(1.03); filter: brightness(1.1); }
+      }
+      .animate-speaking {
+        animation: speaking 1.5s ease-in-out infinite;
+      }
+      /* New animation for active microphone */
+      @keyframes mic-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(217, 70, 239, 0.5); }
+        50% { box-shadow: 0 0 0 10px rgba(217, 70, 239, 0); }
+      }
+      .animate-mic-pulse {
+        animation: mic-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.24.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "zustand": "https://aistudiocdn.com/zustand@^4.5.4/esm/index.mjs",
+    "zustand/middleware": "https://aistudiocdn.com/zustand@^4.5.4/esm/middleware.mjs",
+    "zustand/": "https://aistudiocdn.com/zustand@^5.0.8/"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

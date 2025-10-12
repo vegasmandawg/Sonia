@@ -1,0 +1,7 @@
+{
+  "name": "Sonia: Your AI Companion",
+  "description": "Experience a personalized, intimate connection with Sonia, your personal AI companion. Customize her appearance and personality, and interact through chat, image, and video generation.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

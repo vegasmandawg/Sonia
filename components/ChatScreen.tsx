@@ -1,0 +1,389 @@
+
+
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import type { AppStep, ChatMessage, SoniaConfig } from '../types';
+import { ICONS } from '../constants';
+import { transcribeAudio } from '../services/whisperService';
+import { generateTextSuggestions } from '../services/geminiService';
+import useStore from '../store/useStore';
+
+const MAX_INPUT_LENGTH = 1000;
+
+// A simple debounce utility function
+const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    const debounced = (...args: Parameters<F>) => {
+        if (timeout !== null) {
+            clearTimeout(timeout);
+            timeout = null;
+        }
+        timeout = setTimeout(() => func(...args), waitFor);
+    };
+    return debounced;
+};
+
+const ConnectionStatusBanner = () => {
+    const { status, provider } = useStore(state => ({
+        status: state.localEndpointsStatus,
+        provider: state.soniaConfig.modelConfig.provider
+    }));
+    const openSettings = useStore(state => state.openSettings);
+
+    if (provider !== 'local') {
+        return null;
+    }
+  
+    const failedServices = (Object.entries(status) as [keyof typeof status, string][])
+        .filter(([, s]) => s === 'error')
+        .map(([key]) => key);
+
+    if (failedServices.length === 0) {
+        return null;
+    }
+
+    const serviceNames = failedServices.join(', ');
+
+    return (
+        <div 
+            className="bg-red-900/80 border-b border-red-700 text-red-200 p-3 text-sm flex items-center justify-between cursor-pointer"
+            onClick={openSettings}
+            role="alert"
+        >
+            <div className="flex items-center min-w-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.636-1.21 2.852-1.21 3.488 0l6.363 12.122c.636 1.21-.474 2.779-1.744 2.779H3.638c-1.27 0-2.38-1.569-1.744-2.779L8.257 3.099zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-4a1 1 0 011-1h.008a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
+                </svg>
+                <span className="truncate">
+                    Connection to local AI service ({serviceNames}) failed. Tap to open settings and troubleshoot.
+                </span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+        </div>
+    );
+};
+
+interface ChatScreenProps {
+  messages: ChatMessage[];
+  onSendMessage: (text: string) => void;
+  onOpenSettings: () => void;
+  isSoniaSpeaking: boolean;
+  onNavClick: (screen: 'gallery' | 'scenarios' | 'customization') => void;
+  onAvatarAction: (text: string) => void;
+  avatarUrl: string;
+  soniaConfig: SoniaConfig;
+}
+
+const ChatScreen: React.FC<ChatScreenProps> = ({ messages, onSendMessage, onOpenSettings, isSoniaSpeaking, onNavClick, onAvatarAction, avatarUrl, soniaConfig }) => {
+  const [inputText, setInputText] = useState('');
+  const [reactionText, setReactionText] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [idleAnimation, setIdleAnimation] = useState('animate-sway');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const suggestionRequestRef = useRef<((text: string) => void) | null>(null);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
+      const isUser = message.sender === 'user';
+      const bubbleClass = isUser ? 'bg-indigo-800 rounded-br-none' : 'bg-gray-700/80 rounded-bl-none';
+      const alignmentClass = isUser ? 'items-end' : 'items-start';
+  
+      const renderContent = () => {
+          switch (message.type) {
+              case 'text':
+                  // Use a regex to find text within asterisks and wrap it in <em> for italics
+                  const formattedContent = message.content.split(/(\*.*?\*)/g).map((part, index) => {
+                      if (part.startsWith('*') && part.endsWith('*')) {
+                          return <em key={index} className="not-italic text-violet-300">{part.slice(1, -1)}</em>;
+                      }
+                      return part;
+                  });
+                  return <p className="text-white whitespace-pre-wrap">{formattedContent}</p>;
+              case 'image':
+                  return <img src={message.content} alt="Generated by Sonia" className="rounded-lg max-w-xs cursor-pointer" onClick={() => window.open(message.content, '_blank')} />;
+              case 'video':
+                  return <video src={message.content} controls className="rounded-lg max-w-xs" />;
+              case 'loading':
+                  return (
+                      <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-violet-300 rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-violet-300 rounded-full animate-pulse delay-200"></div>
+                          <div className="w-2 h-2 bg-violet-300 rounded-full animate-pulse delay-400"></div>
+                          <span className="text-sm text-gray-400">{message.content || 'Sonia is thinking...'}</span>
+                      </div>
+                  );
+               case 'error':
+                   const isCorsError = message.content.toLowerCase().includes('cors');
+                   if (isCorsError) {
+                       return (
+                           <div 
+                               className="text-left cursor-pointer hover:bg-red-900/20 -m-3 p-3 rounded-lg transition-colors"
+                               onClick={onOpenSettings}
+                           >
+                              <p className="text-red-300 text-sm whitespace-pre-wrap">{message.content}</p>
+                              <p className="text-red-400 text-xs mt-2 font-semibold underline">Click here to open model settings and fix.</p>
+                           </div>
+                       );
+                   }
+                   return <p className="text-red-400 text-sm whitespace-pre-wrap">{message.content}</p>;
+              default:
+                  return null;
+          }
+      };
+  
+      return (
+          <div className={`flex flex-col ${alignmentClass} mb-4`}>
+              <div className={`px-4 py-3 rounded-2xl max-w-sm md:max-w-md ${bubbleClass}`}>
+                  {renderContent()}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+          </div>
+      );
+  };
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    if (isSoniaSpeaking) return;
+
+    const animations = ['animate-sway', 'animate-fidget', 'animate-breathing'];
+    const interval = setInterval(() => {
+        const nextAnimation = animations[Math.floor(Math.random() * animations.length)];
+        setIdleAnimation(nextAnimation);
+    }, 10000); // Change animation every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [isSoniaSpeaking]);
+
+  useEffect(() => {
+    suggestionRequestRef.current = debounce(async (text: string) => {
+        if (!text.trim() || text.length < 3) {
+            setSuggestions([]);
+            return;
+        }
+        setIsSuggesting(true);
+        try {
+            const result = await generateTextSuggestions(text, soniaConfig);
+            setSuggestions(result);
+        } catch (error) {
+            console.error("Suggestion fetch failed:", error);
+            setSuggestions([]);
+        } finally {
+            setIsSuggesting(false);
+        }
+    }, 750);
+  }, [soniaConfig]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    setInputText(newText);
+    if (newText.trim()) {
+        suggestionRequestRef.current?.(newText);
+    } else {
+        setSuggestions([]);
+        setIsSuggesting(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputText(suggestion);
+    setSuggestions([]);
+    setIsSuggesting(false);
+  };
+
+  const handleSendMessage = () => {
+    if (inputText.trim()) {
+      onSendMessage(inputText);
+      setInputText('');
+      setSuggestions([]);
+      setIsSuggesting(false);
+    }
+  };
+  
+  const handleAvatarClick = useCallback(() => {
+    if (isSoniaSpeaking) return;
+    const phrases = [
+        "What's on your mind?",
+        "Tell me something interesting.",
+        "I'm listening.",
+        "Thinking of me?",
+    ];
+    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+    setReactionText(phrase);
+    setTimeout(() => setReactionText(''), 3000);
+  }, [isSoniaSpeaking]);
+
+  const handleMicClick = async () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+        
+        mediaRecorderRef.current.ondataavailable = (event) => {
+          audioChunksRef.current.push(event.data);
+        };
+        
+        mediaRecorderRef.current.onstop = async () => {
+          setIsRecording(false);
+          setIsTranscribing(true);
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          try {
+            const transcribedText = await transcribeAudio(audioBlob, soniaConfig);
+            setInputText(prev => prev ? `${prev} ${transcribedText}` : transcribedText);
+          } catch (error: any) {
+            console.error("Transcription failed:", error);
+            alert(`Sorry, I couldn't understand that. Please try again.\nError: ${error.message}`);
+          } finally {
+            setIsTranscribing(false);
+            // Stop all media tracks to turn off the mic indicator
+            stream.getTracks().forEach(track => track.stop());
+          }
+        };
+
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+
+      } catch (error: any) {
+        console.error("Error accessing microphone:", error);
+        alert("Microphone access was denied. Please enable it in your browser settings to use voice input.");
+      }
+    }
+  };
+
+  const NavButton: React.FC<{ label: string, icon: React.ReactNode, onClick: () => void, isActive?: boolean }> = ({ label, icon, onClick, isActive }) => (
+    <button onClick={onClick} className={`flex flex-col items-center justify-center w-full p-2 rounded-lg transition-colors ${isActive ? 'text-fuchsia-400 bg-fuchsia-900/30' : 'text-gray-400 hover:bg-gray-700/50 hover:text-violet-300'}`}>
+        {icon}
+        <span className="text-xs mt-1">{label}</span>
+    </button>
+  );
+
+  return (
+    <div className="flex flex-col h-screen w-screen bg-gray-900 text-white overflow-hidden">
+        <ConnectionStatusBanner />
+        {/* Top Bar */}
+        <div className="flex items-center justify-between p-3 bg-gray-900/80 backdrop-blur-sm border-b border-white/10">
+            <div className="flex items-center">
+                <div className="relative">
+                    <img src={avatarUrl || `https://picsum.photos/seed/sonia-chat/200`} alt="Sonia" className="w-10 h-10 rounded-full object-cover" />
+                    <span className={`absolute bottom-0 right-0 block h-3 w-3 rounded-full ${isSoniaSpeaking ? 'bg-green-400' : 'bg-gray-500'} border-2 border-gray-900`}></span>
+                </div>
+                <div className="ml-3">
+                    <h1 className="font-bold text-lg">Sonia</h1>
+                    <p className="text-xs text-violet-300">{isSoniaSpeaking ? 'Speaking...' : 'Listening'}</p>
+                </div>
+            </div>
+            <button onClick={onOpenSettings} className="p-2 text-gray-400 hover:text-white transition-colors">{ICONS.settings}</button>
+        </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - Avatar */}
+        <div className="hidden md:flex flex-col items-center justify-center w-1/3 bg-surface-dark border-r border-white/10 p-4 relative">
+            <div className="relative">
+                 <img 
+                    src={avatarUrl || `https://picsum.photos/seed/sonia-chat/600/800`} 
+                    alt="Sonia's Avatar" 
+                    className={`w-full max-w-sm aspect-[3/4] rounded-2xl object-cover shadow-2xl shadow-fuchsia-900/20 transition-all duration-500 ${isSoniaSpeaking ? 'animate-speaking' : idleAnimation}`} 
+                    onClick={handleAvatarClick}
+                 />
+                 {reactionText && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-sm px-4 py-2 rounded-full backdrop-blur-sm animate-fade-in-out">
+                        {reactionText}
+                    </div>
+                )}
+            </div>
+            <div className="text-center mt-4">
+                <p className="text-gray-400 text-sm">Tap on me if you want to talk.</p>
+            </div>
+        </div>
+
+        {/* Right Panel - Chat */}
+        <div className="flex-1 flex flex-col">
+            {/* Messages */}
+            <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
+              <div className="space-y-4">
+                {messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)}
+              </div>
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <div className="p-4 bg-gray-900/80 border-t border-white/10">
+              <div className="bg-gray-800 rounded-2xl transition-all">
+                {/* Suggestion Area */}
+                {(isSuggesting || suggestions.length > 0) && (
+                    <div className="p-2 border-b border-white/10 flex items-center space-x-2 overflow-x-auto custom-scrollbar min-h-[44px]">
+                        {isSuggesting && suggestions.length === 0 ? (
+                            <span className="text-sm text-gray-400 italic px-2 animate-pulse">Generating ideas...</span>
+                        ) : (
+                            suggestions.map((suggestion, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handleSuggestionClick(suggestion)}
+                                    className="px-3 py-1.5 bg-indigo-800/70 hover:bg-indigo-700 text-white rounded-full text-sm whitespace-nowrap transition-colors"
+                                >
+                                    {suggestion}
+                                </button>
+                            ))
+                        )}
+                    </div>
+                )}
+                {/* Main Input Row */}
+                <div className="flex items-center p-2">
+                    <textarea
+                    value={inputText}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                        }
+                    }}
+                    placeholder="Type your message..."
+                    className="flex-1 bg-transparent resize-none outline-none text-white px-3 max-h-24 custom-scrollbar"
+                    rows={1}
+                    maxLength={MAX_INPUT_LENGTH}
+                    />
+                    <button 
+                    onClick={handleMicClick} 
+                    className={`p-3 rounded-full transition-colors text-white ${isRecording ? 'bg-red-500 animate-mic-pulse' : 'bg-fuchsia-500 hover:bg-fuchsia-600'} disabled:bg-gray-600`}
+                    disabled={isTranscribing}
+                    >
+                    {isTranscribing ? (
+                        <div className="w-6 h-6 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+                    ) : ICONS.microphone}
+                    </button>
+                    <button onClick={handleSendMessage} disabled={!inputText.trim()} className="ml-2 p-3 bg-indigo-700 hover:bg-indigo-600 text-white rounded-full transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed">
+                    {ICONS.send}
+                    </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Navigation */}
+             <div className="grid grid-cols-5 gap-1 p-1 bg-gray-900 border-t border-white/10 md:hidden">
+                <NavButton label="Chat" icon={ICONS.chat} onClick={() => {}} isActive={true} />
+                <NavButton label="Gallery" icon={ICONS.gallery} onClick={() => onNavClick('gallery')} />
+                <NavButton label="Profile" icon={ICONS.profile} onClick={() => onNavClick('customization')} />
+                <NavButton label="Scenarios" icon={ICONS.scenarios} onClick={() => onNavClick('scenarios')} />
+                <NavButton label="Wardrobe" icon={ICONS.wardrobe} onClick={() => alert('Wardrobe coming soon!')} />
+            </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ChatScreen;
