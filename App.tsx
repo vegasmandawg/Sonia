@@ -8,54 +8,36 @@ import SettingsModal from './components/SettingsModal';
 import GalleryScreen from './components/GalleryScreen';
 import ScenariosScreen from './components/ScenariosScreen';
 import ErrorBoundary from './components/ErrorBoundary';
-import Toast from './components/Toast';
 import ChatLoadingState from './components/ChatLoadingState';
 import useStore from './store/useStore';
-import { useToast } from './hooks/useToast';
 import { analytics } from './utils/analytics';
 import { logger } from './utils/logger';
-import { shallow } from 'zustand/shallow';
 
 const App: React.FC = () => {
-    // Use shallow comparison to prevent unnecessary re-renders
-    const { 
-        step, 
-        messages, 
-        isSettingsOpen, 
-        soniaConfig, 
-        availableVoices, 
-        memory, 
-        isSoniaSpeaking, 
-        avatarUrl,
-        isInitialized
-    } = useStore(state => ({
-        step: state.step,
-        messages: state.messages,
-        isSettingsOpen: state.isSettingsOpen,
-        soniaConfig: state.soniaConfig,
-        availableVoices: state.availableVoices,
-        memory: state.memory,
-        isSoniaSpeaking: state.isSoniaSpeaking,
-        avatarUrl: state.avatarUrl,
-        isInitialized: state.isInitialized
-    }), shallow);
+    // Select state individually to prevent unnecessary re-renders
+    const step = useStore(state => state.step);
+    const messages = useStore(state => state.messages);
+    const isSettingsOpen = useStore(state => state.isSettingsOpen);
+    const soniaConfig = useStore(state => state.soniaConfig);
+    const availableVoices = useStore(state => state.availableVoices);
+    const memory = useStore(state => state.memory);
+    const isSoniaSpeaking = useStore(state => state.isSoniaSpeaking);
+    const avatarUrl = useStore(state => state.avatarUrl);
+    const isInitialized = useStore(state => state.isInitialized);
     
-    const { 
-        initialize, 
-        setStep, 
-        handleCustomizationComplete, 
-        sendMessage, 
-        openSettings, 
-        closeSettings,
-        handleSaveSettings,
-        handleNavClick,
-        handleAvatarAction,
-        handlePinMemory,
-        handleDeleteMemory,
-        startScenario,
-    } = useStore.getState();
-
-    const { toasts, hideToast } = useToast();
+    // Get actions from the store
+    const initialize = useStore(state => state.initialize);
+    const setStep = useStore(state => state.setStep);
+    const handleCustomizationComplete = useStore(state => state.handleCustomizationComplete);
+    const sendMessage = useStore(state => state.sendMessage);
+    const openSettings = useStore(state => state.openSettings);
+    const closeSettings = useStore(state => state.closeSettings);
+    const handleSaveSettings = useStore(state => state.handleSaveSettings);
+    const handleNavClick = useStore(state => state.handleNavClick);
+    const handleAvatarAction = useStore(state => state.handleAvatarAction);
+    const handlePinMemory = useStore(state => state.handlePinMemory);
+    const handleDeleteMemory = useStore(state => state.handleDeleteMemory);
+    const startScenario = useStore(state => state.startScenario);
 
     useEffect(() => {
         // Initialize analytics
@@ -130,15 +112,6 @@ const App: React.FC = () => {
                         onDeleteMemory={handleDeleteMemory}
                     />
                 )}
-                {/* Toast Notifications */}
-                {toasts.map((toast) => (
-                    <Toast
-                        key={toast.id}
-                        message={toast.message}
-                        type={toast.type}
-                        onClose={() => hideToast(toast.id)}
-                    />
-                ))}
             </>
         </ErrorBoundary>
     );
