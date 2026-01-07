@@ -23,10 +23,8 @@ const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) =
 };
 
 const ConnectionStatusBanner = () => {
-    const { status, provider } = useStore(state => ({
-        status: state.localEndpointsStatus,
-        provider: state.soniaConfig.modelConfig.provider
-    }));
+    const status = useStore(state => state.localEndpointsStatus);
+    const provider = useStore(state => state.soniaConfig.modelConfig.provider);
     const openSettings = useStore(state => state.openSettings);
 
     if (provider !== 'local') {
