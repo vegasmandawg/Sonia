@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AppSimple from './AppSimple';
+import App from './App';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -10,7 +10,7 @@ if (!rootElement) {
 
 const root = ReactDOM.createRoot(rootElement);
 
-// Render simple app for debugging
+// Render main app
 root.render(
-  <AppSimple />
+  <App />
 );
