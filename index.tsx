@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import AppSimple from './AppSimple';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -10,7 +10,7 @@ if (!rootElement) {
 
 const root = ReactDOM.createRoot(rootElement);
 
-// Render without StrictMode to avoid double-rendering in development
+// Render simple app for debugging
 root.render(
-  <App />
+  <AppSimple />
 );
