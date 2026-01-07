@@ -4,6 +4,9 @@
 import { GoogleGenAI, Chat, GenerateContentResponse, Type, HarmCategory, HarmBlockThreshold, GenerateImagesResponse, Operation } from "@google/genai";
 import type { SoniaConfig, UserMemory, ChatMessage } from '../types';
 import { enqueueApiCall } from './apiQueueService';
+import { rateLimiter } from '../utils/rateLimiter';
+import { logger } from '../utils/logger';
+import { analytics } from '../utils/analytics';
 
 let ai: GoogleGenAI;
 let chat: Chat | null = null;
@@ -12,7 +15,12 @@ let chat: Chat | null = null;
 const getAi = () => {
     if (!ai) {
         // As per guidelines, assume process.env.API_KEY is available.
-        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const apiKey = process.env.API_KEY;
+        if (!apiKey) {
+            logger.error('Gemini API key not found');
+            throw new Error('API key is not configured. Please add GEMINI_API_KEY to your .env.local file.');
+        }
+        ai = new GoogleGenAI({ apiKey });
     }
     return ai;
 };
