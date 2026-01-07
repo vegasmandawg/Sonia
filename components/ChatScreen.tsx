@@ -141,7 +141,9 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ messages, onSendMessage, onOpen
               <div className={`px-4 py-3 rounded-2xl max-w-sm md:max-w-md ${bubbleClass}`}>
                   {renderContent()}
               </div>
-              <p className="text-xs text-gray-500 mt-1">{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
           </div>
       );
   };
