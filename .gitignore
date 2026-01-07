@@ -39,3 +39,7 @@ coverage
 
 # Build artifacts
 *.tsbuildinfo
+-e 
+# Environment files
+*.env
+*.env.*
