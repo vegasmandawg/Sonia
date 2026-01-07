@@ -146,6 +146,15 @@ export const getChatHistory = async (): Promise<ChatMessage[]> => {
 
 
 export const sendMessageToAI = async (text: string, config: SoniaConfig, memory: UserMemory, messages: ChatMessage[]): Promise<string> => {
+    // Check rate limit
+    const rateLimitCheck = rateLimiter.checkLimit('text-generation');
+    if (!rateLimitCheck.allowed) {
+        const errorMsg = `Please wait ${rateLimitCheck.retryAfter} seconds before sending another message.`;
+        logger.warn('Rate limit exceeded for text generation', { retryAfter: rateLimitCheck.retryAfter });
+        analytics.trackError(errorMsg, 'RateLimit');
+        throw new Error(errorMsg);
+    }
+
     if (config.modelConfig.provider === 'local') {
         const endpoint = config.modelConfig.localEndpoints.text;
         try {
@@ -172,13 +181,17 @@ export const sendMessageToAI = async (text: string, config: SoniaConfig, memory:
 
             if (!response.ok) {
                 const errorText = await response.text();
+                logger.error('Local model error', new Error(errorText), { endpoint, status: response.status });
                 throw new Error(`Local model error: ${response.status} ${errorText}`);
             }
 
             const data = await response.json();
             if (!data.choices || !data.choices[0] || !data.choices[0].message || typeof data.choices[0].message.content !== 'string') {
+                logger.error('Invalid response from local chat server');
                 throw new Error("Invalid response format from local chat server. Expected OpenAI-compatible format.");
             }
+            
+            analytics.trackFeature('text-generation-local');
             return data.choices[0].message.content;
         } catch (error: any) {
             throw handleLocalFetchError(error, endpoint);
@@ -189,12 +202,20 @@ export const sendMessageToAI = async (text: string, config: SoniaConfig, memory:
         startChat(config, memory, messages);
     }
     if (!chat) {
+        logger.error('Chat initialization failed');
         throw new Error("Chat is not initialized.");
     }
 
-    // FIX: Add explicit type for the API response to fix error "Property 'text' does not exist on type 'unknown'".
-    const result: GenerateContentResponse = await enqueueApiCall(() => chat!.sendMessage({ message: text }));
-    return result.text;
+    try {
+        // FIX: Add explicit type for the API response to fix error "Property 'text' does not exist on type 'unknown'".
+        const result: GenerateContentResponse = await enqueueApiCall(() => chat!.sendMessage({ message: text }));
+        analytics.trackFeature('text-generation-cloud');
+        return result.text;
+    } catch (error: any) {
+        logger.error('Text generation failed', error, { provider: 'cloud' });
+        analytics.trackError(error.message, 'TextGeneration');
+        throw new Error(`Failed to generate response: ${error.message}`);
+    }
 };
 
 
