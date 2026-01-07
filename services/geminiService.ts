@@ -245,6 +245,15 @@ export const generateAvatar = (config: SoniaConfig): Promise<string> => {
 };
 
 export const generateImage = async (prompt: string, config: SoniaConfig): Promise<string> => {
+    // Check rate limit
+    const rateLimitCheck = rateLimiter.checkLimit('image-generation');
+    if (!rateLimitCheck.allowed) {
+        const errorMsg = `Please wait ${rateLimitCheck.retryAfter} seconds before generating another image.`;
+        logger.warn('Rate limit exceeded for image generation', { retryAfter: rateLimitCheck.retryAfter });
+        analytics.trackError(errorMsg, 'RateLimit');
+        throw new Error(errorMsg);
+    }
+
     if (config.modelConfig.provider === 'local') {
         const endpoint = config.modelConfig.localEndpoints.image;
         try {
@@ -256,6 +265,7 @@ export const generateImage = async (prompt: string, config: SoniaConfig): Promis
 
             if (!response.ok) {
                  const errorText = await response.text();
+                logger.error('Local image generation failed', new Error(errorText), { endpoint, status: response.status });
                 throw new Error(`Local image generation failed: ${response.status} ${errorText}`);
             }
 
@@ -263,34 +273,44 @@ export const generateImage = async (prompt: string, config: SoniaConfig): Promis
             const imageData = data.image || (data.images && data.images[0]);
 
             if (!imageData || typeof imageData !== 'string') {
+                logger.error('Invalid response from local image server');
                 throw new Error("Local image server responded, but the response did not contain a valid base64 'image' or 'images' field.");
             }
             
+            analytics.trackFeature('image-generation-local');
             return imageData.startsWith('data:image/') ? imageData : `data:image/jpeg;base64,${imageData}`;
         } catch (error: any) {
             throw handleLocalFetchError(error, endpoint);
         }
     }
 
-    // FIX: Add explicit type for the API response to fix error "Property 'generatedImages' does not exist on type 'unknown'".
-    const response: GenerateImagesResponse = await enqueueApiCall(() => getAi().models.generateImages({
-        model: 'imagen-4.0-generate-001',
-        prompt,
-        config: {
-            numberOfImages: 1,
-            outputMimeType: 'image/jpeg',
-            aspectRatio: '3:4', // Portrait
+    try {
+        // FIX: Add explicit type for the API response to fix error "Property 'generatedImages' does not exist on type 'unknown'".
+        const response: GenerateImagesResponse = await enqueueApiCall(() => getAi().models.generateImages({
+            model: 'imagen-4.0-generate-001',
+            prompt,
+            config: {
+                numberOfImages: 1,
+                outputMimeType: 'image/jpeg',
+                aspectRatio: '3:4', // Portrait
+            }
+        }));
+
+        // FIX: Add a check to prevent crash if no images are returned (e.g., due to safety filters).
+        if (!response?.generatedImages?.length || !response.generatedImages[0].image?.imageBytes) {
+            logger.error("Image generation failed or returned no images", undefined, { response });
+            analytics.trackError('Image generation blocked by safety filters', 'ImageGeneration');
+            throw new Error("The image could not be generated. This is often due to safety filters. Please try adjusting your customization settings or prompt.");
         }
-    }));
 
-    // FIX: Add a check to prevent crash if no images are returned (e.g., due to safety filters).
-    if (!response?.generatedImages?.length || !response.generatedImages[0].image?.imageBytes) {
-        console.error("Image generation failed or returned no images. Response:", response);
-        throw new Error("The image could not be generated. This is often due to safety filters. Please try adjusting your customization settings or prompt.");
+        const base64ImageBytes = response.generatedImages[0].image.imageBytes;
+        analytics.trackFeature('image-generation-cloud');
+        return `data:image/jpeg;base64,${base64ImageBytes}`;
+    } catch (error: any) {
+        logger.error('Image generation failed', error, { provider: 'cloud' });
+        analytics.trackError(error.message, 'ImageGeneration');
+        throw error;
     }
-
-    const base64ImageBytes = response.generatedImages[0].image.imageBytes;
-    return `data:image/jpeg;base64,${base64ImageBytes}`;
 };
 
 export const generateVideo = async (prompt: string, config: SoniaConfig, onProgress: (progress: string) => void): Promise<string> => {
