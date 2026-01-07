@@ -6,7 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node scripts/deploy-cli.js",
+    "deploy:vercel": "vercel --prod",
+    "deploy:netlify": "netlify deploy --prod --dir=dist",
+    "deploy:docker": "docker build -t sonia-ai-companion:latest . && docker run -d --name sonia-ai-companion -p 80:80 sonia-ai-companion:latest",
+    "setup": "bash scripts/setup.sh",
+    "health": "bash scripts/health-check.sh",
+    "monitor": "bash scripts/monitor.sh",
+    "backup": "bash scripts/backup.sh",
+    "test:load": "bash scripts/load-test.sh"
   },
   "dependencies": {
     "react-dom": "^19.2.0",
