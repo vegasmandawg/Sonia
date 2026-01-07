@@ -7,7 +7,13 @@ import ChatScreen from './components/ChatScreen';
 import SettingsModal from './components/SettingsModal';
 import GalleryScreen from './components/GalleryScreen';
 import ScenariosScreen from './components/ScenariosScreen';
+import ErrorBoundary from './components/ErrorBoundary';
+import Toast from './components/Toast';
+import ChatLoadingState from './components/ChatLoadingState';
 import useStore from './store/useStore';
+import { useToast } from './hooks/useToast';
+import { analytics } from './utils/analytics';
+import { logger } from './utils/logger';
 
 const App: React.FC = () => {
     const { 
@@ -18,7 +24,8 @@ const App: React.FC = () => {
         availableVoices, 
         memory, 
         isSoniaSpeaking, 
-        avatarUrl 
+        avatarUrl,
+        isInitialized
     } = useStore(state => ({
         step: state.step,
         messages: state.messages,
@@ -27,7 +34,8 @@ const App: React.FC = () => {
         availableVoices: state.availableVoices,
         memory: state.memory,
         isSoniaSpeaking: state.isSoniaSpeaking,
-        avatarUrl: state.avatarUrl
+        avatarUrl: state.avatarUrl,
+        isInitialized: state.isInitialized
     }));
     
     const { 
@@ -45,9 +53,32 @@ const App: React.FC = () => {
         startScenario,
     } = useStore.getState();
 
+    const { toasts, hideToast } = useToast();
+
     useEffect(() => {
+        // Initialize analytics
+        analytics.init();
+        logger.info('Sonia AI Companion started');
+        
+        // Initialize app
         initialize();
+        
+        // Track initial page view
+        analytics.trackPageView('App Start');
     }, [initialize]);
+
+    // Track step changes
+    useEffect(() => {
+        if (step) {
+            analytics.trackPageView(step);
+            logger.debug('Navigation', { step });
+        }
+    }, [step]);
+
+    // Show loading state while initializing
+    if (!isInitialized && (step === 'chat' || step === 'gallery' || step === 'scenarios')) {
+        return <ChatLoadingState />;
+    }
 
     const renderStep = () => {
         switch (step) {
@@ -82,21 +113,32 @@ const App: React.FC = () => {
     };
 
     return (
-        <>
-            {renderStep()}
-            {isSettingsOpen && (
-                <SettingsModal
-                    isOpen={isSettingsOpen}
-                    onClose={closeSettings}
-                    config={soniaConfig}
-                    onSave={handleSaveSettings}
-                    availableVoices={availableVoices}
-                    memory={memory}
-                    onPinMemory={handlePinMemory}
-                    onDeleteMemory={handleDeleteMemory}
-                />
-            )}
-        </>
+        <ErrorBoundary>
+            <>
+                {renderStep()}
+                {isSettingsOpen && (
+                    <SettingsModal
+                        isOpen={isSettingsOpen}
+                        onClose={closeSettings}
+                        config={soniaConfig}
+                        onSave={handleSaveSettings}
+                        availableVoices={availableVoices}
+                        memory={memory}
+                        onPinMemory={handlePinMemory}
+                        onDeleteMemory={handleDeleteMemory}
+                    />
+                )}
+                {/* Toast Notifications */}
+                {toasts.map((toast) => (
+                    <Toast
+                        key={toast.id}
+                        message={toast.message}
+                        type={toast.type}
+                        onClose={() => hideToast(toast.id)}
+                    />
+                ))}
+            </>
+        </ErrorBoundary>
     );
 };
 
