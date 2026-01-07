@@ -37,7 +37,7 @@ export const DEFAULT_SONIA_CONFIG: SoniaConfig = {
   backstory: "She's a mysterious artist you met at a moonlit gallery opening.",
   nsfwMode: false,
   modelConfig: {
-    provider: 'cloud',
+    provider: 'local',
     localEndpoints: {
       text: 'http://localhost:8080/v1/chat/completions',
       image: 'http://localhost:5000/generate-image',
