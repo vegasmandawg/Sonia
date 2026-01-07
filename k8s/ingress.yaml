@@ -1,0 +1,47 @@
+# Kubernetes Ingress with SSL/TLS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonia-ai-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # Security headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+    # Rate limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "5"
+spec:
+  tls:
+  - hosts:
+    - sonia-ai.example.com
+    - www.sonia-ai.example.com
+    secretName: sonia-ai-tls
+  rules:
+  - host: sonia-ai.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sonia-ai-service
+            port:
+              number: 80
+  - host: www.sonia-ai.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sonia-ai-service
+            port:
+              number: 80
