@@ -14,8 +14,10 @@ import useStore from './store/useStore';
 import { useToast } from './hooks/useToast';
 import { analytics } from './utils/analytics';
 import { logger } from './utils/logger';
+import { shallow } from 'zustand/shallow';
 
 const App: React.FC = () => {
+    // Use shallow comparison to prevent unnecessary re-renders
     const { 
         step, 
         messages, 
@@ -36,7 +38,7 @@ const App: React.FC = () => {
         isSoniaSpeaking: state.isSoniaSpeaking,
         avatarUrl: state.avatarUrl,
         isInitialized: state.isInitialized
-    }));
+    }), shallow);
     
     const { 
         initialize, 
