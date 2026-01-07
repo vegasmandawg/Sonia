@@ -65,7 +65,7 @@ const App: React.FC = () => {
         
         // Track initial page view
         analytics.trackPageView('App Start');
-    }, [initialize]);
+    }, []); // Empty dependency array - only run once on mount
 
     // Track step changes
     useEffect(() => {
