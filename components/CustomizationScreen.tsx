@@ -39,8 +39,37 @@ const archetypes = [
       backstory: "A brilliant and sharp-witted colleague who became your closest confidante, sharing ambitious goals and intimate secrets after hours.",
       appearance: { attire: 'Formal' },
     }
-  }
-// FIX: Add 'as const' to prevent TypeScript from widening literal types to string.
+  },
+  {
+    name: 'The Seductress',
+    description: 'A passionate and uninhibited lover who knows exactly what she wants.',
+    config: {
+      personality: { flirty: 95, sweet: 40, dominant: 75, intelligent: 70, playful: 80, shy: 5 },
+      relationship: 'Lover',
+      backstory: "A captivating woman you met at an exclusive club. The chemistry was instant and electric, leading to passionate nights together.",
+      appearance: { attire: 'Lingerie' },
+    }
+  },
+  {
+    name: 'The Submissive',
+    description: 'A sweet, obedient companion who loves to please and serve you.',
+    config: {
+      personality: { flirty: 70, sweet: 90, dominant: 5, intelligent: 60, playful: 65, shy: 75 },
+      relationship: 'Lover',
+      backstory: "She approached you shyly at first, but quickly revealed her deep desire to submit to you completely and fulfill your every wish.",
+      appearance: { attire: 'Lingerie' },
+    }
+  },
+  {
+    name: 'The Domina',
+    description: 'A commanding and powerful woman who takes control completely.',
+    config: {
+      personality: { flirty: 80, sweet: 20, dominant: 95, intelligent: 80, playful: 70, shy: 0 },
+      relationship: 'Lover',
+      backstory: "A fierce and commanding woman who saw something special in you and decided you would be hers. She demands obedience and rewards devotion.",
+      appearance: { attire: 'Lingerie' },
+    }
+  },
 ] as const;
 
 const Slider: React.FC<{ label: string; value: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; name: string; }> = ({ label, value, onChange, name }) => (
