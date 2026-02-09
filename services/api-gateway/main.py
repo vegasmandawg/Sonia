@@ -476,8 +476,9 @@ async def pending_confirmations(session_id: str):
 
 
 @app.post("/v1/confirmations/{confirmation_id}/approve")
-async def approve_confirmation(confirmation_id: str):
+async def approve_confirmation(request: Request, confirmation_id: str):
     """Approve a pending confirmation and execute the tool."""
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
     result = await confirmation_mgr.approve(confirmation_id)
     if result.get("ok"):
         # Execute the tool now
@@ -488,6 +489,7 @@ async def approve_confirmation(confirmation_id: str):
                     tool_name=token.tool_name,
                     args=token.args,
                     timeout_ms=5000,
+                    correlation_id=correlation_id,
                 )
                 return {
                     "ok": True,

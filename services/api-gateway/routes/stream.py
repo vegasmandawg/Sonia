@@ -1,11 +1,11 @@
 """
-API Gateway — WebSocket Stream Route (Stage 3 + Stage 4)
+API Gateway — WebSocket Stream Route (Stage 3 + Stage 4 + Stage 7)
 
 WS /v1/stream/{session_id}
 
 Bidirectional event-based streaming with text fallback,
 vision ingestion, turn quality controls, memory policy,
-and latency instrumentation.
+latency instrumentation, and end-to-end correlation IDs.
 """
 
 import asyncio
@@ -219,6 +219,7 @@ async def handle_stream(
                     continue
 
                 turn_id = turn_id or f"turn_{uuid.uuid4().hex[:16]}"
+                correlation_id = f"req_{uuid.uuid4().hex[:12]}"
                 t0 = time.monotonic()
                 latency = LatencyBreakdown()
 
@@ -272,7 +273,7 @@ async def handle_stream(
                 mem_ctx = await retrieve_context(
                     memory_client=memory_client,
                     query=input_text,
-                    correlation_id=turn_id,
+                    correlation_id=correlation_id,
                 )
                 retrieved_count = mem_ctx["retrieved_count"]
                 context_text = mem_ctx["context_text"]
@@ -308,6 +309,7 @@ async def handle_stream(
                     chat_resp = await router_client.chat(
                         messages=messages,
                         task_type=task_type,
+                        correlation_id=correlation_id,
                     )
                     assistant_text = chat_resp.get("response", "") or chat_resp.get("text", "") or ""
                     tool_calls_raw = chat_resp.get("tool_calls") or []
@@ -321,6 +323,7 @@ async def handle_stream(
                             chat_resp = await router_client.chat(
                                 messages=fallback_messages,
                                 task_type="text",
+                                correlation_id=correlation_id,
                             )
                             assistant_text = chat_resp.get("response", "") or chat_resp.get("text", "") or ""
                             tool_calls_raw = chat_resp.get("tool_calls") or []
@@ -337,7 +340,7 @@ async def handle_stream(
                                     "retryable": True,
                                 })
                             )
-                            error_log.log({"session_id": session_id, "turn_id": turn_id, "code": exc2.code, "message": exc2.message})
+                            error_log.log({"session_id": session_id, "turn_id": turn_id, "correlation_id": correlation_id, "code": exc2.code, "message": exc2.message})
                             continue
                     else:
                         latency.model_ms = round((time.monotonic() - tmod0) * 1000, 1)
@@ -349,7 +352,7 @@ async def handle_stream(
                                 "retryable": True,
                             })
                         )
-                        error_log.log({"session_id": session_id, "turn_id": turn_id, "code": exc.code, "message": exc.message})
+                        error_log.log({"session_id": session_id, "turn_id": turn_id, "correlation_id": correlation_id, "code": exc.code, "message": exc.message})
                         continue
 
                 latency.model_ms = round((time.monotonic() - tmod0) * 1000, 1)
@@ -376,6 +379,7 @@ async def handle_stream(
 
                     tool_log.log({
                         "session_id": session_id, "turn_id": turn_id,
+                        "correlation_id": correlation_id,
                         "tool_name": tool_name, "classification": classification,
                         "disposition": "pending",
                     })
@@ -390,6 +394,7 @@ async def handle_stream(
                         )
                         tool_log.log({
                             "session_id": session_id, "turn_id": turn_id,
+                            "correlation_id": correlation_id,
                             "tool_name": tool_name, "disposition": "blocked",
                             "policy_reason": "TOOL_BLOCKED",
                         })
@@ -408,6 +413,7 @@ async def handle_stream(
                         )
                         tool_log.log({
                             "session_id": session_id, "turn_id": turn_id,
+                            "correlation_id": correlation_id,
                             "tool_name": tool_name, "disposition": "confirmation_required",
                             "confirmation_id": token.confirmation_id,
                         })
@@ -424,6 +430,7 @@ async def handle_stream(
                             tool_name=tool_name,
                             args=tool_args,
                             timeout_ms=5000,
+                            correlation_id=correlation_id,
                         )
                         await websocket.send_json(
                             _event("tool.call.result", session_id, turn_id=turn_id, payload={
@@ -434,7 +441,7 @@ async def handle_stream(
                         )
                         tool_results.append(exec_resp.get("result", {}))
                         tool_calls_executed += 1
-                        tool_log.log({"session_id": session_id, "turn_id": turn_id, "tool_name": tool_name, "disposition": "executed"})
+                        tool_log.log({"session_id": session_id, "turn_id": turn_id, "correlation_id": correlation_id, "tool_name": tool_name, "disposition": "executed"})
                         tool_events.append({"tool_name": tool_name, "disposition": "executed"})
                     except OpenclawClientError as exc:
                         await websocket.send_json(
@@ -481,7 +488,7 @@ async def handle_stream(
                     vision_summary=f"[vision frame: {vision_frame.mime_type} {vision_frame.size_bytes}B]" if vision_frame else None,
                     tool_events=tool_events if tool_events else None,
                     confirmation_events=confirmation_events if confirmation_events else None,
-                    correlation_id=turn_id,
+                    correlation_id=correlation_id,
                 )
                 latency.memory_write_ms = round((time.monotonic() - tmw0) * 1000, 1)
 
@@ -490,6 +497,7 @@ async def handle_stream(
                 turn_log.log({
                     "session_id": session_id,
                     "turn_id": turn_id,
+                    "correlation_id": correlation_id,
                     "mode": "stream",
                     "task_type": task_type,
                     "input_len": len(input_text),
