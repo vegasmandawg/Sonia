@@ -139,10 +139,12 @@ $hashTargets = @(
 ) | Where-Object { Test-Path $_ }
 Get-FileHash $hashTargets -Algorithm SHA256 | Format-Table -AutoSize | Out-String | Set-Content "$rcDir\filehashes.txt" -Encoding UTF8
 
-# Diff from previous RC tag
-$prevTag = git tag -l "RC*" --sort=-creatordate 2>&1 | Select-Object -First 1
+# Diff from previous RC tag (skip the tag we are about to create)
+$allTags = git tag -l "RC*" --sort=-creatordate 2>&1 | Where-Object { $_ -and ($_ -ne "$Version-$date") }
+$prevTag = $allTags | Select-Object -First 1
 if ($prevTag) {
-    $diff = git diff "$prevTag"..HEAD --stat 2>&1
+    $diffRange = "${prevTag}..HEAD"
+    $diff = git diff $diffRange --stat 2>&1
     $diff | Out-File "$rcDir\diff-from-$prevTag.txt" -Encoding UTF8
 }
 
