@@ -1,0 +1,88 @@
+{
+  "contract_version": "1.0.0",
+  "baseline_release": "v2.5.0",
+  "established": "2026-02-09",
+  "description": "Known-good baseline contract for Sonia v2.5.0 GA. All post-GA changes must pass the 12-gate promotion path before merge.",
+
+  "code": {
+    "tag": "v2.5.0",
+    "commit": "ac64fbbb09791b0f5ee0f8c6249abc2a8942d476",
+    "branch": "master",
+    "stage7_head": "6668e932db23f64c0e6034669ec0de9ac8053f3a",
+    "stages_included": [
+      "Stage 2: Turn Pipeline",
+      "Stage 3: Voice Session Runtime + Tool Safety Gate",
+      "Stage 4: Multimodal Live Operation + Memory Quality Controls",
+      "Stage 5: Action Pipeline + Desktop Adapters",
+      "Stage 6: Reliability Hardening + Release Discipline",
+      "Stage 7: Observability, Recovery Drills, Deterministic Operations"
+    ]
+  },
+
+  "dependencies": {
+    "python_version": "3.11.14",
+    "env_prefix": "S:\\envs\\sonia-core",
+    "package_count": 45,
+    "frozen_manifest": "S:\\config\\requirements-frozen.txt",
+    "frozen_manifest_sha256": "E8A419BA59BC76538BE04122F95F560A9F44EA2649845893B8CFAC22BD5FC3E0",
+    "dependency_lock": "S:\\config\\dependency-lock.json",
+    "dependency_lock_sha256": "E56206FB77D86D2D5923D19EAA48E38839DFDD8732030899105DE5D501A6ADA6",
+    "lock_digest": "06dee34d0c342e5f27e648be3fd8628a924093c9e8570ffa390509b910639ce8",
+    "extra_index_url": "https://download.pytorch.org/whl/cu128"
+  },
+
+  "models": {
+    "default_model": "anthropic/claude-opus-4-6",
+    "fallback_model": "local/qwen",
+    "local_endpoint": "http://127.0.0.1:11434",
+    "backend_capacities": [
+      {"backend": "ollama/qwen2:7b", "max_context": 4096},
+      {"backend": "ollama/qwen2:1.5b", "max_context": 2048},
+      {"backend": "ollama/qwen2-vl:7b", "max_context": 4096},
+      {"backend": "anthropic/claude-opus-4-6", "max_context": 200000},
+      {"backend": "anthropic/claude-sonnet-4-6", "max_context": 200000},
+      {"backend": "anthropic/claude-haiku-4-5", "max_context": 200000}
+    ]
+  },
+
+  "config": {
+    "sonia_config": "S:\\config\\sonia-config.json",
+    "sonia_config_sha256": "63B156701DE5388580DCC318B6C137981B3F0C31853F8A8954CCC7F45465E66C",
+    "ports_yaml": "S:\\configs\\ports.yaml",
+    "sonia_version_field": "1.0.0"
+  },
+
+  "policy": {
+    "tool_safety_tiers": ["safe_read", "guarded_low", "guarded_medium", "guarded_high"],
+    "action_capabilities": 13,
+    "confirmation_ttl_seconds": 120,
+    "circuit_breaker_pattern": "CLOSED -> OPEN -> HALF_OPEN",
+    "breaker_metric_buffer": 200,
+    "dlq_replay_dry_run_default": true
+  },
+
+  "services": {
+    "api-gateway": {"port": 7000, "health": "/healthz"},
+    "model-router": {"port": 7010, "health": "/healthz"},
+    "memory-engine": {"port": 7020, "health": "/healthz"},
+    "pipecat": {"port": 7030, "health": "/healthz"},
+    "openclaw": {"port": 7040, "health": "/healthz"},
+    "eva-os": {"port": 7050, "health": "/healthz"}
+  },
+
+  "test_evidence": {
+    "total_integration_tests": 189,
+    "stage2_tests": 8,
+    "stage3_tests": 25,
+    "stage4_tests": 26,
+    "stage5_tests": 78,
+    "stage6_tests": 27,
+    "stage7_chaos_tests": 15,
+    "stage7_backup_tests": 10,
+    "soak_actions": 240,
+    "soak_slo_violations": 0,
+    "chaos_rto_target_s": 60,
+    "chaos_rto_actual_s": 1,
+    "promotion_gates_passed": 12
+  }
+}

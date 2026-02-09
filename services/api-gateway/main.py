@@ -37,10 +37,13 @@ from jsonl_logger import session_log, error_log
 # FastAPI Application Setup
 # ============================================================================
 
+BASELINE_VERSION = "2.5.0"
+BASELINE_CONTRACT = "v2.5.0"
+
 app = FastAPI(
     title="API Gateway",
     description="Request orchestration to Memory Engine, Model Router, OpenClaw, and Pipecat",
-    version="1.0.0"
+    version=BASELINE_VERSION,
 )
 
 # Global clients (initialized on startup)
@@ -130,7 +133,9 @@ async def healthz():
     return {
         "ok": True,
         "service": "api-gateway",
-        "timestamp": datetime.utcnow().isoformat() + "Z"
+        "version": BASELINE_VERSION,
+        "baseline_contract": BASELINE_CONTRACT,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
     }
 
 

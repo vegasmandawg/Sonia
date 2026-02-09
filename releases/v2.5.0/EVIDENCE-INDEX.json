@@ -1,0 +1,72 @@
+{
+  "evidence_index_version": "1.0.0",
+  "release": "v2.5.0",
+  "tag": "v2.5.0",
+  "commit": "ac64fbbb09791b0f5ee0f8c6249abc2a8942d476",
+  "promoted": "2026-02-09",
+  "baseline_contract": "S:\\config\\baseline-contract.json",
+
+  "artifacts": {
+    "manifest": {
+      "path": "RELEASE-MANIFEST.json",
+      "description": "Release metadata, validation cycle results"
+    },
+    "checksums": {
+      "path": "SHA256SUMS.txt",
+      "description": "SHA-256 checksums for all bundled files"
+    },
+    "decision_record": {
+      "path": "RELEASE-DECISION-RECORD.md",
+      "description": "Go/no-go rationale and sign-off"
+    },
+    "frozen_deps": {
+      "path": "config/requirements-frozen.txt",
+      "description": "Pinned Python dependency versions"
+    },
+    "dep_lock": {
+      "path": "config/dependency-lock.json",
+      "description": "Dependency lock with SHA-256 digest"
+    },
+    "test_report": {
+      "path": "reports/test-report.txt",
+      "description": "Full regression suite output (164/164 passed)"
+    },
+    "soak_report": {
+      "path": "reports/soak-report.txt",
+      "description": "240-action soak test with latency percentiles"
+    },
+    "ops_drill_report": {
+      "path": "reports/ops-drill-report.txt",
+      "description": "DLQ, breaker, rollback ops drill results"
+    },
+    "promotion_gate_v1": {
+      "path": "scripts/promotion-gate.ps1",
+      "description": "6-gate promotion checklist (Stage 6)"
+    },
+    "ops_drill_script": {
+      "path": "scripts/release-ops-drill.ps1",
+      "description": "5-drill ops exercise script"
+    },
+    "rollback_script": {
+      "path": "scripts/rollback-to-stage5.ps1",
+      "description": "One-command rollback with -DryRun support"
+    },
+    "soak_script": {
+      "path": "scripts/soak_stage6_latency.ps1",
+      "description": "240-action soak with SLO budgets"
+    },
+    "stage_docs": {
+      "turn_pipeline": "docs/TURN_PIPELINE.md",
+      "voice_sessions": "docs/STAGE3_VOICE_SESSIONS.md",
+      "multimodal": "docs/STAGE4_MULTIMODAL.md",
+      "reliability": "docs/STAGE6_RELIABILITY.md"
+    }
+  },
+
+  "retrieval": {
+    "note": "All evidence is co-located under S:\\releases\\v2.5.0\\. This index is the single entry point for audit.",
+    "baseline_contract_ref": "S:\\config\\baseline-contract.json",
+    "stage7_docs_ref": "S:\\docs\\STAGE7_OBSERVABILITY.md",
+    "promotion_gate_v2_ref": "S:\\scripts\\promotion-gate-v2.ps1"
+  }
+}
