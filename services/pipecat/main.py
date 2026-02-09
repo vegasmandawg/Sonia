@@ -15,6 +15,11 @@ from sessions import SessionManager, SessionState
 from routes.ws import websocket_handler
 from clients.api_gateway_client import ApiGatewayClient, ApiGatewayClientError
 
+# Voice loop hardening modules
+from app.session_manager import VoiceSessionManager
+from app.telemetry import TurnTelemetryLogger
+from app.model_router_client import close_client as close_model_router_client
+
 # ============================================================================
 # FastAPI Application Setup
 # ============================================================================
@@ -28,6 +33,8 @@ app = FastAPI(
 # Global managers and clients
 session_manager: Optional[SessionManager] = None
 api_gateway_client: Optional[ApiGatewayClient] = None
+voice_session_manager: Optional[VoiceSessionManager] = None
+turn_telemetry: Optional[TurnTelemetryLogger] = None
 
 
 def generate_correlation_id() -> str:
@@ -44,31 +51,48 @@ def log_event(event_dict: dict):
 @app.on_event("startup")
 async def startup_event():
     """Initialize session manager and clients."""
-    global session_manager, api_gateway_client
-    
+    global session_manager, api_gateway_client, voice_session_manager, turn_telemetry
+
     # Create session manager with optional persistence
     session_manager = SessionManager(persist_dir="S:\\data\\sessions")
     session_manager.load_persisted()
-    
+
     # Initialize API Gateway client
     api_gateway_client = ApiGatewayClient(base_url="http://127.0.0.1:7000")
-    
+
+    # Initialize voice loop hardening components
+    voice_session_manager = VoiceSessionManager(cleanup_timeout=5.0)
+    turn_telemetry = TurnTelemetryLogger()
+
     log_event({
         "level": "INFO",
         "service": "pipecat",
         "event": "startup",
-        "message": "Pipecat initialized with session manager"
+        "message": "Pipecat initialized with session manager and voice loop hardening"
     })
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup resources."""
-    global api_gateway_client
-    
+    global api_gateway_client, voice_session_manager
+
+    # Close voice sessions cleanly
+    if voice_session_manager:
+        closed = await voice_session_manager.close_all(reason="shutdown")
+        log_event({
+            "level": "INFO",
+            "service": "pipecat",
+            "event": "voice_sessions_closed",
+            "count": closed,
+        })
+
+    # Close HTTP clients
+    await close_model_router_client()
+
     if api_gateway_client:
         await api_gateway_client.close()
-    
+
     log_event({
         "level": "INFO",
         "service": "pipecat",
@@ -83,12 +107,26 @@ async def shutdown_event():
 
 @app.get("/healthz")
 async def healthz():
-    """Health check endpoint."""
-    return {
+    """Health check endpoint — enriched with voice loop runtime details."""
+    health = {
         "ok": True,
         "service": "pipecat",
-        "timestamp": datetime.utcnow().isoformat() + "Z"
+        "timestamp": datetime.utcnow().isoformat() + "Z",
     }
+
+    # Voice loop details (non-breaking: only present when components are init'd)
+    if voice_session_manager is not None:
+        health["voice"] = {
+            "active_sessions": voice_session_manager.active_count,
+        }
+
+    if turn_telemetry is not None:
+        health["telemetry"] = {
+            "turns_logged": turn_telemetry.turn_count,
+            "log_path": str(turn_telemetry.log_path),
+        }
+
+    return health
 
 
 @app.get("/")

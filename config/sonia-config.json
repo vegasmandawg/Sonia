@@ -93,7 +93,16 @@
     "streaming_asr_enabled": true,
     "barge_in_enabled": true,
     "save_audio_artifacts": false,
-    "audio_artifact_path": "S:\\voice\\recordings\\raw"
+    "audio_artifact_path": "S:\\voice\\recordings\\raw",
+    "voice_loop": {
+      "interrupt_debounce_ms": 150,
+      "asr_timeout_secs": 10.0,
+      "infer_timeout_secs": 30.0,
+      "tts_timeout_secs": 30.0,
+      "session_cleanup_timeout_secs": 5.0,
+      "telemetry_log_path": "S:\\logs\\services\\pipecat\\turns.jsonl",
+      "max_concurrent_sessions": 10
+    }
   },
 
   "memory_engine": {
