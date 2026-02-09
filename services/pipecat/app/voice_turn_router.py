@@ -1,5 +1,5 @@
 """
-Voice Turn Router -- v2.7-m1
+Voice Turn Router -- v2.8-m1
 
 Bridges Pipecat's WebSocket handler to the gateway stream client.
 Routes user text through the real turn pipeline:
@@ -8,7 +8,10 @@ Routes user text through the real turn pipeline:
     -> memory recall -> model chat -> tool exec -> memory write
     -> response.final -> Pipecat WS -> user
 
-Replaces the legacy ApiGatewayClient.chat() with the full pipeline.
+v2.8 additions:
+  - Cancellation support: cancel_turn() aborts in-flight model calls
+  - Barge-in handling: new turn auto-cancels previous turn
+  - No zombie tasks: cancelled turns leave no orphaned async tasks
 
 Event flow per user message:
   1. User sends text via Pipecat WS
@@ -80,6 +83,10 @@ class VoiceTurnRouter:
         self._turn_history: List[VoiceTurnRecord] = []
         self._max_history = 500
 
+        # v2.8: Cancellation tracking per session
+        self._active_tasks: Dict[str, asyncio.Task] = {}  # session_id -> active turn task
+        self._cancelled_turns: List[str] = []  # turn_ids that were cancelled
+
     @property
     def active_sessions(self) -> int:
         return len(self._clients)
@@ -119,6 +126,19 @@ class VoiceTurnRouter:
             timestamp=time.time(),
         )
 
+        # v2.8: Cancel any previous active turn for this session (barge-in)
+        prev_task = self._active_tasks.pop(pipecat_session_id, None)
+        if prev_task is not None and not prev_task.done():
+            prev_task.cancel()
+            try:
+                await prev_task
+            except (asyncio.CancelledError, Exception):
+                pass
+            logger.info("Barge-in: cancelled previous turn for session=%s", pipecat_session_id)
+
+        # Register current task for cancellation
+        self._active_tasks[pipecat_session_id] = asyncio.current_task()
+
         try:
             client = await self._get_or_create_client(pipecat_session_id)
 
@@ -147,12 +167,21 @@ class VoiceTurnRouter:
             record.gateway_latency_ms = result.latency_ms
             record.error = result.error
 
+        except asyncio.CancelledError:
+            record.error = "Turn cancelled"
+            self._cancelled_turns.append(record.turn_id)
+            logger.info("Turn cancelled session=%s turn=%s", pipecat_session_id, record.turn_id)
+
         except Exception as e:
             record.error = f"Router error: {e}"
             logger.error(
                 "Turn failed session=%s corr=%s: %s",
                 pipecat_session_id, correlation_id, e,
             )
+
+        finally:
+            # v2.8: Unregister task -- no zombies
+            self._active_tasks.pop(pipecat_session_id, None)
 
         record.latency_ms = (time.monotonic() - t0) * 1000
 
@@ -170,6 +199,29 @@ class VoiceTurnRouter:
         )
 
         return record
+
+    async def cancel_turn(self, pipecat_session_id: str, reason: str = "user_cancel") -> Optional[str]:
+        """
+        Cancel the active turn for a session.
+
+        Returns the cancelled turn_id, or None if no active turn.
+        This is deterministic: after cancel_turn returns, no zombie tasks remain.
+        """
+        task = self._active_tasks.pop(pipecat_session_id, None)
+        if task is not None and not task.done():
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):
+                pass
+            logger.info("Cancelled active turn for session=%s reason=%s", pipecat_session_id, reason)
+            return pipecat_session_id
+        return None
+
+    @property
+    def active_tasks_count(self) -> int:
+        """Number of in-flight turn tasks across all sessions."""
+        return sum(1 for t in self._active_tasks.values() if not t.done())
 
     async def close_session(self, pipecat_session_id: str) -> bool:
         """Close and cleanup a session's stream client."""
