@@ -30,6 +30,7 @@ from circuit_breaker import get_breaker_registry
 from dead_letter import get_dead_letter_queue
 from health_supervisor import get_health_supervisor
 from action_audit import get_audit_logger
+from state_backup import get_backup_manager
 from jsonl_logger import session_log, error_log
 
 # ============================================================================
@@ -842,6 +843,46 @@ async def diagnostics_snapshot_endpoint(last_n: int = 50):
         snapshot["recent_actions"] = {"error": str(e)}
 
     return snapshot
+
+
+# ============================================================================
+# Stage 7 — State Backup & Restore
+# ============================================================================
+
+@app.post("/v1/backups")
+async def create_backup_endpoint(label: str = ""):
+    """Create a full state backup of DLQ, actions, breakers, and config."""
+    mgr = get_backup_manager()
+    dlq = get_dead_letter_queue()
+    reg = get_breaker_registry()
+    store = action_pipeline.store if action_pipeline else None
+    manifest = await mgr.create_backup(dlq, store, reg, label=label)
+    return {"ok": True, "backup": manifest}
+
+
+@app.get("/v1/backups")
+async def list_backups_endpoint():
+    """List all available state backups."""
+    mgr = get_backup_manager()
+    backups = mgr.list_backups()
+    return {"ok": True, "backups": backups, "total": len(backups)}
+
+
+@app.get("/v1/backups/{backup_id}/verify")
+async def verify_backup_endpoint(backup_id: str):
+    """Verify backup integrity by re-computing checksums."""
+    mgr = get_backup_manager()
+    result = await mgr.verify_backup(backup_id)
+    return result
+
+
+@app.post("/v1/backups/{backup_id}/restore/dlq")
+async def restore_dlq_endpoint(backup_id: str, dry_run: bool = True):
+    """Restore DLQ records from backup. dry_run=true by default."""
+    mgr = get_backup_manager()
+    dlq = get_dead_letter_queue()
+    result = await mgr.restore_dlq(backup_id, dlq, dry_run=dry_run)
+    return result
 
 
 # ============================================================================
