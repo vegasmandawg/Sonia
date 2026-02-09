@@ -1,0 +1,15 @@
+"""
+Model Router App -- Routing Profile Infrastructure
+
+Provides deterministic, auditable routing profiles for the model-router service.
+"""
+
+from app.profiles import (
+    ProfileName,
+    ReasonCode,
+    RetryPolicy,
+    RoutingProfile,
+    ProfileRegistry,
+    classify_request,
+    default_profiles,
+)
