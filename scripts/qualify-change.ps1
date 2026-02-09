@@ -58,12 +58,17 @@ function Write-Gate {
 # ─────────────────────────────────────────────────────────────────────
 Write-Host "`n=== GATE 1: Static Checks ===" -ForegroundColor Cyan
 
-# Python compile check
+# Python syntax check via ast.parse (avoids .pyc file locks from running services)
 $pyFail = @()
-Get-ChildItem -Path "S:\services" -Recurse -Filter "*.py" | ForEach-Object {
-    $r = & "S:\envs\sonia-core\python.exe" -m py_compile $_.FullName 2>&1
+$savedEAP = $ErrorActionPreference
+$ErrorActionPreference = 'SilentlyContinue'
+Get-ChildItem -Path "S:\services" -Recurse -Filter "*.py" -File `
+    | Where-Object { $_.FullName -notmatch '__pycache__' } `
+    | ForEach-Object {
+    $null = & "S:\envs\sonia-core\python.exe" -c "import ast,sys; ast.parse(open(sys.argv[1],'r',encoding='utf-8').read())" $_.FullName 2>&1
     if ($LASTEXITCODE -ne 0) { $pyFail += $_.FullName }
 }
+$ErrorActionPreference = $savedEAP
 Write-Gate "Python syntax" ($pyFail.Count -eq 0) "$($pyFail.Count) errors"
 
 # PowerShell parse check
