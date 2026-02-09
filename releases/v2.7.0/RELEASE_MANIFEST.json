@@ -1,0 +1,32 @@
+{
+  "release": "v2.7.0",
+  "codename": "Companion Runtime -- Streaming Hazards",
+  "created_at": "2026-02-09T19:49:19.311329Z",
+  "promotion_gate": "PASSED (9/9 non-skipped)",
+  "test_counts": {
+    "v27_contract_freeze": 40,
+    "v27_protocol_invariants": 19,
+    "v27_soak_faults": 12,
+    "v27_voice_turn_loop": 10,
+    "v27_perception_runtime": 11,
+    "v27_ui_console_bridge": 16,
+    "v27_action_execution": 20,
+    "v27_cross_track": 18,
+    "v26_backward_compat": 82,
+    "total": 228
+  },
+  "artifacts": {
+    "promotion-gate-report.json": {
+      "sha256": "c141bc4cce25d089e59312bc9389183e72978e1986393352071edb4cb0370e32",
+      "size_bytes": 3634
+    },
+    "requirements-frozen.txt": {
+      "sha256": "a8a6af7f3dba7bd721144a39c1fe76fccd0726203784caddee0ddb6a96ee6277",
+      "size_bytes": 3102
+    },
+    "dependency-lock.json": {
+      "sha256": "5cc5b026f35590761b4ef580360d7227931f3992d4a271fbbcbf887d418a4509",
+      "size_bytes": 3402
+    }
+  }
+}
