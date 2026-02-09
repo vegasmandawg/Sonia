@@ -21,8 +21,11 @@ from routes.sessions import handle_create_session, handle_get_session, handle_de
 from routes.stream import handle_stream
 from schemas.turn import TurnRequest
 from schemas.session import SessionCreateRequest, ConfirmationDecisionRequest
+from schemas.action import ActionPlanRequest, ActionPlanResponse, ActionStatusResponse, ActionQueueResponse
 from session_manager import SessionManager
 from tool_policy import GatewayConfirmationManager
+from action_pipeline import ActionPipeline
+from capability_registry import get_capability_registry
 from jsonl_logger import session_log, error_log
 
 # ============================================================================
@@ -44,6 +47,9 @@ openclaw_client: Optional[OpenclawClient] = None
 session_mgr = SessionManager()
 confirmation_mgr = GatewayConfirmationManager()
 
+# Stage 5: action pipeline (initialized on startup when openclaw_client is ready)
+action_pipeline: Optional[ActionPipeline] = None
+
 
 def generate_correlation_id() -> str:
     """Generate a unique correlation ID for request tracing."""
@@ -59,11 +65,12 @@ def log_event(event_dict: dict):
 @app.on_event("startup")
 async def startup_event():
     """Initialize clients and log startup."""
-    global memory_client, router_client, openclaw_client
+    global memory_client, router_client, openclaw_client, action_pipeline
 
     memory_client = MemoryClient(base_url="http://127.0.0.1:7020")
     router_client = RouterClient(base_url="http://127.0.0.1:7010")
     openclaw_client = OpenclawClient(base_url="http://127.0.0.1:7040")
+    action_pipeline = ActionPipeline(openclaw_client)
 
     log_event({
         "level": "INFO",
@@ -503,6 +510,131 @@ async def deny_confirmation(
         "confirmation_id": confirmation_id,
         "status": result.get("status", "denied"),
         "reason": result.get("reason", reason),
+    }
+
+
+# ============================================================================
+# Stage 5 — Action Pipeline
+# ============================================================================
+
+@app.post("/v1/actions/plan")
+async def plan_action_endpoint(request: Request, body: ActionPlanRequest):
+    """
+    Plan and optionally execute a desktop action.
+    dry_run=true → validate only; safe actions execute immediately;
+    guarded actions go to pending_approval state.
+    """
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
+    result = await action_pipeline.run(body, correlation_id)
+
+    log_event({
+        "level": "INFO",
+        "service": "api-gateway",
+        "operation": "action.plan",
+        "action_id": result.action_id,
+        "intent": result.intent,
+        "state": result.state,
+        "ok": result.ok,
+        "correlation_id": correlation_id,
+    })
+
+    return result.dict(exclude_none=True)
+
+
+@app.get("/v1/actions/{action_id}")
+async def get_action_endpoint(action_id: str):
+    """Get the current state of an action."""
+    record = await action_pipeline.store.get(action_id)
+    if not record:
+        return JSONResponse(status_code=404, content={
+            "ok": False,
+            "error": {"code": "NOT_FOUND", "message": f"Action {action_id} not found"},
+        })
+    return {"ok": True, "action": record.dict(exclude_none=True)}
+
+
+@app.post("/v1/actions/{action_id}/approve")
+async def approve_action_endpoint(request: Request, action_id: str):
+    """Approve a pending action and trigger execution."""
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
+    result = await action_pipeline.approve(action_id)
+
+    log_event({
+        "level": "INFO",
+        "service": "api-gateway",
+        "operation": "action.approve",
+        "action_id": action_id,
+        "state": result.state,
+        "ok": result.ok,
+        "correlation_id": correlation_id,
+    })
+
+    return result.dict(exclude_none=True)
+
+
+@app.post("/v1/actions/{action_id}/deny")
+async def deny_action_endpoint(request: Request, action_id: str):
+    """Deny a pending action."""
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
+    result = await action_pipeline.deny(action_id)
+
+    log_event({
+        "level": "INFO",
+        "service": "api-gateway",
+        "operation": "action.deny",
+        "action_id": action_id,
+        "state": result.state,
+        "ok": result.ok,
+        "correlation_id": correlation_id,
+    })
+
+    return result.dict(exclude_none=True)
+
+
+@app.get("/v1/actions")
+async def list_actions_endpoint(
+    state: Optional[str] = None,
+    session_id: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+):
+    """List actions with optional filters."""
+    actions = await action_pipeline.store.list_actions(
+        state=state, session_id=session_id, limit=limit, offset=offset
+    )
+    total = await action_pipeline.store.count(state=state)
+    return {
+        "ok": True,
+        "actions": [a.dict(exclude_none=True) for a in actions],
+        "total": total,
+        "filters": {"state": state, "session_id": session_id, "limit": limit, "offset": offset},
+    }
+
+
+@app.get("/v1/capabilities")
+async def capabilities_endpoint():
+    """List all registered action capabilities."""
+    reg = get_capability_registry()
+    caps = reg.list_all()
+    return {
+        "ok": True,
+        "capabilities": [
+            {
+                "intent": c.intent,
+                "display_name": c.display_name,
+                "description": c.description,
+                "risk_level": c.risk_level,
+                "requires_confirmation": c.requires_confirmation,
+                "implemented": c.implemented,
+                "required_params": c.required_params,
+                "optional_params": c.optional_params,
+                "idempotent": c.idempotent,
+                "reversible": c.reversible,
+                "tags": list(c.tags),
+            }
+            for c in caps
+        ],
+        "stats": reg.stats(),
     }
 
 
