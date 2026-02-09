@@ -20,6 +20,11 @@ from app.confirmations import (
     ConfirmationManager,
 )
 
+from app.action_guard import (
+    GuardResult,
+    ActionGuard,
+)
+
 __all__ = [
     # Policy engine
     "ActionVerdict",
@@ -32,4 +37,7 @@ __all__ = [
     "ConfirmationToken",
     "RedeemResult",
     "ConfirmationManager",
+    # Action guard
+    "GuardResult",
+    "ActionGuard",
 ]
