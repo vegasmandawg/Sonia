@@ -1,11 +1,33 @@
+# Runtime artifacts
 reports/
 logs/
 tmp/
 state/
 data/
 cache/
+
+# Python
 *.pyc
 __pycache__/
 *.egg-info/
+*.pyd
+
+# Secrets
 .env
+.env.example
+
+# System
 *.pid
+$RECYCLE.BIN/
+System Volume Information/
+nul
+
+# Large binary/tool directories
+tools/
+models/
+envs/
+baselines/
+.pnpm-store/
+
+# Integration upstream sources
+integrations/*/upstream/
