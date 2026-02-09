@@ -28,3 +28,8 @@ from app.budget_guard import (
     BackendCapacity,
     BudgetGuard,
 )
+
+from app.route_audit import (
+    AuditRecord,
+    RouteAuditLogger,
+)
