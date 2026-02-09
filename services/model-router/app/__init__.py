@@ -13,3 +13,8 @@ from app.profiles import (
     classify_request,
     default_profiles,
 )
+
+from app.routing_engine import (
+    RouteDecision,
+    RoutingEngine,
+)
