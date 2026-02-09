@@ -1,52 +1,11 @@
-﻿# Python
-__pycache__/
+reports/
+logs/
+tmp/
+state/
+data/
+cache/
 *.pyc
-*.pyo
-*.pyd
-.venv/
-.pytest_cache/
-.mypy_cache/
-
-# Node
-node_modules/
-dist/
-build/
-
-# Env/secrets
+__pycache__/
+*.egg-info/
 .env
-.env.*
-!.env.template
-*.key
-*.pem
-*.pfx
-secrets/local/*
-
-# Logs/state/cache
-logs/**
-!logs/.gitkeep
-cache/**
-state/**
-tmp/**
-
-# Model and data artifacts
-models/**/*
-!models/manifests/**
-datasets/**/*
-data/**/*
-
-# Environments (large, not versioned)
-envs/
-.pnpm-store/
-
-# Baselines (frozen snapshots, managed separately)
-baselines/
-
-# System
-$RECYCLE.BIN/
-System Volume Information/
-nul
-
-# OS
-Thumbs.db
-Desktop.ini
-.DS_Store
+*.pid
