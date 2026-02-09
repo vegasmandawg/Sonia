@@ -26,6 +26,9 @@ from session_manager import SessionManager
 from tool_policy import GatewayConfirmationManager
 from action_pipeline import ActionPipeline
 from capability_registry import get_capability_registry
+from circuit_breaker import get_breaker_registry
+from dead_letter import get_dead_letter_queue
+from health_supervisor import get_health_supervisor
 from jsonl_logger import session_log, error_log
 
 # ============================================================================
@@ -50,6 +53,9 @@ confirmation_mgr = GatewayConfirmationManager()
 # Stage 5: action pipeline (initialized on startup when openclaw_client is ready)
 action_pipeline: Optional[ActionPipeline] = None
 
+# Stage 5 M2: recovery subsystems
+health_supervisor = None
+
 
 def generate_correlation_id() -> str:
     """Generate a unique correlation ID for request tracing."""
@@ -65,25 +71,37 @@ def log_event(event_dict: dict):
 @app.on_event("startup")
 async def startup_event():
     """Initialize clients and log startup."""
-    global memory_client, router_client, openclaw_client, action_pipeline
+    global memory_client, router_client, openclaw_client, action_pipeline, health_supervisor
 
     memory_client = MemoryClient(base_url="http://127.0.0.1:7020")
     router_client = RouterClient(base_url="http://127.0.0.1:7010")
     openclaw_client = OpenclawClient(base_url="http://127.0.0.1:7040")
-    action_pipeline = ActionPipeline(openclaw_client)
+
+    # Stage 5 M2: initialize recovery subsystems
+    breaker_registry = get_breaker_registry()
+    dead_letter_queue = get_dead_letter_queue()
+    action_pipeline = ActionPipeline(openclaw_client, breaker_registry, dead_letter_queue)
+
+    # Start health supervisor background loop
+    health_supervisor = get_health_supervisor()
+    await health_supervisor.start()
 
     log_event({
         "level": "INFO",
         "service": "api-gateway",
         "event": "startup",
-        "message": "API Gateway initialized with downstream clients"
+        "message": "API Gateway initialized with downstream clients and recovery subsystems"
     })
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close clients and log shutdown."""
-    global memory_client, router_client, openclaw_client
+    global memory_client, router_client, openclaw_client, health_supervisor
+
+    # Stop health supervisor
+    if health_supervisor:
+        await health_supervisor.stop()
 
     if memory_client:
         await memory_client.close()
@@ -636,6 +654,99 @@ async def capabilities_endpoint():
         ],
         "stats": reg.stats(),
     }
+
+
+# ============================================================================
+# Stage 5 M2 — Recovery & Observability
+# ============================================================================
+
+@app.get("/v1/health/summary")
+async def health_summary_endpoint():
+    """Get health supervisor summary with per-dependency states."""
+    if not health_supervisor:
+        return {"ok": False, "error": "Health supervisor not initialized"}
+    return {"ok": True, **health_supervisor.summary()}
+
+
+@app.get("/v1/breakers")
+async def breakers_endpoint():
+    """Get circuit breaker states for all dependencies."""
+    reg = get_breaker_registry()
+    return {
+        "ok": True,
+        "breakers": reg.summary(),
+    }
+
+
+@app.post("/v1/breakers/{name}/reset")
+async def reset_breaker_endpoint(name: str):
+    """Manually reset a circuit breaker to CLOSED state."""
+    reg = get_breaker_registry()
+    breaker = reg.get(name)
+    if not breaker:
+        return JSONResponse(status_code=404, content={
+            "ok": False,
+            "error": {"code": "NOT_FOUND", "message": f"Breaker '{name}' not found"},
+        })
+    await breaker.reset()
+    log_event({
+        "level": "INFO",
+        "service": "api-gateway",
+        "operation": "breaker.reset",
+        "breaker": name,
+    })
+    return {"ok": True, "breaker": breaker.to_dict()}
+
+
+@app.get("/v1/dead-letters")
+async def list_dead_letters_endpoint(
+    limit: int = 50,
+    offset: int = 0,
+    include_replayed: bool = False,
+):
+    """List dead letters with optional filters."""
+    dlq = get_dead_letter_queue()
+    letters = await dlq.list_letters(limit=limit, offset=offset,
+                                      include_replayed=include_replayed)
+    total = await dlq.count(include_replayed=include_replayed)
+    return {
+        "ok": True,
+        "dead_letters": [l.to_dict() for l in letters],
+        "total": total,
+    }
+
+
+@app.get("/v1/dead-letters/{letter_id}")
+async def get_dead_letter_endpoint(letter_id: str):
+    """Get a single dead letter by ID."""
+    dlq = get_dead_letter_queue()
+    dl = await dlq.get(letter_id)
+    if not dl:
+        return JSONResponse(status_code=404, content={
+            "ok": False,
+            "error": {"code": "NOT_FOUND", "message": f"Dead letter {letter_id} not found"},
+        })
+    return {"ok": True, "dead_letter": dl.to_dict()}
+
+
+@app.post("/v1/dead-letters/{letter_id}/replay")
+async def replay_dead_letter_endpoint(request: Request, letter_id: str):
+    """Replay a dead-lettered action through the pipeline."""
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
+    result = await action_pipeline.replay_dead_letter(letter_id)
+
+    log_event({
+        "level": "INFO",
+        "service": "api-gateway",
+        "operation": "dead_letter.replay",
+        "letter_id": letter_id,
+        "action_id": result.action_id,
+        "state": result.state,
+        "ok": result.ok,
+        "correlation_id": correlation_id,
+    })
+
+    return result.dict(exclude_none=True)
 
 
 # ============================================================================

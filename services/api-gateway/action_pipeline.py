@@ -18,6 +18,8 @@ from schemas.action import (
 )
 from capability_registry import get_capability_registry, Capability
 from clients.openclaw_client import OpenclawClient, OpenclawClientError
+from circuit_breaker import CircuitBreaker, CircuitOpenError, get_breaker_registry, BreakerRegistry
+from dead_letter import DeadLetterQueue, get_dead_letter_queue
 from jsonl_logger import JsonlLogger
 
 
@@ -129,10 +131,16 @@ class ActionPipeline:
     The public entry-point `run()` orchestrates the full chain.
     """
 
-    def __init__(self, openclaw_client: OpenclawClient):
+    def __init__(self, openclaw_client: OpenclawClient,
+                 breaker_registry: Optional[BreakerRegistry] = None,
+                 dead_letter_queue: Optional[DeadLetterQueue] = None):
         self.store = ActionStore()
         self.registry = get_capability_registry()
         self.openclaw = openclaw_client
+        self.breakers = breaker_registry or get_breaker_registry()
+        self.dlq = dead_letter_queue or get_dead_letter_queue()
+        # Ensure an "openclaw" breaker exists
+        self.breakers.get_or_create("openclaw")
 
     # ── Plan ─────────────────────────────────────────────────────────────
 
@@ -334,18 +342,58 @@ class ActionPipeline:
         await self.store.update_state(action_id, "executing")
         _log_action_event(action_id, "executing", intent=record.intent)
 
+        # Check circuit breaker before proceeding
+        breaker = self.breakers.get("openclaw")
+        if breaker and breaker.state.value == "open":
+            # Short-circuit: breaker is open, go directly to dead letter
+            elapsed = 0.0
+            result = ExecutionResult(
+                success=False,
+                error_code="CIRCUIT_OPEN",
+                error_message=f"Circuit breaker 'openclaw' is OPEN — dependency unavailable",
+                retries_used=0,
+                duration_ms=elapsed,
+            )
+            record.telemetry.execute_ms = elapsed
+            await self.store.update_state(
+                action_id, "failed",
+                execution=result, telemetry=record.telemetry,
+                completed_at=datetime.utcnow(),
+            )
+            # Enqueue to dead letter
+            await self.dlq.enqueue(
+                action_id=record.action_id,
+                intent=record.intent,
+                params=record.params,
+                error_code="CIRCUIT_OPEN",
+                error_message="Circuit breaker open — execution skipped",
+                correlation_id=record.correlation_id,
+                session_id=record.session_id,
+                retries_exhausted=0,
+            )
+            _log_action_event(action_id, "failed",
+                              reason="circuit_open", duration_ms=elapsed)
+            return result
+
         t0 = time.time()
         last_error = None
         retries = 0
 
         for attempt in range(record.max_retries + 1):
             try:
-                openclaw_result = await self.openclaw.execute(
-                    tool_name=record.intent,
-                    args=record.params,
-                    timeout_ms=record.timeout_ms,
-                    correlation_id=record.correlation_id,
-                )
+                # Execute through circuit breaker
+                async def _openclaw_call():
+                    return await self.openclaw.execute(
+                        tool_name=record.intent,
+                        args=record.params,
+                        timeout_ms=record.timeout_ms,
+                        correlation_id=record.correlation_id,
+                    )
+
+                if breaker:
+                    openclaw_result = await breaker.call(_openclaw_call)
+                else:
+                    openclaw_result = await _openclaw_call()
 
                 elapsed = round((time.time() - t0) * 1000, 2)
                 status = openclaw_result.get("status", "error")
@@ -417,6 +465,11 @@ class ActionPipeline:
                         await asyncio.sleep(min(1.5 ** attempt, 5))
                         continue
 
+            except CircuitOpenError as e:
+                last_error = str(e)
+                # Don't retry if breaker opened mid-flight
+                break
+
             except OpenclawClientError as e:
                 last_error = f"{e.code}: {e.message}"
                 retries += 1
@@ -433,9 +486,10 @@ class ActionPipeline:
 
         # Exhausted retries
         elapsed = round((time.time() - t0) * 1000, 2)
+        error_code = "CIRCUIT_OPEN" if "Circuit breaker" in (last_error or "") else "EXECUTION_FAILED"
         result = ExecutionResult(
             success=False,
-            error_code="EXECUTION_FAILED",
+            error_code=error_code,
             error_message=last_error or "Execution failed after retries",
             retries_used=retries,
             duration_ms=elapsed,
@@ -446,8 +500,22 @@ class ActionPipeline:
             execution=result, telemetry=record.telemetry,
             completed_at=datetime.utcnow(), retry_count=retries,
         )
+
+        # Enqueue to dead letter queue on exhausted retries
+        await self.dlq.enqueue(
+            action_id=record.action_id,
+            intent=record.intent,
+            params=record.params,
+            error_code=error_code,
+            error_message=last_error or "Execution failed after retries",
+            correlation_id=record.correlation_id,
+            session_id=record.session_id,
+            retries_exhausted=retries,
+        )
+
         _log_action_event(action_id, "failed",
-                          reason=last_error, retries=retries, duration_ms=elapsed)
+                          reason=last_error, retries=retries, duration_ms=elapsed,
+                          dead_lettered=True)
         return result
 
     # ── Verify (placeholder — full impl in M3) ──────────────────────────
@@ -628,6 +696,38 @@ class ActionPipeline:
                    "message": execution.error_message} if not execution.success else None,
             correlation_id=record.correlation_id,
         )
+
+    async def replay_dead_letter(self, letter_id: str) -> ActionPlanResponse:
+        """Replay a dead-lettered action by re-running it through the pipeline."""
+        dl = await self.dlq.get(letter_id)
+        if not dl:
+            return ActionPlanResponse(
+                ok=False, action_id="", state="failed", intent="unknown",
+                error={"code": "NOT_FOUND", "message": f"Dead letter {letter_id} not found"},
+            )
+        if dl.replayed:
+            return ActionPlanResponse(
+                ok=False, action_id=dl.replay_action_id or "", state="failed",
+                intent=dl.intent,
+                error={"code": "ALREADY_REPLAYED",
+                       "message": f"Dead letter {letter_id} already replayed"},
+            )
+
+        # Re-run through the full pipeline
+        req = ActionPlanRequest(
+            intent=dl.intent,
+            params=dl.params,
+            session_id=dl.session_id,
+        )
+        correlation_id = dl.correlation_id or f"replay_{uuid.uuid4().hex[:8]}"
+        result = await self.run(req, correlation_id)
+
+        # Mark as replayed
+        await self.dlq.mark_replayed(letter_id, result.action_id)
+
+        _log_action_event(result.action_id, "replayed_from_dead_letter",
+                          letter_id=letter_id, original_action_id=dl.action_id)
+        return result
 
     async def deny(self, action_id: str) -> ActionPlanResponse:
         """Deny a pending action."""
