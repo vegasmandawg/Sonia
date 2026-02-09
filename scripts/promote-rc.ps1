@@ -48,7 +48,7 @@ Write-Host "`nRunning 3 qualification cycles..." -ForegroundColor Cyan
 
 $cycleResults = @()
 for ($i = 1; $i -le 3; $i++) {
-    Write-Host "`n--- Cycle $i/3 ---" -ForegroundColor Yellow
+    Write-Host "`n--- Cycle ${i}/3 ---" -ForegroundColor Yellow
 
     # Stop all
     $ports = @(7050, 7040, 7030, 7020, 7010, 7000)
@@ -93,10 +93,10 @@ for ($i = 1; $i -le 3; $i++) {
 
     $cyclePass = $startOk -and $healthOk
     $cycleResults += $cyclePass
-    Write-Host "Cycle $i: $(if ($cyclePass) { 'PASS' } else { 'FAIL' })" -ForegroundColor $(if ($cyclePass) { "Green" } else { "Red" })
+    Write-Host "Cycle ${i}: $(if ($cyclePass) { 'PASS' } else { 'FAIL' })" -ForegroundColor $(if ($cyclePass) { "Green" } else { "Red" })
 
     if (-not $cyclePass) {
-        Write-Host "`nCycle $i failed. Promotion aborted." -ForegroundColor Red
+        Write-Host "`nCycle ${i} failed. Promotion aborted." -ForegroundColor Red
         exit 1
     }
 }
