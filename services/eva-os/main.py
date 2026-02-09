@@ -264,6 +264,7 @@ async def startup_event():
         _orch_path = str(Path(__file__).resolve().parent / "app" / "orchestrator.py")
         _spec = importlib.util.spec_from_file_location("safe_orchestrator", _orch_path)
         _mod = importlib.util.module_from_spec(_spec)
+        sys.modules["safe_orchestrator"] = _mod
         _spec.loader.exec_module(_mod)
         _safe_orchestrator = _mod.SafeOrchestrator()
         logger.info("EVA-OS: SafeOrchestrator initialized")

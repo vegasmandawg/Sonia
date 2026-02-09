@@ -387,13 +387,24 @@ async def deps_endpoint(request: Request):
             "error": e.code
         }
 
-    # Note: Pipecat check would go here (7030)
-    # For now, marked as pending implementation
-    deps["pipecat"] = {
-        "status": "pending",
-        "port": 7030,
-        "message": "Pipecat Phase 2 - coming soon"
-    }
+    # Check Pipecat via health endpoint
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            resp = await client.get("http://127.0.0.1:7030/healthz")
+            resp.raise_for_status()
+            pipecat_data = resp.json()
+            deps["pipecat"] = {
+                "status": "ok",
+                "port": 7030,
+                "service": pipecat_data.get("service")
+            }
+    except Exception:
+        deps["pipecat"] = {
+            "status": "unavailable",
+            "port": 7030,
+            "error": "HEALTH_CHECK_FAILED"
+        }
 
     return {
         "ok": all(d.get("status") == "ok" for d in deps.values() if d.get("status") != "pending"),

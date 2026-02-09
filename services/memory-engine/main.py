@@ -133,7 +133,7 @@ def recall(memory_id: str):
         if memory.get('metadata'):
             try:
                 metadata = json.loads(memory['metadata'])
-            except:
+            except (json.JSONDecodeError, TypeError):
                 pass
         
         return {
@@ -203,7 +203,7 @@ async def update(memory_id: str, request: UpdateRequest):
         if memory.get('metadata'):
             try:
                 metadata = json.loads(memory['metadata'])
-            except:
+            except (json.JSONDecodeError, TypeError):
                 pass
         
         return {
