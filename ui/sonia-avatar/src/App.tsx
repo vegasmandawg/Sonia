@@ -1,13 +1,62 @@
-import React from "react";
+/**
+ * App -- Root component (v2.6-c1 production-hardened)
+ *
+ * Wires:
+ *   - 3D avatar scene (Canvas)
+ *   - StatusIndicator (5-state connection, emotion, conversation, hold)
+ *   - ControlBar (ACK model, interrupt, replay, diagnostics toggle)
+ *   - DiagnosticsPanel (slide-out)
+ *   - Connection manager auto-connect on mount
+ */
+
+import React, { useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import AvatarScene from "./three/AvatarScene";
 import ControlBar from "./components/ControlBar";
 import StatusIndicator from "./components/StatusIndicator";
+import DiagnosticsPanel from "./components/DiagnosticsPanel";
 import { useSoniaStore } from "./state/store";
+import { connectionManager } from "./state/connection";
+
+declare global {
+  interface Window {
+    soniaAPI?: {
+      getBackendWS: () => Promise<string>;
+      minimize: () => Promise<void>;
+      maximize: () => Promise<void>;
+      close: () => Promise<void>;
+    };
+  }
+}
+
+const FALLBACK_WS = "ws://127.0.0.1:7000/v1/stream";
 
 export default function App() {
   const connectionStatus = useSoniaStore((s) => s.connectionStatus);
   const emotion = useSoniaStore((s) => s.emotion);
+  const conversationState = useSoniaStore((s) => s.conversationState);
+  const reconnectAttempts = useSoniaStore((s) => s.reconnectAttempts);
+  const holdActive = useSoniaStore((s) => s.holdActive);
+  const diagnostics = useSoniaStore((s) => s.diagnostics);
+
+  // Auto-connect on mount
+  useEffect(() => {
+    const init = async () => {
+      let wsUrl = FALLBACK_WS;
+      if (window.soniaAPI) {
+        try {
+          wsUrl = await window.soniaAPI.getBackendWS();
+        } catch {
+          // fallback
+        }
+      }
+      connectionManager.connect(wsUrl);
+    };
+    init();
+    return () => {
+      connectionManager.disconnect();
+    };
+  }, []);
 
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
@@ -24,7 +73,13 @@ export default function App() {
       <StatusIndicator
         connectionStatus={connectionStatus}
         emotion={emotion}
+        conversationState={conversationState}
+        reconnectAttempts={reconnectAttempts}
+        holdActive={holdActive}
       />
+
+      {/* Diagnostics panel (slide-out) */}
+      <DiagnosticsPanel data={diagnostics} />
 
       {/* Bottom control bar */}
       <ControlBar />

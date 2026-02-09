@@ -1,12 +1,23 @@
 /**
- * ControlBar — Bottom operator controls
+ * ControlBar -- Bottom operator controls (v2.6-c1 production-hardened)
  *
- * Minimalist dark red/black theme.
- * Controls: mic, cam, privacy indicator, hold, interrupt, replay last, diagnostics.
+ * ACK model: toggles go through requestToggle* -> backend WS -> ack/nack.
+ * Pending controls show a pulsing indicator. On NACK/timeout, the toggle
+ * automatically reverts.
+ *
+ * Controls:
+ *   MIC  -- toggle microphone (optimistic + ACK)
+ *   CAM  -- toggle camera (optimistic + ACK)
+ *   EYE  -- toggle privacy/vision (optimistic + ACK)
+ *   HLD  -- hold conversation (optimistic + ACK)
+ *   INT  -- interrupt / barge-in (fire-and-forget, ACK clears state)
+ *   RPL  -- replay last response (fire-and-forget, ACK clears state)
+ *   DX   -- toggle diagnostics panel
  */
 
 import React from "react";
 import { useSoniaStore } from "../state/store";
+import { connectionManager } from "../state/connection";
 
 const BAR_STYLE: React.CSSProperties = {
   position: "absolute",
@@ -36,7 +47,8 @@ const BTN_STYLE: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  transition: "background 0.15s, border-color 0.15s",
+  transition: "background 0.15s, border-color 0.15s, opacity 0.15s",
+  position: "relative",
 };
 
 const BTN_ACTIVE: React.CSSProperties = {
@@ -46,81 +58,187 @@ const BTN_ACTIVE: React.CSSProperties = {
   borderColor: "#cc3333",
 };
 
+const BTN_PENDING: React.CSSProperties = {
+  ...BTN_STYLE,
+  opacity: 0.6,
+  cursor: "wait",
+};
+
 interface ControlButtonProps {
   label: string;
   active?: boolean;
+  pending?: boolean;
+  disabled?: boolean;
   onClick: () => void;
   title: string;
 }
 
-function ControlButton({ label, active, onClick, title }: ControlButtonProps) {
+function ControlButton({ label, active, pending, disabled, onClick, title }: ControlButtonProps) {
+  const style = pending
+    ? BTN_PENDING
+    : active
+    ? BTN_ACTIVE
+    : BTN_STYLE;
+
   return (
     <button
-      style={active ? BTN_ACTIVE : BTN_STYLE}
-      onClick={onClick}
-      title={title}
+      style={{ ...style, ...(disabled ? { opacity: 0.3, cursor: "not-allowed" } : {}) }}
+      onClick={() => !disabled && !pending && onClick()}
+      title={pending ? `${title} (pending...)` : title}
       onMouseEnter={(e) => {
-        (e.target as HTMLButtonElement).style.borderColor = "#cc3333";
+        if (!disabled && !pending) {
+          (e.target as HTMLButtonElement).style.borderColor = "#cc3333";
+        }
       }}
       onMouseLeave={(e) => {
-        if (!active) (e.target as HTMLButtonElement).style.borderColor = "#3a1515";
+        if (!active && !pending) {
+          (e.target as HTMLButtonElement).style.borderColor = "#3a1515";
+        }
       }}
     >
       {label}
+      {pending && (
+        <span
+          style={{
+            position: "absolute",
+            top: 2,
+            right: 2,
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "#cc6633",
+            animation: "pulse 1s infinite",
+          }}
+        />
+      )}
     </button>
   );
 }
+
+const DIVIDER: React.CSSProperties = {
+  width: 1,
+  height: 24,
+  background: "#2a1010",
+};
 
 export default function ControlBar() {
   const micEnabled = useSoniaStore((s) => s.micEnabled);
   const camEnabled = useSoniaStore((s) => s.camEnabled);
   const privacyEnabled = useSoniaStore((s) => s.privacyEnabled);
-  const toggleMic = useSoniaStore((s) => s.toggleMic);
-  const toggleCam = useSoniaStore((s) => s.toggleCam);
-  const togglePrivacy = useSoniaStore((s) => s.togglePrivacy);
+  const holdActive = useSoniaStore((s) => s.holdActive);
+  const pendingControls = useSoniaStore((s) => s.pendingControls);
+  const interruptPending = useSoniaStore((s) => s.interruptPending);
+  const replayPending = useSoniaStore((s) => s.replayPending);
+  const connectionStatus = useSoniaStore((s) => s.connectionStatus);
+  const diagnosticsVisible = useSoniaStore((s) => s.diagnostics.visible);
+  const conversationState = useSoniaStore((s) => s.conversationState);
+
+  const requestToggleMic = useSoniaStore((s) => s.requestToggleMic);
+  const requestToggleCam = useSoniaStore((s) => s.requestToggleCam);
+  const requestTogglePrivacy = useSoniaStore((s) => s.requestTogglePrivacy);
+  const requestToggleHold = useSoniaStore((s) => s.requestToggleHold);
+  const requestInterrupt = useSoniaStore((s) => s.requestInterrupt);
+  const requestReplay = useSoniaStore((s) => s.requestReplay);
+  const toggleDiagnostics = useSoniaStore((s) => s.toggleDiagnostics);
+
+  const isConnected = connectionStatus === "connected";
+  const isPending = (field: string) => pendingControls.some((p) => p.field === field);
+
+  const handleToggleMic = () => {
+    const p = requestToggleMic();
+    connectionManager.sendControlToggle("micEnabled", p.targetValue);
+  };
+
+  const handleToggleCam = () => {
+    const p = requestToggleCam();
+    connectionManager.sendControlToggle("camEnabled", p.targetValue);
+  };
+
+  const handleTogglePrivacy = () => {
+    const p = requestTogglePrivacy();
+    connectionManager.sendControlToggle("privacyEnabled", p.targetValue);
+  };
+
+  const handleToggleHold = () => {
+    const p = requestToggleHold();
+    connectionManager.sendHold(p.targetValue);
+  };
+
+  const handleInterrupt = () => {
+    requestInterrupt();
+    connectionManager.sendInterrupt();
+  };
+
+  const handleReplay = () => {
+    requestReplay();
+    connectionManager.sendReplay();
+  };
+
+  // Interrupt only available when speaking or thinking
+  const canInterrupt = isConnected && (conversationState === "speaking" || conversationState === "thinking");
+  // Replay only when idle and we have a last message
+  const canReplay = isConnected && conversationState === "idle";
 
   return (
     <div style={BAR_STYLE}>
+      {/* Toggle controls (ACK model) */}
       <ControlButton
         label={micEnabled ? "MIC" : "MUT"}
         active={micEnabled}
-        onClick={toggleMic}
+        pending={isPending("micEnabled")}
+        disabled={!isConnected}
+        onClick={handleToggleMic}
         title={micEnabled ? "Mute microphone" : "Unmute microphone"}
       />
       <ControlButton
         label={camEnabled ? "CAM" : "---"}
         active={camEnabled}
-        onClick={toggleCam}
+        pending={isPending("camEnabled")}
+        disabled={!isConnected}
+        onClick={handleToggleCam}
         title={camEnabled ? "Disable camera" : "Enable camera"}
       />
       <ControlButton
         label={privacyEnabled ? "EYE" : "BLD"}
         active={privacyEnabled}
-        onClick={togglePrivacy}
+        pending={isPending("privacyEnabled")}
+        disabled={!isConnected}
+        onClick={handleTogglePrivacy}
         title={privacyEnabled ? "Privacy: vision enabled" : "Privacy: vision blocked"}
       />
 
-      <div style={{ width: 1, height: 24, background: "#2a1010" }} />
+      <div style={DIVIDER} />
 
       <ControlButton
-        label="HLD"
-        onClick={() => console.log("hold")}
-        title="Hold conversation"
+        label={holdActive ? "RSM" : "HLD"}
+        active={holdActive}
+        pending={isPending("holdActive")}
+        disabled={!isConnected}
+        onClick={handleToggleHold}
+        title={holdActive ? "Resume conversation" : "Hold conversation"}
       />
       <ControlButton
         label="INT"
-        onClick={() => console.log("interrupt")}
+        pending={interruptPending}
+        disabled={!canInterrupt}
+        onClick={handleInterrupt}
         title="Interrupt / barge in"
       />
       <ControlButton
         label="RPL"
-        onClick={() => console.log("replay last")}
+        pending={replayPending}
+        disabled={!canReplay}
+        onClick={handleReplay}
         title="Replay last response"
       />
+
+      <div style={DIVIDER} />
+
       <ControlButton
         label="DX"
-        onClick={() => console.log("diagnostics snapshot")}
-        title="Capture diagnostics snapshot"
+        active={diagnosticsVisible}
+        onClick={toggleDiagnostics}
+        title="Toggle diagnostics panel"
       />
     </div>
   );
