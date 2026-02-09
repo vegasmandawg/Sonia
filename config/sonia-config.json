@@ -131,6 +131,13 @@
     "audit_log": "S:\\audit\\tool-calls.json"
   },
 
+  "action_safety": {
+    "confirmation_ttl_seconds": 120,
+    "max_pending_confirmations": 50,
+    "default_verdict": "confirm",
+    "custom_rules": []
+  },
+
   "api_gateway": {
     "max_request_size_mb": 100,
     "streaming_enabled": true,
