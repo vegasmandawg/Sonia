@@ -163,7 +163,7 @@ class CapabilityRegistry:
             tags={"browser", "network"},
         ))
 
-        # ── Stage 5 desktop capabilities (stubs — executors land in M3) ──
+        # ── Stage 5 M3 desktop capabilities (executors in openclaw) ────
 
         self.register(Capability(
             intent="app.launch",
@@ -171,11 +171,11 @@ class CapabilityRegistry:
             description="Launch a desktop application by name or path",
             risk_level="medium",
             requires_confirmation=True,
-            implemented=False,
+            implemented=True,
             required_params=["target"],
             optional_params=["args", "working_dir"],
             idempotent=False,
-            reversible=True,   # can close what we launched
+            reversible=True,
             tags={"desktop", "app"},
         ))
 
@@ -185,7 +185,7 @@ class CapabilityRegistry:
             description="Close a running application gracefully",
             risk_level="high",
             requires_confirmation=True,
-            implemented=False,
+            implemented=True,
             required_params=["target"],
             optional_params=["force"],
             idempotent=True,
@@ -199,8 +199,8 @@ class CapabilityRegistry:
             description="Bring a window to the foreground",
             risk_level="safe",
             requires_confirmation=False,
-            implemented=False,
-            required_params=["title_pattern"],
+            implemented=True,
+            required_params=["title"],
             idempotent=True,
             reversible=False,
             tags={"desktop", "window"},
@@ -212,7 +212,7 @@ class CapabilityRegistry:
             description="List all visible desktop windows",
             risk_level="safe",
             requires_confirmation=False,
-            implemented=False,
+            implemented=True,
             required_params=[],
             idempotent=True,
             reversible=False,
@@ -225,7 +225,7 @@ class CapabilityRegistry:
             description="Send keyboard input to the active window",
             risk_level="high",
             requires_confirmation=True,
-            implemented=False,
+            implemented=True,
             required_params=["text"],
             optional_params=["delay_ms"],
             idempotent=False,
@@ -239,7 +239,7 @@ class CapabilityRegistry:
             description="Send a keyboard shortcut (e.g. Ctrl+S)",
             risk_level="high",
             requires_confirmation=True,
-            implemented=False,
+            implemented=True,
             required_params=["keys"],
             idempotent=False,
             reversible=False,
@@ -252,7 +252,7 @@ class CapabilityRegistry:
             description="Click at screen coordinates",
             risk_level="high",
             requires_confirmation=True,
-            implemented=False,
+            implemented=True,
             required_params=["x", "y"],
             optional_params=["button", "clicks"],
             idempotent=False,
@@ -266,7 +266,7 @@ class CapabilityRegistry:
             description="Read text from the system clipboard",
             risk_level="safe",
             requires_confirmation=False,
-            implemented=False,
+            implemented=True,
             required_params=[],
             idempotent=True,
             reversible=False,
@@ -279,7 +279,7 @@ class CapabilityRegistry:
             description="Write text to the system clipboard",
             risk_level="low",
             requires_confirmation=False,
-            implemented=False,
+            implemented=True,
             required_params=["text"],
             idempotent=True,
             reversible=True,

@@ -29,6 +29,7 @@ from capability_registry import get_capability_registry
 from circuit_breaker import get_breaker_registry
 from dead_letter import get_dead_letter_queue
 from health_supervisor import get_health_supervisor
+from action_audit import get_audit_logger
 from jsonl_logger import session_log, error_log
 
 # ============================================================================
@@ -747,6 +748,31 @@ async def replay_dead_letter_endpoint(request: Request, letter_id: str):
     })
 
     return result.dict(exclude_none=True)
+
+
+@app.get("/v1/audit-trails")
+async def list_audit_trails_endpoint(limit: int = 50, offset: int = 0):
+    """List recent action audit trails."""
+    audit = get_audit_logger()
+    trails = audit.list_trails(limit=limit, offset=offset)
+    return {
+        "ok": True,
+        "trails": trails,
+        "total": audit.count(),
+    }
+
+
+@app.get("/v1/audit-trails/{action_id}")
+async def get_audit_trail_endpoint(action_id: str):
+    """Get the audit trail for a specific action."""
+    audit = get_audit_logger()
+    trail = audit.get_trail(action_id)
+    if not trail:
+        return JSONResponse(status_code=404, content={
+            "ok": False,
+            "error": {"code": "NOT_FOUND", "message": f"Audit trail for {action_id} not found"},
+        })
+    return {"ok": True, "trail": trail.to_dict()}
 
 
 # ============================================================================

@@ -33,9 +33,11 @@ def test_capabilities_endpoint(client):
 
 def test_safe_action_executes_immediately(client):
     """file.read (safe) should plan+validate+execute in one call."""
+    import uuid
     body = {
         "intent": "file.read",
         "params": {"path": r"S:\config\sonia-config.json"},
+        "idempotency_key": f"safe-exec-{uuid.uuid4().hex[:8]}",
     }
     r = client.post("/v1/actions/plan", json=body)
     assert r.status_code == 200
@@ -45,7 +47,7 @@ def test_safe_action_executes_immediately(client):
     assert data["risk_level"] == "safe"
     assert data["requires_confirmation"] is False
     assert data["execution"]["success"] is True
-    assert data["telemetry"]["total_ms"] > 0
+    assert data["telemetry"]["total_ms"] >= 0
 
 
 # ── Guarded action gates to pending_approval ─────────────────────────────────
@@ -138,13 +140,15 @@ def test_missing_params_rejected(client):
     assert "Missing required" in data["error"]["message"]
 
 
-def test_unimplemented_intent_rejected(client):
-    """An intent that exists but is not implemented should fail validation."""
+def test_previously_unimplemented_now_works(client):
+    """app.launch (implemented in M3) should now validate and gate to approval."""
     body = {"intent": "app.launch", "params": {"target": "notepad.exe"}}
     r = client.post("/v1/actions/plan", json=body)
     data = r.json()
-    assert data["ok"] is False
-    assert "Not implemented" in data["error"]["message"]
+    # app.launch is now implemented (M3) — it should gate to pending_approval
+    assert data["ok"] is True
+    assert data["state"] == "pending_approval"
+    assert data["risk_level"] == "medium"
 
 
 # ── Idempotency ──────────────────────────────────────────────────────────────

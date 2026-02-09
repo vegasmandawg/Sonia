@@ -20,6 +20,7 @@ from capability_registry import get_capability_registry, Capability
 from clients.openclaw_client import OpenclawClient, OpenclawClientError
 from circuit_breaker import CircuitBreaker, CircuitOpenError, get_breaker_registry, BreakerRegistry
 from dead_letter import DeadLetterQueue, get_dead_letter_queue
+from action_audit import get_audit_logger, AuditLogger
 from jsonl_logger import JsonlLogger
 
 
@@ -139,6 +140,7 @@ class ActionPipeline:
         self.openclaw = openclaw_client
         self.breakers = breaker_registry or get_breaker_registry()
         self.dlq = dead_letter_queue or get_dead_letter_queue()
+        self.audit = get_audit_logger()
         # Ensure an "openclaw" breaker exists
         self.breakers.get_or_create("openclaw")
 
@@ -552,17 +554,28 @@ class ActionPipeline:
         # Phase 1: Plan
         record = await self.plan(req, correlation_id)
 
+        # Create audit trail
+        trail = self.audit.create_trail(record.action_id, record.intent, correlation_id)
+        trail.record("plan", "completed", duration_ms=record.telemetry.plan_ms,
+                      risk_level=record.risk_level, dry_run=record.dry_run)
+
         # Phase 2: Validate
         validation = await self.validate(record.action_id)
 
         # Refresh record after validation
         record = await self.store.get(record.action_id)
+        trail.record("validate", "passed" if validation.valid else "failed",
+                      duration_ms=record.telemetry.validate_ms,
+                      checks_total=len(validation.checks) if validation.checks else 0)
 
         # Early exit: validation failed
         if not validation.valid:
             record.telemetry.total_ms = round((time.time() - t_start) * 1000, 2)
             await self.store.update_state(record.action_id, record.state,
                                           telemetry=record.telemetry)
+            trail.record("lifecycle", "validation_failed",
+                          detail=validation.rejection_reason)
+            self.audit.flush_trail(record.action_id)
             return ActionPlanResponse(
                 ok=False,
                 action_id=record.action_id,
@@ -582,6 +595,8 @@ class ActionPipeline:
             record.telemetry.total_ms = round((time.time() - t_start) * 1000, 2)
             await self.store.update_state(record.action_id, "validated",
                                           telemetry=record.telemetry)
+            trail.record("lifecycle", "dry_run_complete")
+            self.audit.flush_trail(record.action_id)
             return ActionPlanResponse(
                 ok=True,
                 action_id=record.action_id,
@@ -601,6 +616,9 @@ class ActionPipeline:
             record.telemetry.total_ms = round((time.time() - t_start) * 1000, 2)
             await self.store.update_state(record.action_id, "pending_approval",
                                           telemetry=record.telemetry)
+            trail.record("approval", "pending",
+                          detail=f"Awaiting operator approval (risk={record.risk_level})")
+            self.audit.flush_trail(record.action_id)
             return ActionPlanResponse(
                 ok=True,
                 action_id=record.action_id,
@@ -616,15 +634,25 @@ class ActionPipeline:
         # Phase 3: Execute (safe actions proceed immediately)
         execution = await self.execute(record.action_id)
         record = await self.store.get(record.action_id)
+        trail.record("execute", "succeeded" if execution.success else "failed",
+                      duration_ms=record.telemetry.execute_ms,
+                      retries_used=execution.retries_used if execution else 0,
+                      error_code=execution.error_code if not execution.success else None)
 
         # Phase 4: Verify (if succeeded)
         if execution.success:
             await self.verify(record.action_id)
             record = await self.store.get(record.action_id)
+            trail.record("verify", "passed", duration_ms=record.telemetry.verify_ms)
 
         record.telemetry.total_ms = round((time.time() - t_start) * 1000, 2)
         await self.store.update_state(record.action_id, record.state,
                                       telemetry=record.telemetry)
+
+        trail.record("lifecycle", "complete",
+                      final_state=record.state,
+                      total_ms=record.telemetry.total_ms)
+        self.audit.flush_trail(record.action_id)
 
         return ActionPlanResponse(
             ok=execution.success,

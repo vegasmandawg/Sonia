@@ -363,16 +363,16 @@ def test_health_supervisor_overall_state():
 
 # ── Integration: Failed action lands in dead letter ──────────────────────────
 
-def test_failed_action_with_unimplemented_does_not_dead_letter(client):
-    """Unimplemented intent fails at validation — no dead letter created."""
+def test_unknown_intent_does_not_dead_letter(client):
+    """Unknown intent fails at validation — no dead letter created."""
     # Get current DL count
     dl_before = client.get("/v1/dead-letters").json()["total"]
 
-    body = {"intent": "app.launch", "params": {"target": "notepad.exe"}}
+    body = {"intent": "nonexistent.action", "params": {}}
     r = client.post("/v1/actions/plan", json=body)
     data = r.json()
     assert data["ok"] is False
-    assert "Not implemented" in data["error"]["message"]
+    assert "Unknown intent" in data["error"]["message"]
 
     # DL count should not increase (validation failure, not execution failure)
     dl_after = client.get("/v1/dead-letters").json()["total"]

@@ -12,6 +12,7 @@ from policy import get_policy, SecurityTier
 from executors.shell_exec import ShellExecutor
 from executors.file_exec import FileExecutor
 from executors.browser_exec import BrowserExecutor
+from executors.desktop_exec import DesktopExecutor
 
 
 # ============================================================================
@@ -148,6 +149,116 @@ class BrowserOpenExecutor(ToolExecutor):
 
 
 # ============================================================================
+# Desktop Executor Implementations (Stage 5 M3)
+# ============================================================================
+
+class AppLaunchExecutor(ToolExecutor):
+    """Executor for app.launch tool."""
+    def __init__(self):
+        self.desktop = DesktopExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        target = args.get("target", "")
+        app_args = args.get("args", [])
+        if not target:
+            return {"error": "target argument required"}
+        success, result, error = self.desktop.app_launch(target, app_args, **kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+class AppCloseExecutor(ToolExecutor):
+    """Executor for app.close tool."""
+    def __init__(self):
+        self.desktop = DesktopExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        target = args.get("target", "")
+        force = args.get("force", False)
+        if not target:
+            return {"error": "target argument required"}
+        success, result, error = self.desktop.app_close(target, force, **kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+class WindowFocusExecutor(ToolExecutor):
+    """Executor for window.focus tool."""
+    def __init__(self):
+        self.desktop = DesktopExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        title = args.get("title", "")
+        if not title:
+            return {"error": "title argument required"}
+        success, result, error = self.desktop.window_focus(title, **kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+class WindowListExecutor(ToolExecutor):
+    """Executor for window.list tool."""
+    def __init__(self):
+        self.desktop = DesktopExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        success, result, error = self.desktop.window_list(**kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+class KeyboardTypeExecutor(ToolExecutor):
+    """Executor for keyboard.type tool."""
+    def __init__(self):
+        self.desktop = DesktopExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        text = args.get("text", "")
+        if not text:
+            return {"error": "text argument required"}
+        success, result, error = self.desktop.keyboard_type(text, **kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+class KeyboardHotkeyExecutor(ToolExecutor):
+    """Executor for keyboard.hotkey tool."""
+    def __init__(self):
+        self.desktop = DesktopExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        keys = args.get("keys", "")
+        if not keys:
+            return {"error": "keys argument required"}
+        success, result, error = self.desktop.keyboard_hotkey(keys, **kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+class MouseClickExecutor(ToolExecutor):
+    """Executor for mouse.click tool."""
+    def __init__(self):
+        self.desktop = DesktopExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        x = args.get("x")
+        y = args.get("y")
+        button = args.get("button", "left")
+        if x is None or y is None:
+            return {"error": "x and y arguments required"}
+        success, result, error = self.desktop.mouse_click(x, y, button, **kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+class ClipboardReadExecutor(ToolExecutor):
+    """Executor for clipboard.read tool."""
+    def __init__(self):
+        self.desktop = DesktopExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        success, result, error = self.desktop.clipboard_read(**kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+class ClipboardWriteExecutor(ToolExecutor):
+    """Executor for clipboard.write tool."""
+    def __init__(self):
+        self.desktop = DesktopExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        text = args.get("text", "")
+        if text is None:
+            return {"error": "text argument required"}
+        success, result, error = self.desktop.clipboard_write(text, **kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+# ============================================================================
 # Tool Registry
 # ============================================================================
 
@@ -210,6 +321,107 @@ class ToolRegistry:
             requires_sandboxing=False,
             default_timeout_ms=5000,
             executor=BrowserOpenExecutor()
+        )
+
+        # ── Stage 5 M3: Desktop tools ────────────────────────────
+
+        # Tool 5: app.launch
+        self.register_tool(
+            name="app.launch",
+            display_name="App Launch",
+            description="Launch an application by name or path",
+            tier=SecurityTier.TIER_1_COMPUTE.value,
+            requires_sandboxing=False,
+            default_timeout_ms=10000,
+            executor=AppLaunchExecutor()
+        )
+
+        # Tool 6: app.close
+        self.register_tool(
+            name="app.close",
+            display_name="App Close",
+            description="Close an application by name",
+            tier=SecurityTier.TIER_2_CREATE.value,
+            requires_sandboxing=False,
+            default_timeout_ms=10000,
+            executor=AppCloseExecutor()
+        )
+
+        # Tool 7: window.focus
+        self.register_tool(
+            name="window.focus",
+            display_name="Window Focus",
+            description="Focus a window by title",
+            tier=SecurityTier.TIER_1_COMPUTE.value,
+            requires_sandboxing=False,
+            default_timeout_ms=5000,
+            executor=WindowFocusExecutor()
+        )
+
+        # Tool 8: window.list
+        self.register_tool(
+            name="window.list",
+            display_name="Window List",
+            description="List all visible windows",
+            tier=SecurityTier.TIER_0_READONLY.value,
+            requires_sandboxing=False,
+            default_timeout_ms=5000,
+            executor=WindowListExecutor()
+        )
+
+        # Tool 9: keyboard.type
+        self.register_tool(
+            name="keyboard.type",
+            display_name="Keyboard Type",
+            description="Type text using SendKeys",
+            tier=SecurityTier.TIER_2_CREATE.value,
+            requires_sandboxing=False,
+            default_timeout_ms=10000,
+            executor=KeyboardTypeExecutor()
+        )
+
+        # Tool 10: keyboard.hotkey
+        self.register_tool(
+            name="keyboard.hotkey",
+            display_name="Keyboard Hotkey",
+            description="Send a keyboard hotkey combination",
+            tier=SecurityTier.TIER_2_CREATE.value,
+            requires_sandboxing=False,
+            default_timeout_ms=5000,
+            executor=KeyboardHotkeyExecutor()
+        )
+
+        # Tool 11: mouse.click
+        self.register_tool(
+            name="mouse.click",
+            display_name="Mouse Click",
+            description="Click at screen coordinates",
+            tier=SecurityTier.TIER_2_CREATE.value,
+            requires_sandboxing=False,
+            default_timeout_ms=5000,
+            executor=MouseClickExecutor()
+        )
+
+        # Tool 12: clipboard.read
+        self.register_tool(
+            name="clipboard.read",
+            display_name="Clipboard Read",
+            description="Read text from the Windows clipboard",
+            tier=SecurityTier.TIER_0_READONLY.value,
+            requires_sandboxing=False,
+            default_timeout_ms=5000,
+            executor=ClipboardReadExecutor()
+        )
+
+        # Tool 13: clipboard.write
+        self.register_tool(
+            name="clipboard.write",
+            display_name="Clipboard Write",
+            description="Write text to the Windows clipboard",
+            tier=SecurityTier.TIER_2_CREATE.value,
+            requires_sandboxing=False,
+            default_timeout_ms=5000,
+            executor=ClipboardWriteExecutor()
         )
     
     def register_tool(
