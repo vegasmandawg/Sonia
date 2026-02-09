@@ -16,6 +16,8 @@ from app.session_manager import VoiceSession, VoiceSessionManager
 from app.interruptions import handle_interrupt, InterruptResult, clear_interrupt_state
 from app.tts_client import synthesize_cancellable
 from app.model_router_client import infer_cancellable, close_client as close_model_client
+from app.watchdog import run_with_timeout, StageTimeout, WatchdogResult
+from app.asr_client import transcribe_guarded
 
 __all__ = [
     "TurnState",
@@ -31,4 +33,8 @@ __all__ = [
     "synthesize_cancellable",
     "infer_cancellable",
     "close_model_client",
+    "run_with_timeout",
+    "StageTimeout",
+    "WatchdogResult",
+    "transcribe_guarded",
 ]
