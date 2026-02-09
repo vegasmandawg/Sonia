@@ -5,6 +5,42 @@ All notable changes to Sonia will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - Unreleased (Companion Experience Layer)
+
+### Added
+
+#### Track A: Persona + Fine-tune Pipeline
+- Dataset directory contract: `S:\datasets\{text,vision,speech}\{raw,curated,processed}` + manifests + exports
+- Dataset manifest schema (`datasets/manifests/schema.py`): per-file SHA-256, versioning, verification
+- 5-stage text processing pipeline (`pipeline/text/process.py`): normalize, dedupe, classify, split, export JSONL
+- Identity invariant enforcement (`pipeline/text/identity_invariants.py`): audit/enforce mode, configurable anchor patterns
+- Evaluation harness (`pipeline/eval/harness.py`): consistency, verbosity, refusal, tool misuse, regression checks
+- 13 seed evaluation prompts (`pipeline/eval/seed_prompts.jsonl`)
+
+#### Track B: Vision Presence
+- Vision capture service on port 7060 (`services/vision-capture/main.py`)
+  - RAM ring buffer (300 frames), ambient (1fps) / active (10fps) modes
+  - Privacy hard gate: zero frames accepted when disabled, buffer cleared immediately
+  - Frame size limit (1MB), rate limiting per mode
+- Perception pipeline on port 7070 (`services/perception/main.py`)
+  - Event-driven VLM inference (wake_word, motion, user_command, scheduled triggers)
+  - Structured SceneAnalysis output: summary, entities, confidence, recommended action
+  - action_requires_confirmation always true (no auto-execution)
+
+#### Track C: Embodiment UI
+- Electron + React + Three.js avatar application (`ui/sonia-avatar/`)
+  - Zustand state: connection, conversation state, emotion, viseme, amplitude, controls
+  - 3D avatar scene with emotion-driven color, breathing animation, speaking pulse
+  - Operator controls: mic, cam, privacy, hold, interrupt, replay, diagnostics
+  - Dark red/black theme, frameless window
+
+#### Ops
+- v2.6 promotion gate (`scripts/promotion-gate-v26.ps1`): 15 gates (12 inherited + 3 new)
+  - Gate 13: Vision privacy hard gate
+  - Gate 14: UI doesn't block core loop
+  - Gate 15: Model package checksum + rollback verified
+- Updated `sonia-config.json` with vision_capture, perception, and companion_ui sections
+
 ## [1.0.0] - 2026-02-08
 
 ### Added

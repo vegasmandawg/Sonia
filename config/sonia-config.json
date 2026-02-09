@@ -59,6 +59,24 @@
       "health_endpoint": "/healthz",
       "log_file": "S:\\logs\\services\\eva-os.out.log",
       "pid_file": "S:\\state\\pids\\eva-os.pid"
+    },
+    "vision_capture": {
+      "name": "Vision Capture",
+      "port": 7060,
+      "host": "127.0.0.1",
+      "description": "Camera capture, ring buffer, privacy controls",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\vision-capture.out.log",
+      "pid_file": "S:\\state\\pids\\vision-capture.pid"
+    },
+    "perception": {
+      "name": "Perception",
+      "port": 7070,
+      "host": "127.0.0.1",
+      "description": "Event-driven VLM inference, scene analysis",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\perception.out.log",
+      "pid_file": "S:\\state\\pids\\perception.pid"
     }
   },
 
@@ -168,6 +186,35 @@
     "streaming_enabled": true,
     "cors_enabled": true,
     "request_timeout_seconds": 300
+  },
+
+  "vision_capture": {
+    "ring_buffer_max_frames": 300,
+    "ambient_fps": 1.0,
+    "active_fps": 10.0,
+    "ambient_resolution": [320, 240],
+    "active_resolution": [640, 480],
+    "max_frame_bytes": 1048576,
+    "default_privacy": "disabled",
+    "default_mode": "off"
+  },
+
+  "perception": {
+    "max_gpu_budget_ms": 2000,
+    "inference_timeout_s": 10.0,
+    "trigger_types": ["wake_word", "motion", "user_command", "scheduled"],
+    "auto_execute_actions": false,
+    "default_frame_count": 1,
+    "max_frame_count": 5
+  },
+
+  "companion_ui": {
+    "window_width": 480,
+    "window_height": 720,
+    "theme": "dark_red",
+    "avatar_placeholder": true,
+    "websocket_reconnect_ms": 3000,
+    "max_reconnect_attempts": 10
   },
 
   "operational": {
