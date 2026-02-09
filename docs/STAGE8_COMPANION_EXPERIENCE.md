@@ -163,12 +163,33 @@ src/
 
 | State | Values |
 |-------|--------|
-| `connectionStatus` | disconnected, connecting, connected, error |
+| `connectionStatus` | disconnected, connecting, connected, reconnecting, error |
 | `conversationState` | idle, listening, thinking, speaking |
 | `emotion` | neutral, warm, stern, thinking, alert, amused, concerned |
 | `amplitude` | 0.0-1.0 (audio envelope for mouth motion) |
 | `currentViseme` | id + weight + timestamp |
-| `micEnabled` / `camEnabled` / `privacyEnabled` | boolean toggles |
+| `micEnabled` / `camEnabled` / `privacyEnabled` / `holdActive` | boolean toggles with ACK |
+| `pendingControls` | PendingControl[] (field, targetValue, sentAt, timeoutMs) |
+| `interruptPending` / `replayPending` | boolean (fire-and-forget + ACK) |
+| `diagnostics` | DiagnosticsData (session, latency, breakers, DLQ, vision) |
+
+### ACK Model (v2.6-c1)
+
+All control toggles use **optimistic update with rollback**:
+1. UI toggles state immediately (optimistic)
+2. Sends command to backend via WS
+3. Backend processes and sends `ack.control` or `nack.control`
+4. On ACK: pending cleared, state confirmed
+5. On NACK: state rolled back to pre-toggle value
+6. On timeout (5s): state rolled back automatically
+
+### Connection Manager
+
+`src/state/connection.ts` -- singleton WS client:
+- 5-state FSM: disconnected -> connecting -> connected (-> reconnecting -> ...)
+- Exponential backoff: 1s, 2s, 4s, 8s, 16s cap, max 20 attempts
+- Auto-connect on mount, disconnect on unmount
+- ACK expiry timer runs every 1s
 
 ### Expression System
 
@@ -181,20 +202,74 @@ src/
 
 Bottom bar with: MIC, CAM, Privacy, Hold, Interrupt, Replay Last, Diagnostics
 
+- **MIC/CAM/Privacy/Hold**: ACK model (optimistic + rollback), disabled when disconnected
+- **Interrupt**: only enabled when `conversationState` is speaking/thinking
+- **Replay**: only enabled when idle
+- **Diagnostics**: toggles slide-out panel (no ACK needed, client-only)
+
 ### Theme
 
 Minimalist dark red/black: `#0a0a0a` background, `#cc3333` accent, frameless window.
 
+### Diagnostics Panel
+
+`src/components/DiagnosticsPanel.tsx` -- slide-out (right side):
+- Session ID, uptime, turn count
+- Latency breakdown: ASR, Model, Tool, Memory, Total (ms)
+- Circuit breaker states (CLOSED/OPEN/HALF_OPEN with color coding)
+- DLQ depth
+- Vision privacy status + buffer frame count
+- Last error (if any)
+
+## Cross-Track Integration
+
+### Unified Event Envelope
+
+`services/shared/events.py` -- shared event contract:
+- `EventType` enum: 20 cross-service event types
+- `EventEnvelope`: id, timestamp, type, source, correlation_id, payload
+- `generate_correlation_id()`: `req_XXXX` format (12 hex chars)
+- `ensure_correlation_id()`: propagate existing or generate new
+- `envelope.derive()`: create child event preserving correlation_id
+- `validate_envelope()`: structural validation
+
+### Correlation ID Rules
+1. If inbound event has a correlation_id, propagate it
+2. If no correlation_id, generate one (`req_XXXX` format)
+3. All downstream events and logs must carry the same correlation_id
+
 ## Promotion Gate (v2.6)
 
-`S:\scripts\promotion-gate-v26.ps1` — 15 gates total:
+`S:\scripts\promotion-gate-v26.ps1` -- 16 gates across 6 categories:
 
-| # | Gate | Source |
-|---|------|--------|
-| 1-12 | v2.5.0 gates | Inherited |
-| 13 | Vision privacy hard gate | Track B — zero frames when disabled |
-| 14 | UI doesn't block core loop | Track C — gateway <2s under UI load |
-| 15 | Model package checksum + rollback | Track A — fallback model defined |
+| # | Gate | Category |
+|---|------|----------|
+| 1 | Regression test suite | regression |
+| 2 | v2.6 cross-track tests (17) | regression |
+| 3 | All 6 core services healthy | health |
+| 4 | Vision + perception services healthy | health |
+| 5 | Circuit breakers all CLOSED | recovery |
+| 6 | Dead letter queue empty | recovery |
+| 7 | Chaos suite passes | recovery |
+| 8 | Dependencies frozen | artifacts |
+| 9 | Release manifest exists | artifacts |
+| 10 | Rollback script exists | artifacts |
+| 11 | Incident bundle script exists | artifacts |
+| 12 | Diagnostics snapshot works | observability |
+| 13 | Correlation IDs present | observability |
+| 14 | Vision privacy hard gate | companion |
+| 15 | UI doesn't block core loop | companion |
+| 16 | Model package checksum + rollback | companion |
+
+Machine-readable JSON report (schema v2.0) with per-gate timing and environment metadata.
+
+### Rollback
+
+`scripts/rollback-to-v25.ps1` -- safe rollback to v2.5.0-rc1:
+- `-DryRun` support (validate without executing)
+- Rollback markers saved to `S:\reports\rollback\`
+- Stops all services (including v2.6-new: 7060, 7070)
+- Checks out target tag, restarts, verifies health
 
 ## New Services
 
@@ -217,12 +292,34 @@ Minimalist dark red/black: `#0a0a0a` background, `#cc3333` accent, frameless win
 - `S:\services\perception\main.py` — FastAPI perception pipeline
 
 ### Track C
-- `S:\ui\sonia-avatar\` — Full Electron + React + Three.js application
-- `S:\ui\sonia-avatar\electron\main.js` — Electron main process
-- `S:\ui\sonia-avatar\src\state\store.ts` — Zustand state management
-- `S:\ui\sonia-avatar\src\three\AvatarScene.tsx` — 3D avatar scene
-- `S:\ui\sonia-avatar\src\components\ControlBar.tsx` — Operator controls
-- `S:\ui\sonia-avatar\src\components\StatusIndicator.tsx` — Status overlay
+- `S:\ui\sonia-avatar\` -- Full Electron + React + Three.js application
+- `S:\ui\sonia-avatar\electron\main.js` -- Electron main process
+- `S:\ui\sonia-avatar\src\state\store.ts` -- Zustand state (5-state FSM, ACK model)
+- `S:\ui\sonia-avatar\src\state\connection.ts` -- ConnectionManager (WS + reconnect)
+- `S:\ui\sonia-avatar\src\three\AvatarScene.tsx` -- 3D avatar scene
+- `S:\ui\sonia-avatar\src\components\ControlBar.tsx` -- Operator controls (ACK wired)
+- `S:\ui\sonia-avatar\src\components\StatusIndicator.tsx` -- Status overlay (5-state)
+- `S:\ui\sonia-avatar\src\components\DiagnosticsPanel.tsx` -- Diagnostics slide-out
+
+### Cross-Track
+- `S:\services\shared\events.py` -- Unified event envelope + correlation IDs
+
+### Tests
+- `S:\tests\integration\test_v26_cross_track.py` -- 17 integration tests
 
 ### Ops
-- `S:\scripts\promotion-gate-v26.ps1` — 15-gate promotion checklist
+- `S:\scripts\promotion-gate-v26.ps1` -- 16-gate promotion checklist (machine-readable)
+- `S:\scripts\rollback-to-v25.ps1` -- Safe rollback to v2.5.0
+
+## Commit History
+
+| Commit | Description |
+|--------|-------------|
+| `dddebe22` | Foundation: 25 files, 2554 lines across 3 tracks |
+| `2c845496` | v2.6-a1: CLI + deterministic artifacts + schema v1.1.0 |
+| `f88e6174` | v2.6-a2: invariant severity + enforce-mode + fixtures |
+| `61bb6799` | v2.6-b1: capture privacy endpoints + zero-frame guarantees |
+| `52268bf2` | v2.6-b2: perception event contract + SceneAnalysis validation |
+| `6a380446` | v2.6-c1: UI control ACK model + diagnostics panel |
+| `f9745418` | v2.6-i1: unified event envelope + 17 integration tests |
+| `f496fcb2` | v2.6-g1: 16-gate promotion + machine-readable reports |

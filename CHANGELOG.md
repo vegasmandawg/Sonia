@@ -11,34 +11,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Track A: Persona + Fine-tune Pipeline
 - Dataset directory contract: `S:\datasets\{text,vision,speech}\{raw,curated,processed}` + manifests + exports
-- Dataset manifest schema (`datasets/manifests/schema.py`): per-file SHA-256, versioning, verification
-- 5-stage text processing pipeline (`pipeline/text/process.py`): normalize, dedupe, classify, split, export JSONL
-- Identity invariant enforcement (`pipeline/text/identity_invariants.py`): audit/enforce mode, configurable anchor patterns
-- Evaluation harness (`pipeline/eval/harness.py`): consistency, verbosity, refusal, tool misuse, regression checks
+- Dataset manifest schema v1.1.0 (`datasets/manifests/schema.py`): strict key validation, provenance dataclass, SplitConfig/InvariantConfig/ExportConfig, deterministic build IDs via `compute_build_id()`
+- 5-stage text processing pipeline (`pipeline/text/process.py`): normalize, dedupe, classify, split, export JSONL with deterministic output (sorted keys, explicit newlines)
+- Identity invariant enforcement (`pipeline/text/identity_invariants.py`): 3 severity levels (CRITICAL/MAJOR/MINOR), 13 anchor rules with reason codes, threshold-based enforcement, `get_test_fixtures()` for testing
+- Evaluation harness (`pipeline/eval/harness.py`): 5-dimension checks (consistency, verbosity, refusal, tool misuse, regression), baseline comparison with per-category deltas
 - 13 seed evaluation prompts (`pipeline/eval/seed_prompts.jsonl`)
+- Unified CLI (`pipeline/cli.py`): validate-manifest, process-text, enforce-invariants, export-jsonl, run-eval subcommands
 
 #### Track B: Vision Presence
 - Vision capture service on port 7060 (`services/vision-capture/main.py`)
   - RAM ring buffer (300 frames), ambient (1fps) / active (10fps) modes
   - Privacy hard gate: zero frames accepted when disabled, buffer cleared immediately
-  - Frame size limit (1MB), rate limiting per mode
+  - Explicit privacy endpoints: GET/POST privacy status/enable/disable
+  - Per-category rejection counters (privacy, mode, size, rate)
+  - Zero-frame invariant enforced at startup, shutdown, and on every read
 - Perception pipeline on port 7070 (`services/perception/main.py`)
   - Event-driven VLM inference (wake_word, motion, user_command, scheduled triggers)
-  - Structured SceneAnalysis output: summary, entities, confidence, recommended action
-  - action_requires_confirmation always true (no auto-execution)
+  - EventType enum + EventEnvelope model for cross-service event bus
+  - Structured SceneAnalysis output with Pydantic validator enforcing `action_requires_confirmation=True`
+  - Privacy check via vision-capture before any inference (fail-closed)
+  - Event ingestion endpoint: POST /v1/perception/events
+  - Privacy block counter + per-inference timing stats
 
 #### Track C: Embodiment UI
 - Electron + React + Three.js avatar application (`ui/sonia-avatar/`)
-  - Zustand state: connection, conversation state, emotion, viseme, amplitude, controls
+  - Zustand store: 5-state connection FSM (disconnected/connecting/connected/reconnecting/error), optimistic toggles with PendingControl ACK/NACK/timeout rollback, hold/interrupt/replay state, diagnostics snapshot
+  - ConnectionManager: singleton WS client with exponential backoff reconnect (1s-16s cap), inbound event dispatch, outbound command envelope, ACK expiry timer
+  - ControlBar: all buttons wired through ACK model, pending pulse indicator, context-aware disable (interrupt only when speaking/thinking)
+  - DiagnosticsPanel: slide-out showing session, latency breakdown, breaker states, DLQ depth, vision status, last error
+  - StatusIndicator: 5-state dot, reconnect counter, conversation state label, hold badge
   - 3D avatar scene with emotion-driven color, breathing animation, speaking pulse
-  - Operator controls: mic, cam, privacy, hold, interrupt, replay, diagnostics
   - Dark red/black theme, frameless window
 
+#### Cross-Track Integration
+- Unified event envelope (`services/shared/events.py`): EventType enum (20 types), EventEnvelope with auto-generated `req_XXX` correlation IDs, `derive()` for child event propagation, `validate_envelope()`
+- 17 cross-track integration tests (`tests/integration/test_v26_cross_track.py`): Track A (6), Track B (6), Cross-Track (5)
+
 #### Ops
-- v2.6 promotion gate (`scripts/promotion-gate-v26.ps1`): 15 gates (12 inherited + 3 new)
-  - Gate 13: Vision privacy hard gate
-  - Gate 14: UI doesn't block core loop
-  - Gate 15: Model package checksum + rollback verified
+- v2.6 promotion gate (`scripts/promotion-gate-v26.ps1`): 16 gates across 6 categories (regression, health, recovery, artifacts, observability, companion)
+  - Gate 2: v2.6 cross-track test suite (17 tests)
+  - Gate 4: Vision + perception service health
+  - Gate 14: Vision privacy hard gate
+  - Gate 15: UI doesn't block core loop
+  - Gate 16: Model package checksum + rollback
+  - Machine-readable JSON reports (schema v2.0) with per-gate timing and environment metadata
+  - -SkipLiveServices, -SkipUI, -ReportOnly switches
+- Rollback script (`scripts/rollback-to-v25.ps1`): safe rollback to v2.5.0-rc1 with -DryRun support, rollback markers, service stop/restart/health verify
 - Updated `sonia-config.json` with vision_capture, perception, and companion_ui sections
 
 ## [1.0.0] - 2026-02-08
