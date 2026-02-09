@@ -18,6 +18,8 @@ from app.tts_client import synthesize_cancellable
 from app.model_router_client import infer_cancellable, close_client as close_model_client
 from app.watchdog import run_with_timeout, StageTimeout, WatchdogResult
 from app.asr_client import transcribe_guarded
+from app.latency import TurnLatency
+from app.telemetry import TurnTelemetryLogger
 
 __all__ = [
     "TurnState",
@@ -37,4 +39,6 @@ __all__ = [
     "StageTimeout",
     "WatchdogResult",
     "transcribe_guarded",
+    "TurnLatency",
+    "TurnTelemetryLogger",
 ]
