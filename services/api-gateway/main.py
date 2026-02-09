@@ -19,6 +19,7 @@ from routes.action import handle_action
 from routes.turn import handle_turn
 from routes.sessions import handle_create_session, handle_get_session, handle_delete_session
 from routes.stream import handle_stream
+from routes.ui_stream import handle_ui_stream, ui_stream_manager
 from schemas.turn import TurnRequest
 from schemas.session import SessionCreateRequest, ConfirmationDecisionRequest
 from schemas.action import ActionPlanRequest, ActionPlanResponse, ActionStatusResponse, ActionQueueResponse
@@ -457,6 +458,31 @@ async def stream_endpoint(websocket: WebSocket, session_id: str):
             await websocket.close()
         except Exception:
             pass
+
+
+# ============================================================================
+# v2.7 — UI Stream (Electron console bridge)
+# ============================================================================
+
+@app.websocket("/v1/ui/stream")
+async def ui_stream_endpoint(websocket: WebSocket):
+    """
+    UI console WebSocket for control ACK round-trips and diagnostics.
+    Implements the protocol from connection.ts (v2.6-c1).
+    """
+    await websocket.accept()
+    session_id = f"ui-{uuid.uuid4().hex[:8]}"
+    correlation_id = generate_correlation_id()
+    try:
+        await handle_ui_stream(
+            websocket=websocket,
+            session_id=session_id,
+            correlation_id=correlation_id,
+        )
+    except WebSocketDisconnect:
+        pass
+    except Exception:
+        pass
 
 
 # ============================================================================
