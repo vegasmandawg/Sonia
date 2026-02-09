@@ -28,6 +28,18 @@ class BreakerConfig:
     max_jitter_s: float = 5.0           # Random jitter added to recovery timeout
 
 
+MAX_METRIC_EVENTS = 200  # Bounded time-series window
+
+
+@dataclass
+class BreakerMetricEvent:
+    """A single timestamped metric event for a breaker."""
+    timestamp: float
+    event: str       # "success", "failure", "trip", "recover", "short_circuit", "reset"
+    state: str       # State after the event
+    detail: str = ""
+
+
 @dataclass
 class BreakerStats:
     """Runtime statistics for a circuit breaker."""
@@ -41,6 +53,7 @@ class BreakerStats:
     last_success_time: Optional[float] = None
     last_state_change_time: Optional[float] = None
     trips: int = 0  # Number of times breaker opened
+    metric_events: list = field(default_factory=list)  # BreakerMetricEvent list
 
 
 class CircuitBreaker:
@@ -56,6 +69,17 @@ class CircuitBreaker:
         self.stats = BreakerStats()
         self._lock = asyncio.Lock()
         self._half_open_calls = 0
+
+    def _record_metric(self, event: str, detail: str = ""):
+        """Append a time-series metric event, bounded to MAX_METRIC_EVENTS."""
+        self.stats.metric_events.append(BreakerMetricEvent(
+            timestamp=time.time(),
+            event=event,
+            state=self.state.value,
+            detail=detail,
+        ))
+        if len(self.stats.metric_events) > MAX_METRIC_EVENTS:
+            self.stats.metric_events = self.stats.metric_events[-MAX_METRIC_EVENTS:]
 
     async def call(self, func: Callable, *args, **kwargs) -> Any:
         """
@@ -76,6 +100,7 @@ class CircuitBreaker:
                     self.stats.last_state_change_time = now
                 else:
                     self.stats.total_short_circuits += 1
+                    self._record_metric("short_circuit", "OPEN — request rejected")
                     raise CircuitOpenError(
                         self.name,
                         f"Circuit breaker '{self.name}' is OPEN "
@@ -85,6 +110,7 @@ class CircuitBreaker:
             if self.state == BreakerState.HALF_OPEN:
                 if self._half_open_calls >= self.config.half_open_max_calls:
                     self.stats.total_short_circuits += 1
+                    self._record_metric("short_circuit", "HALF_OPEN — max probes")
                     raise CircuitOpenError(
                         self.name,
                         f"Circuit breaker '{self.name}' is HALF_OPEN, max probe calls reached"
@@ -107,11 +133,13 @@ class CircuitBreaker:
             self.stats.consecutive_successes += 1
             self.stats.consecutive_failures = 0
             self.stats.last_success_time = now
+            self._record_metric("success")
 
             if self.state == BreakerState.HALF_OPEN:
                 if self.stats.consecutive_successes >= self.config.success_threshold:
                     self.state = BreakerState.CLOSED
                     self.stats.last_state_change_time = now
+                    self._record_metric("recover", "HALF_OPEN → CLOSED")
 
     async def _record_failure(self):
         async with self._lock:
@@ -120,18 +148,21 @@ class CircuitBreaker:
             self.stats.consecutive_failures += 1
             self.stats.consecutive_successes = 0
             self.stats.last_failure_time = now
+            self._record_metric("failure")
 
             if self.state == BreakerState.HALF_OPEN:
                 # Any failure in half-open trips back to open
                 self.state = BreakerState.OPEN
                 self.stats.trips += 1
                 self.stats.last_state_change_time = now
+                self._record_metric("trip", "HALF_OPEN → OPEN")
 
             elif self.state == BreakerState.CLOSED:
                 if self.stats.consecutive_failures >= self.config.failure_threshold:
                     self.state = BreakerState.OPEN
                     self.stats.trips += 1
                     self.stats.last_state_change_time = now
+                    self._record_metric("trip", "CLOSED → OPEN")
 
     async def reset(self):
         """Manually reset breaker to CLOSED state."""
@@ -141,6 +172,7 @@ class CircuitBreaker:
             self.stats.consecutive_successes = 0
             self._half_open_calls = 0
             self.stats.last_state_change_time = time.time()
+            self._record_metric("reset", "Manual reset → CLOSED")
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize breaker state for observability."""
@@ -160,6 +192,29 @@ class CircuitBreaker:
                 "failure_threshold": self.config.failure_threshold,
                 "recovery_timeout_s": self.config.recovery_timeout_s,
             },
+        }
+
+    def metrics(self, last_n: int = 50) -> Dict[str, Any]:
+        """Export time-series breaker metrics for operator dashboards."""
+        events = self.stats.metric_events[-last_n:] if self.stats.metric_events else []
+        # Summarize by event type
+        by_type: Dict[str, int] = {}
+        for e in self.stats.metric_events:
+            by_type[e.event] = by_type.get(e.event, 0) + 1
+        return {
+            "name": self.name,
+            "state": self.state.value,
+            "event_counts": by_type,
+            "total_metric_events": len(self.stats.metric_events),
+            "recent_events": [
+                {
+                    "timestamp": e.timestamp,
+                    "event": e.event,
+                    "state": e.state,
+                    "detail": e.detail,
+                }
+                for e in events
+            ],
         }
 
 
@@ -195,6 +250,12 @@ class BreakerRegistry:
     def summary(self) -> Dict[str, Any]:
         return {
             name: cb.to_dict() for name, cb in self._breakers.items()
+        }
+
+    def metrics(self, last_n: int = 50) -> Dict[str, Any]:
+        """Export time-series metrics for all breakers."""
+        return {
+            name: cb.metrics(last_n) for name, cb in self._breakers.items()
         }
 
 

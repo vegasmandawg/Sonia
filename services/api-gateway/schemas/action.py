@@ -136,6 +136,10 @@ class ExecutionResult(BaseModel):
         default=None,
         description="Human-readable error message"
     )
+    failure_class: Optional[str] = Field(
+        default=None,
+        description="Failure taxonomy bucket (Stage 6): connection_bootstrap, timeout, circuit_open, etc."
+    )
     retries_used: int = Field(
         default=0,
         description="Number of retries consumed"

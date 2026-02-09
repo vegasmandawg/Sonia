@@ -28,6 +28,7 @@ class DeadLetter:
     session_id: Optional[str]
     created_at: datetime
     retries_exhausted: int
+    failure_class: Optional[str] = None   # Stage 6: retry taxonomy bucket
     replayed: bool = False
     replayed_at: Optional[datetime] = None
     replay_action_id: Optional[str] = None
@@ -40,6 +41,7 @@ class DeadLetter:
             "params": self.params,
             "error_code": self.error_code,
             "error_message": self.error_message,
+            "failure_class": self.failure_class,
             "correlation_id": self.correlation_id,
             "session_id": self.session_id,
             "created_at": self.created_at.isoformat() + "Z",
@@ -74,6 +76,7 @@ class DeadLetterQueue:
         correlation_id: Optional[str] = None,
         session_id: Optional[str] = None,
         retries_exhausted: int = 0,
+        failure_class: Optional[str] = None,
     ) -> str:
         """Add a failed action to the dead letter queue. Returns letter_id."""
         async with self._lock:
@@ -89,6 +92,7 @@ class DeadLetterQueue:
                 session_id=session_id,
                 created_at=datetime.utcnow(),
                 retries_exhausted=retries_exhausted,
+                failure_class=failure_class,
             )
             self._letters[letter_id] = dl
 

@@ -21,6 +21,7 @@ from clients.openclaw_client import OpenclawClient, OpenclawClientError
 from circuit_breaker import CircuitBreaker, CircuitOpenError, get_breaker_registry, BreakerRegistry
 from dead_letter import DeadLetterQueue, get_dead_letter_queue
 from action_audit import get_audit_logger, AuditLogger
+from retry_taxonomy import classify_failure, FailureClass, is_retryable, get_backoff_base
 from jsonl_logger import JsonlLogger
 
 
@@ -349,10 +350,12 @@ class ActionPipeline:
         if breaker and breaker.state.value == "open":
             # Short-circuit: breaker is open, go directly to dead letter
             elapsed = 0.0
+            fc = FailureClass.CIRCUIT_OPEN
             result = ExecutionResult(
                 success=False,
                 error_code="CIRCUIT_OPEN",
                 error_message=f"Circuit breaker 'openclaw' is OPEN — dependency unavailable",
+                failure_class=fc.value,
                 retries_used=0,
                 duration_ms=elapsed,
             )
@@ -372,9 +375,11 @@ class ActionPipeline:
                 correlation_id=record.correlation_id,
                 session_id=record.session_id,
                 retries_exhausted=0,
+                failure_class=fc.value,
             )
             _log_action_event(action_id, "failed",
-                              reason="circuit_open", duration_ms=elapsed)
+                              reason="circuit_open", failure_class=fc.value,
+                              duration_ms=elapsed)
             return result
 
         t0 = time.time()
@@ -419,10 +424,12 @@ class ActionPipeline:
                     return result
 
                 elif status == "policy_denied":
+                    fc = classify_failure(error_code="POLICY_DENIED")
                     result = ExecutionResult(
                         success=False,
                         error_code="POLICY_DENIED",
                         error_message=openclaw_result.get("message", "Policy denied"),
+                        failure_class=fc.value,
                         retries_used=retries,
                         duration_ms=elapsed,
                     )
@@ -443,10 +450,12 @@ class ActionPipeline:
                         await asyncio.sleep(min(1.5 ** attempt, 5))
                         continue
                     # Final timeout
+                    fc = classify_failure(error_code="TIMEOUT")
                     result = ExecutionResult(
                         success=False,
                         error_code="TIMEOUT",
                         error_message="Execution timed out after retries",
+                        failure_class=fc.value,
                         retries_used=retries,
                         duration_ms=round((time.time() - t0) * 1000, 2),
                     )
@@ -486,13 +495,15 @@ class ActionPipeline:
                     await asyncio.sleep(min(1.5 ** attempt, 5))
                     continue
 
-        # Exhausted retries
+        # Exhausted retries — classify failure
         elapsed = round((time.time() - t0) * 1000, 2)
         error_code = "CIRCUIT_OPEN" if "Circuit breaker" in (last_error or "") else "EXECUTION_FAILED"
+        fc = classify_failure(error_code=error_code, error_message=last_error)
         result = ExecutionResult(
             success=False,
             error_code=error_code,
             error_message=last_error or "Execution failed after retries",
+            failure_class=fc.value,
             retries_used=retries,
             duration_ms=elapsed,
         )
@@ -513,10 +524,12 @@ class ActionPipeline:
             correlation_id=record.correlation_id,
             session_id=record.session_id,
             retries_exhausted=retries,
+            failure_class=fc.value,
         )
 
         _log_action_event(action_id, "failed",
-                          reason=last_error, retries=retries, duration_ms=elapsed,
+                          reason=last_error, failure_class=fc.value,
+                          retries=retries, duration_ms=elapsed,
                           dead_lettered=True)
         return result
 
@@ -725,8 +738,14 @@ class ActionPipeline:
             correlation_id=record.correlation_id,
         )
 
-    async def replay_dead_letter(self, letter_id: str) -> ActionPlanResponse:
-        """Replay a dead-lettered action by re-running it through the pipeline."""
+    async def replay_dead_letter(self, letter_id: str,
+                                dry_run: bool = False) -> ActionPlanResponse:
+        """
+        Replay a dead-lettered action by re-running it through the pipeline.
+
+        If dry_run=True, validate only (no execution) and include a diff
+        showing what would change compared to the original failure.
+        """
         dl = await self.dlq.get(letter_id)
         if not dl:
             return ActionPlanResponse(
@@ -741,20 +760,47 @@ class ActionPipeline:
                        "message": f"Dead letter {letter_id} already replayed"},
             )
 
-        # Re-run through the full pipeline
+        # Build the replay request
         req = ActionPlanRequest(
             intent=dl.intent,
             params=dl.params,
             session_id=dl.session_id,
+            dry_run=dry_run,
         )
         correlation_id = dl.correlation_id or f"replay_{uuid.uuid4().hex[:8]}"
         result = await self.run(req, correlation_id)
 
-        # Mark as replayed
-        await self.dlq.mark_replayed(letter_id, result.action_id)
+        # Build diff between original failure and replay result
+        replay_diff = {
+            "letter_id": letter_id,
+            "original_error_code": dl.error_code,
+            "original_failure_class": dl.failure_class,
+            "original_retries_exhausted": dl.retries_exhausted,
+            "replay_dry_run": dry_run,
+            "replay_state": result.state,
+            "replay_ok": result.ok,
+            "replay_validation_valid": result.validation.valid if result.validation else None,
+        }
+        if not dry_run and result.execution:
+            replay_diff["replay_error_code"] = result.execution.error_code
+            replay_diff["replay_failure_class"] = result.execution.failure_class
+            replay_diff["would_succeed"] = result.execution.success
+        elif dry_run and result.validation:
+            replay_diff["would_pass_validation"] = result.validation.valid
+
+        # Attach diff as metadata on the response error field
+        if result.error:
+            result.error["replay_diff"] = replay_diff
+        else:
+            result.error = {"replay_diff": replay_diff}
+
+        # Only mark as replayed if not dry_run
+        if not dry_run:
+            await self.dlq.mark_replayed(letter_id, result.action_id)
 
         _log_action_event(result.action_id, "replayed_from_dead_letter",
-                          letter_id=letter_id, original_action_id=dl.action_id)
+                          letter_id=letter_id, original_action_id=dl.action_id,
+                          dry_run=dry_run)
         return result
 
     async def deny(self, action_id: str) -> ActionPlanResponse:

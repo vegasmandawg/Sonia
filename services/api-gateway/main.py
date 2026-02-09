@@ -699,6 +699,16 @@ async def reset_breaker_endpoint(name: str):
     return {"ok": True, "breaker": breaker.to_dict()}
 
 
+@app.get("/v1/breakers/metrics")
+async def breaker_metrics_endpoint(last_n: int = 50):
+    """Export time-series breaker metrics for operator dashboards."""
+    reg = get_breaker_registry()
+    return {
+        "ok": True,
+        "metrics": reg.metrics(last_n=last_n),
+    }
+
+
 @app.get("/v1/dead-letters")
 async def list_dead_letters_endpoint(
     limit: int = 50,
@@ -731,10 +741,17 @@ async def get_dead_letter_endpoint(letter_id: str):
 
 
 @app.post("/v1/dead-letters/{letter_id}/replay")
-async def replay_dead_letter_endpoint(request: Request, letter_id: str):
-    """Replay a dead-lettered action through the pipeline."""
+async def replay_dead_letter_endpoint(
+    request: Request,
+    letter_id: str,
+    dry_run: bool = False,
+):
+    """
+    Replay a dead-lettered action through the pipeline.
+    dry_run=true → validate only, return diff without executing.
+    """
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
-    result = await action_pipeline.replay_dead_letter(letter_id)
+    result = await action_pipeline.replay_dead_letter(letter_id, dry_run=dry_run)
 
     log_event({
         "level": "INFO",
@@ -744,6 +761,7 @@ async def replay_dead_letter_endpoint(request: Request, letter_id: str):
         "action_id": result.action_id,
         "state": result.state,
         "ok": result.ok,
+        "dry_run": dry_run,
         "correlation_id": correlation_id,
     })
 

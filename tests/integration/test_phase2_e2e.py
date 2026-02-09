@@ -322,16 +322,20 @@ class TestPipecatWebSocket:
         
         # Connect WebSocket
         ws_url = f"{PIPECAT_WS_URL}/ws/{session_id}"
-        
+
         try:
-            async with websockets.connect(ws_url, timeout=TIMEOUT) as websocket:
+            async with websockets.connect(
+                ws_url,
+                open_timeout=TIMEOUT,
+                close_timeout=TIMEOUT,
+            ) as websocket:
                 # Should receive SESSION_START event
                 event_json = await asyncio.wait_for(websocket.recv(), timeout=5.0)
                 event = json.loads(event_json)
-                
+
                 assert event["type"] == "SESSION_START"
                 assert event["session_id"] == session_id
-        
+
         except asyncio.TimeoutError:
             pytest.fail("WebSocket connection timed out")
         except Exception as e:
@@ -350,16 +354,17 @@ class TestPipecatWebSocket:
         try:
             async with websockets.connect(
                 f"{PIPECAT_WS_URL}/ws/{session_id}",
-                timeout=TIMEOUT
+                open_timeout=TIMEOUT,
+                close_timeout=TIMEOUT,
             ) as websocket:
                 # Receive SESSION_START
                 await asyncio.wait_for(websocket.recv(), timeout=5.0)
-                
+
                 # Receive STATUS event
                 status_json = await asyncio.wait_for(websocket.recv(), timeout=5.0)
                 status_event = json.loads(status_json)
                 assert status_event["type"] == "STATUS"
-                
+
                 # Send MESSAGE event
                 message_event = {
                     "type": "MESSAGE",
@@ -372,15 +377,15 @@ class TestPipecatWebSocket:
                     "correlation_id": "test_001"
                 }
                 await websocket.send(json.dumps(message_event))
-                
+
                 # Receive response MESSAGE event
                 response_json = await asyncio.wait_for(websocket.recv(), timeout=10.0)
                 response_event = json.loads(response_json)
-                
+
                 assert response_event["type"] == "MESSAGE"
                 assert response_event["data"]["role"] == "assistant"
                 assert len(response_event["data"]["text"]) > 0
-        
+
         except asyncio.TimeoutError:
             pytest.fail("WebSocket message roundtrip timed out")
         except Exception as e:
