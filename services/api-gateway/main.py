@@ -6,7 +6,7 @@ FastAPI application that orchestrates requests to Memory Engine, Model Router, O
 import json
 import sys
 import uuid
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from typing import Optional
@@ -16,6 +16,14 @@ from clients.router_client import RouterClient, RouterClientError
 from clients.openclaw_client import OpenclawClient, OpenclawClientError
 from routes.chat import handle_chat
 from routes.action import handle_action
+from routes.turn import handle_turn
+from routes.sessions import handle_create_session, handle_get_session, handle_delete_session
+from routes.stream import handle_stream
+from schemas.turn import TurnRequest
+from schemas.session import SessionCreateRequest, ConfirmationDecisionRequest
+from session_manager import SessionManager
+from tool_policy import GatewayConfirmationManager
+from jsonl_logger import session_log, error_log
 
 # ============================================================================
 # FastAPI Application Setup
@@ -31,6 +39,10 @@ app = FastAPI(
 memory_client: Optional[MemoryClient] = None
 router_client: Optional[RouterClient] = None
 openclaw_client: Optional[OpenclawClient] = None
+
+# Stage 3: session + confirmation managers
+session_mgr = SessionManager()
+confirmation_mgr = GatewayConfirmationManager()
 
 
 def generate_correlation_id() -> str:
@@ -48,11 +60,11 @@ def log_event(event_dict: dict):
 async def startup_event():
     """Initialize clients and log startup."""
     global memory_client, router_client, openclaw_client
-    
+
     memory_client = MemoryClient(base_url="http://127.0.0.1:7020")
     router_client = RouterClient(base_url="http://127.0.0.1:7010")
     openclaw_client = OpenclawClient(base_url="http://127.0.0.1:7040")
-    
+
     log_event({
         "level": "INFO",
         "service": "api-gateway",
@@ -65,14 +77,14 @@ async def startup_event():
 async def shutdown_event():
     """Close clients and log shutdown."""
     global memory_client, router_client, openclaw_client
-    
+
     if memory_client:
         await memory_client.close()
     if router_client:
         await router_client.close()
     if openclaw_client:
         await openclaw_client.close()
-    
+
     log_event({
         "level": "INFO",
         "service": "api-gateway",
@@ -117,7 +129,7 @@ async def status():
 
 
 # ============================================================================
-# Service-Specific Endpoints
+# Stage 2 — Service-Specific Endpoints (UNCHANGED)
 # ============================================================================
 
 @app.post("/v1/chat")
@@ -129,7 +141,7 @@ async def chat_endpoint(
 ):
     """
     Chat endpoint with Memory Engine context and Model Router response.
-    
+
     Request body:
     ```json
     {
@@ -138,11 +150,11 @@ async def chat_endpoint(
         "model": "optional_model_name"
     }
     ```
-    
+
     Response: Standard envelope with chat response, model, provider, and provenance.
     """
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
-    
+
     if not message:
         return JSONResponse(
             status_code=400,
@@ -160,7 +172,7 @@ async def chat_endpoint(
                 }
             }
         )
-    
+
     response = await handle_chat(
         message=message,
         memory_client=memory_client,
@@ -169,7 +181,7 @@ async def chat_endpoint(
         correlation_id=correlation_id,
         model=model
     )
-    
+
     log_event({
         "level": "INFO",
         "service": "api-gateway",
@@ -178,8 +190,45 @@ async def chat_endpoint(
         "status": "ok" if response["ok"] else "failed",
         "duration_ms": response["duration_ms"]
     })
-    
+
     return response
+
+
+@app.post("/v1/turn")
+async def turn_endpoint(request: Request, body: TurnRequest):
+    """
+    Full end-to-end turn pipeline.
+
+    Accepts a JSON body with user_id, conversation_id, input_text, and optional
+    profile/metadata.  Orchestrates memory recall → model generation →
+    optional tool execution → memory write and returns a structured response.
+    """
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
+
+    response = await handle_turn(
+        request=body,
+        memory_client=memory_client,
+        router_client=router_client,
+        openclaw_client=openclaw_client,
+        correlation_id=correlation_id,
+    )
+
+    log_event({
+        "level": "INFO",
+        "service": "api-gateway",
+        "operation": "turn",
+        "turn_id": response.turn_id,
+        "correlation_id": correlation_id,
+        "ok": response.ok,
+        "duration_ms": round(response.duration_ms, 1),
+    })
+
+    result = response.dict(exclude_none=True)
+    # Merge Stage 4 quality annotations and latency breakdown if present
+    extra = getattr(response, "_extra_fields", None)
+    if extra:
+        result.update(extra)
+    return result
 
 
 @app.post("/v1/action")
@@ -191,7 +240,7 @@ async def action_endpoint(
 ):
     """
     Action endpoint for tool execution via OpenClaw.
-    
+
     Request body:
     ```json
     {
@@ -200,11 +249,11 @@ async def action_endpoint(
         "timeout_ms": 5000
     }
     ```
-    
+
     Response: Standard envelope with execution result.
     """
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
-    
+
     if not tool_name:
         return JSONResponse(
             status_code=400,
@@ -222,7 +271,7 @@ async def action_endpoint(
                 }
             }
         )
-    
+
     response = await handle_action(
         tool_name=tool_name,
         args=args or {},
@@ -230,7 +279,7 @@ async def action_endpoint(
         correlation_id=correlation_id,
         timeout_ms=timeout_ms
     )
-    
+
     log_event({
         "level": "INFO",
         "service": "api-gateway",
@@ -240,7 +289,7 @@ async def action_endpoint(
         "status": "ok" if response["ok"] else "failed",
         "duration_ms": response["duration_ms"]
     })
-    
+
     return response
 
 
@@ -248,18 +297,18 @@ async def action_endpoint(
 async def deps_endpoint(request: Request):
     """
     Check connectivity to all downstream services.
-    
+
     Response: Status of each downstream service with latency.
     """
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
-    
+
     deps = {
         "memory_engine": {"status": "checking"},
         "model_router": {"status": "checking"},
         "openclaw": {"status": "checking"},
         "pipecat": {"status": "checking"}
     }
-    
+
     # Check Memory Engine
     try:
         status = await memory_client.get_status(correlation_id=correlation_id)
@@ -274,7 +323,7 @@ async def deps_endpoint(request: Request):
             "port": 7020,
             "error": e.code
         }
-    
+
     # Check Model Router
     try:
         status = await router_client.get_status(correlation_id=correlation_id)
@@ -289,7 +338,7 @@ async def deps_endpoint(request: Request):
             "port": 7010,
             "error": e.code
         }
-    
+
     # Check OpenClaw
     try:
         status = await openclaw_client.get_status(correlation_id=correlation_id)
@@ -304,7 +353,7 @@ async def deps_endpoint(request: Request):
             "port": 7040,
             "error": e.code
         }
-    
+
     # Note: Pipecat check would go here (7030)
     # For now, marked as pending implementation
     deps["pipecat"] = {
@@ -312,7 +361,7 @@ async def deps_endpoint(request: Request):
         "port": 7030,
         "message": "Pipecat Phase 2 - coming soon"
     }
-    
+
     return {
         "ok": all(d.get("status") == "ok" for d in deps.values() if d.get("status") != "pending"),
         "service": "api-gateway",
@@ -325,6 +374,139 @@ async def deps_endpoint(request: Request):
 
 
 # ============================================================================
+# Stage 3 — Session Control Plane
+# ============================================================================
+
+@app.post("/v1/sessions")
+async def create_session_endpoint(request: Request, body: SessionCreateRequest):
+    """Create a new session."""
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
+    return await handle_create_session(
+        user_id=body.user_id,
+        conversation_id=body.conversation_id,
+        profile=body.profile,
+        metadata=body.metadata or {},
+        session_mgr=session_mgr,
+        correlation_id=correlation_id,
+    )
+
+
+@app.get("/v1/sessions/{session_id}")
+async def get_session_endpoint(session_id: str):
+    """Retrieve session info."""
+    return await handle_get_session(session_id, session_mgr)
+
+
+@app.delete("/v1/sessions/{session_id}")
+async def delete_session_endpoint(request: Request, session_id: str):
+    """Close a session."""
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
+    return await handle_delete_session(session_id, session_mgr, correlation_id)
+
+
+# ============================================================================
+# Stage 3 — WebSocket Stream
+# ============================================================================
+
+@app.websocket("/v1/stream/{session_id}")
+async def stream_endpoint(websocket: WebSocket, session_id: str):
+    """Bidirectional streaming via WebSocket with text fallback."""
+    await websocket.accept()
+    try:
+        await handle_stream(
+            websocket=websocket,
+            session_id=session_id,
+            session_mgr=session_mgr,
+            memory_client=memory_client,
+            router_client=router_client,
+            openclaw_client=openclaw_client,
+            confirmation_mgr=confirmation_mgr,
+        )
+    except WebSocketDisconnect:
+        pass
+    except Exception:
+        pass
+    finally:
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
+
+# ============================================================================
+# Stage 3 — Confirmation Queue
+# ============================================================================
+
+@app.get("/v1/confirmations/pending")
+async def pending_confirmations(session_id: str):
+    """List pending confirmations for a session."""
+    tokens = await confirmation_mgr.pending_for_session(session_id)
+    return {
+        "ok": True,
+        "session_id": session_id,
+        "pending": [t.to_dict() for t in tokens],
+        "count": len(tokens),
+    }
+
+
+@app.post("/v1/confirmations/{confirmation_id}/approve")
+async def approve_confirmation(confirmation_id: str):
+    """Approve a pending confirmation and execute the tool."""
+    result = await confirmation_mgr.approve(confirmation_id)
+    if result.get("ok"):
+        # Execute the tool now
+        token = result.get("token")
+        if token:
+            try:
+                exec_resp = await openclaw_client.execute(
+                    tool_name=token.tool_name,
+                    args=token.args,
+                    timeout_ms=5000,
+                )
+                return {
+                    "ok": True,
+                    "confirmation_id": confirmation_id,
+                    "status": "approved",
+                    "reason": "Approved and executed",
+                    "tool_result": {
+                        "tool_name": token.tool_name,
+                        "status": exec_resp.get("status", "unknown"),
+                        "result": exec_resp.get("result", {}),
+                    },
+                }
+            except OpenclawClientError as exc:
+                return {
+                    "ok": False,
+                    "confirmation_id": confirmation_id,
+                    "status": "approved",
+                    "reason": "Approved but execution failed",
+                    "error": {"code": exc.code, "message": exc.message},
+                }
+    return {
+        "ok": result.get("ok", False),
+        "confirmation_id": confirmation_id,
+        "status": result.get("status", "unknown"),
+        "reason": result.get("reason", ""),
+    }
+
+
+@app.post("/v1/confirmations/{confirmation_id}/deny")
+async def deny_confirmation(
+    confirmation_id: str,
+    body: Optional[ConfirmationDecisionRequest] = None,
+):
+    """Deny a pending confirmation."""
+    reason = body.reason if body and body.reason else "User denied"
+    result = await confirmation_mgr.deny(confirmation_id, reason=reason)
+    return {
+        "ok": False,
+        "confirmation_id": confirmation_id,
+        "status": result.get("status", "denied"),
+        "reason": result.get("reason", reason),
+    }
+
+
+# ============================================================================
 # Error Handling
 # ============================================================================
 
@@ -332,7 +514,7 @@ async def deps_endpoint(request: Request):
 async def http_exception_handler(request: Request, exc: HTTPException):
     """Handle HTTP exceptions."""
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
-    
+
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -355,7 +537,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle general exceptions."""
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
-    
+
     log_event({
         "level": "ERROR",
         "service": "api-gateway",
@@ -364,7 +546,7 @@ async def general_exception_handler(request: Request, exc: Exception):
         "path": request.url.path,
         "correlation_id": correlation_id
     })
-    
+
     return JSONResponse(
         status_code=500,
         content={

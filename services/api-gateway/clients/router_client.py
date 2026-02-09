@@ -150,27 +150,30 @@ class RouterClient:
         self,
         messages: List[Dict[str, str]],
         model: Optional[str] = None,
+        task_type: str = "text",
         correlation_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Get chat response from Model Router.
-        
+
         Args:
             messages: List of message dicts with 'role' and 'content'
             model: Optional specific model to use
+            task_type: Task type for routing (text, vision, etc.)
             correlation_id: Optional correlation ID for tracing
-        
+
         Returns:
             Chat response
-        
+
         Raises:
             RouterClientError: On failure
         """
         correlation_id = correlation_id or str(uuid.uuid4())
-        
+
         url = f"{self.base_url}/chat"
         payload = {
-            "messages": messages
+            "task_type": task_type,
+            "messages": messages,
         }
         if model:
             payload["model"] = model
