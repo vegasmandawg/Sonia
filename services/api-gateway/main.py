@@ -796,6 +796,55 @@ async def get_audit_trail_endpoint(action_id: str):
 
 
 # ============================================================================
+# Stage 7 — Diagnostic Snapshot
+# ============================================================================
+
+@app.get("/v1/diagnostics/snapshot")
+async def diagnostics_snapshot_endpoint(last_n: int = 50):
+    """
+    Stage 7: Export a diagnostic snapshot for incident analysis.
+    Returns health, breakers, DLQ, recent actions, and config metadata
+    in a single response for operational debugging.
+    """
+    correlation_id = generate_correlation_id()
+    snapshot = {"ok": True, "correlation_id": correlation_id, "timestamp": datetime.utcnow().isoformat() + "Z"}
+
+    # Health
+    try:
+        if health_supervisor:
+            snapshot["health"] = health_supervisor.summary()
+    except Exception as e:
+        snapshot["health"] = {"error": str(e)}
+
+    # Breakers
+    try:
+        reg = get_breaker_registry()
+        snapshot["breakers"] = reg.summary()
+        snapshot["breaker_metrics"] = reg.metrics(last_n=last_n)
+    except Exception as e:
+        snapshot["breakers"] = {"error": str(e)}
+
+    # DLQ
+    try:
+        dlq = get_dead_letter_queue()
+        count = await dlq.count(include_replayed=False)
+        recent = await dlq.list_letters(limit=last_n, include_replayed=False)
+        snapshot["dead_letters"] = {"unresolved": count, "recent": [l.to_dict() for l in recent]}
+    except Exception as e:
+        snapshot["dead_letters"] = {"error": str(e)}
+
+    # Recent actions
+    try:
+        if action_pipeline:
+            actions = await action_pipeline.store.list_actions(limit=last_n)
+            snapshot["recent_actions"] = {"count": len(actions), "actions": [a.dict(exclude_none=True) for a in actions]}
+    except Exception as e:
+        snapshot["recent_actions"] = {"error": str(e)}
+
+    return snapshot
+
+
+# ============================================================================
 # Error Handling
 # ============================================================================
 
