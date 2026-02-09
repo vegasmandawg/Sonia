@@ -18,3 +18,8 @@ from app.routing_engine import (
     RouteDecision,
     RoutingEngine,
 )
+
+from app.health_registry import (
+    BackendState,
+    HealthRegistry,
+)
