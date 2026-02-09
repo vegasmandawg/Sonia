@@ -81,6 +81,34 @@ class EvalSummary:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
 
+    def compare_baseline(self, baseline_path: Path, threshold: float = 0.05) -> Dict[str, Any]:
+        """
+        Compare this eval against a saved baseline.
+        Returns comparison dict with regression flag and per-category deltas.
+        """
+        with open(baseline_path, "r", encoding="utf-8") as f:
+            baseline = json.load(f)
+
+        base_rate = baseline.get("pass_rate", 0)
+        delta = self.pass_rate - base_rate
+        regressed = delta < -threshold
+
+        cat_deltas: Dict[str, float] = {}
+        base_cats = baseline.get("by_category", {})
+        for cat, info in self.by_category.items():
+            base_cat = base_cats.get(cat, {})
+            base_pr = base_cat.get("pass_rate", 0)
+            cat_deltas[cat] = round(info.get("pass_rate", 0) - base_pr, 4)
+
+        return {
+            "baseline_pass_rate": base_rate,
+            "current_pass_rate": round(self.pass_rate, 4),
+            "delta": round(delta, 4),
+            "threshold": threshold,
+            "regressed": regressed,
+            "category_deltas": cat_deltas,
+        }
+
 
 # ---------------------------------------------------------------------------
 # Eval prompt schema
