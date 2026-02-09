@@ -1,0 +1,40 @@
+{
+  "version": "2.5.0",
+  "tag": "v2.5.0",
+  "rc_tag": "v2.5.0-rc1",
+  "commit": "ac64fbbb09791b0f5ee0f8c6249abc2a8942d476",
+  "date": "2026-02-09",
+  "python_version": "3.11.14",
+  "package_count": 45,
+  "test_count": 164,
+  "test_result": "164 passed, 0 failed",
+  "soak_actions": 240,
+  "soak_slo_violations": 0,
+  "stages_included": [
+    "Stage 2: Turn Pipeline",
+    "Stage 3: Voice Session Runtime + Tool Safety Gate",
+    "Stage 4: Multimodal Live Operation + Memory Quality Controls",
+    "Stage 5: Action Pipeline + Desktop Adapters",
+    "Stage 6: Reliability Hardening + Release Discipline"
+  ],
+  "release_artifacts": {
+    "manifest": "RELEASE-MANIFEST.json",
+    "checksums": "SHA256SUMS.txt",
+    "frozen_deps": "config/requirements-frozen.txt",
+    "dep_lock": "config/dependency-lock.json",
+    "test_report": "reports/test-report.txt",
+    "soak_report": "reports/soak-report.txt",
+    "ops_drill_report": "reports/ops-drill-report.txt",
+    "rollback_script": "scripts/rollback-to-stage5.ps1",
+    "promotion_gate": "scripts/promotion-gate.ps1",
+    "ops_drill": "scripts/release-ops-drill.ps1"
+  },
+  "validation_cycle": {
+    "rc_artifact_integrity": "PASS",
+    "cleanroom_rebuild": "PASS",
+    "cleanroom_test_suite": "PASS (164/164)",
+    "soak_test": "PASS (0 SLO violations)",
+    "ops_drill": "PASS (5/5 drills)",
+    "promotion_gate": "PASS (all gates)"
+  }
+}
