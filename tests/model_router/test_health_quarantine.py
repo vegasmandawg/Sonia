@@ -81,10 +81,10 @@ h = hr5.all_health()
 check("HQ8a", h["b5"]["consecutive_successes"] == 0, "reset")
 
 print("\n--- HQ9: Rolling window expires old failures ---")
-hr6 = HealthRegistry(failure_threshold=3, failure_window_s=0.05)
+hr6 = HealthRegistry(failure_threshold=3, failure_window_s=0.1)
 hr6.record_failure("b6", "old1")
 hr6.record_failure("b6", "old2")
-time.sleep(0.06)
+time.sleep(0.15)
 hr6.record_failure("b6", "new1")
 check("HQ9a", hr6.is_healthy("b6"), "old failures expired")
 
