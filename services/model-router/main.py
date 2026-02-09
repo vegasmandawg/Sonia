@@ -9,15 +9,19 @@ Provider abstraction and model routing with support for:
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+import json
 import logging
 import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, List, Dict
 from pydantic import BaseModel
 
 from providers import (
     get_router, TaskType, ProviderRouter, ModelInfo
 )
+
+# Profile infrastructure (lazy-init at startup)
 
 # Configure logging
 logging.basicConfig(
@@ -29,6 +33,12 @@ logger = logging.getLogger('model-router')
 
 # Initialize provider router
 router = get_router()
+
+# Profile infrastructure (initialised in startup handler)
+_routing_engine = None
+_health_registry = None
+_budget_guard = None
+_audit_logger = None
 
 # Create FastAPI app
 app = FastAPI(
@@ -50,20 +60,38 @@ class ChatRequest(BaseModel):
     temperature: Optional[float] = 0.7
     max_tokens: Optional[int] = 2048
 
+class ProfileRouteRequest(BaseModel):
+    task_type: str = ""
+    hint: str = ""
+    trace_id: str = ""
+    turn_id: str = ""
+    context_tokens: int = 0
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Health & Status Endpoints
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.get("/healthz")
 def healthz():
-    """Health check endpoint."""
+    """Health check endpoint with profile diagnostics."""
     available_providers = len([p for p in router.providers.values() if p.available])
-    return {
+    result = {
         "ok": True,
         "service": "model-router",
         "timestamp": datetime.utcnow().isoformat(),
-        "available_providers": available_providers
+        "available_providers": available_providers,
     }
+    if _routing_engine is not None:
+        result["profiles"] = {
+            "loaded": _routing_engine.registry.names,
+            "validation_errors": _routing_engine.registry.validation_errors,
+        }
+    if _health_registry is not None:
+        result["backend_health"] = _health_registry.all_health()
+        result["quarantined"] = _health_registry.quarantined_backends()
+    if _audit_logger is not None:
+        result["audit"] = _audit_logger.to_dict()
+    return result
 
 @app.get("/")
 def root():
@@ -259,6 +287,46 @@ def list_provider_models(provider_name: str):
     }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Profile-Based Routing Endpoints
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.post("/route-profile")
+async def route_profile(request: ProfileRouteRequest):
+    """Route via deterministic profile selection."""
+    if _routing_engine is None:
+        raise HTTPException(status_code=503, detail="Profile engine not initialised")
+    decision = _routing_engine.route_request(
+        task_type=request.task_type,
+        hint=request.hint,
+        trace_id=request.trace_id,
+        context_tokens=request.context_tokens,
+    )
+    if _audit_logger is not None:
+        _audit_logger.log_decision(decision, turn_id=request.turn_id)
+    return decision.to_dict()
+
+@app.get("/profiles")
+def get_profiles():
+    """List all loaded routing profiles."""
+    if _routing_engine is None:
+        return {"profiles": {}, "service": "model-router"}
+    return {
+        "profiles": _routing_engine.registry.to_dict()["profiles"],
+        "service": "model-router",
+    }
+
+@app.get("/route-audit")
+def get_route_audit(n: int = 20):
+    """Return recent route audit records."""
+    if _audit_logger is None:
+        return {"records": [], "service": "model-router"}
+    return {
+        "records": _audit_logger.read_recent(n),
+        "total_written": _audit_logger.record_count,
+        "service": "model-router",
+    }
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Error Handlers
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -282,16 +350,80 @@ async def general_exception_handler(request: Request, exc: Exception):
 @app.on_event("startup")
 async def startup_event():
     """Initialize on startup."""
+    global _routing_engine, _health_registry, _budget_guard, _audit_logger
+
     logger.info("Model Router starting up...")
-    
+
     available = [
         name for name, p in router.providers.items() if p.available
     ]
     logger.info(f"Available providers: {', '.join(available) if available else 'none'}")
-    
+
     all_models = router.get_all_models()
     total = sum(len(models) for models in all_models.values())
     logger.info(f"Total available models: {total}")
+
+    # ---- Initialise profile infrastructure --------------------------------
+    try:
+        _app_dir = str(Path(__file__).resolve().parent)
+        if _app_dir not in sys.path:
+            sys.path.insert(0, _app_dir)
+
+        from app.profiles import ProfileRegistry
+        from app.routing_engine import RoutingEngine
+        from app.health_registry import HealthRegistry
+        from app.budget_guard import BudgetGuard
+        from app.route_audit import RouteAuditLogger
+
+        # Load config
+        cfg_path = Path(r"S:\config\sonia-config.json")
+        mr_cfg = {}
+        if cfg_path.exists():
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                full_cfg = json.load(f)
+            mr_cfg = full_cfg.get("model_router", {})
+
+        profiles_cfg = mr_cfg.get("profiles", {})
+        health_cfg = mr_cfg.get("health", {})
+
+        # Health registry
+        _health_registry = HealthRegistry(
+            failure_window_s=health_cfg.get("failure_window_s", 60),
+            failure_threshold=health_cfg.get("failure_threshold", 3),
+            quarantine_s=health_cfg.get("quarantine_s", 30),
+            recovery_probes=health_cfg.get("recovery_probes", 2),
+        )
+
+        # Budget guard with known backend capacities
+        _budget_guard = BudgetGuard()
+        for cap_entry in profiles_cfg.get("backend_capacities", []):
+            _budget_guard.register_backend(
+                backend=cap_entry.get("backend", ""),
+                max_context=cap_entry.get("max_context", 8000),
+                avg_latency_ms=cap_entry.get("avg_latency_ms", 1000),
+            )
+
+        # Profile registry with defaults
+        _profile_registry = ProfileRegistry()
+
+        # Routing engine
+        _routing_engine = RoutingEngine(
+            registry=_profile_registry,
+            is_healthy=_health_registry.is_healthy,
+            check_budget=_budget_guard.check,
+        )
+
+        # Audit logger
+        audit_path = mr_cfg.get("audit_log_path",
+                                r"S:\logs\services\model-router\routes.jsonl")
+        _audit_logger = RouteAuditLogger(path=audit_path)
+
+        logger.info("Profile infrastructure initialised: %d profiles, audit -> %s",
+                     len(_profile_registry.names), audit_path)
+
+    except Exception as e:
+        logger.error("Failed to initialise profile infrastructure: %s", e, exc_info=True)
+        # Service remains healthy -- legacy routing still works
 
 @app.on_event("shutdown")
 async def shutdown_event():

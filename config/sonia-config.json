@@ -118,7 +118,32 @@
     "fallback_model": "local/qwen",
     "local_endpoint": "http://127.0.0.1:11434",
     "offline_preferred": true,
-    "context_length_default": 8000
+    "context_length_default": 8000,
+    "audit_log_path": "S:\\logs\\services\\model-router\\routes.jsonl",
+    "health": {
+      "failure_window_s": 60,
+      "failure_threshold": 3,
+      "quarantine_s": 30,
+      "recovery_probes": 2
+    },
+    "profiles": {
+      "backend_capacities": [
+        { "backend": "ollama/qwen2:7b",              "max_context": 4096,  "avg_latency_ms": 800  },
+        { "backend": "ollama/qwen2:1.5b",            "max_context": 2048,  "avg_latency_ms": 300  },
+        { "backend": "ollama/qwen2-vl:7b",           "max_context": 4096,  "avg_latency_ms": 1200 },
+        { "backend": "anthropic/claude-opus-4-6",     "max_context": 200000, "avg_latency_ms": 3000 },
+        { "backend": "anthropic/claude-sonnet-4-6",   "max_context": 200000, "avg_latency_ms": 1500 },
+        { "backend": "anthropic/claude-haiku-4-5",    "max_context": 200000, "avg_latency_ms": 500  }
+      ],
+      "fallback_matrix": {
+        "chat_low_latency":  ["ollama/qwen2:7b", "ollama/qwen2:1.5b"],
+        "reasoning_deep":    ["anthropic/claude-opus-4-6", "anthropic/claude-sonnet-4-6", "ollama/qwen2:7b"],
+        "vision_analysis":   ["ollama/qwen2-vl:7b", "anthropic/claude-sonnet-4-6"],
+        "memory_ops":        ["ollama/qwen2:7b", "ollama/qwen2:1.5b"],
+        "tool_execution":    ["ollama/qwen2:7b", "anthropic/claude-sonnet-4-6", "ollama/qwen2:1.5b"],
+        "safe_fallback":     ["ollama/qwen2:1.5b", "ollama/qwen2:7b"]
+      }
+    }
   },
 
   "openclaw": {
