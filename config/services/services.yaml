@@ -1,0 +1,16 @@
+﻿services:
+  model_router:
+    host: "127.0.0.1"
+    port: 7010
+  memory_engine:
+    host: "127.0.0.1"
+    port: 7020
+  pipecat:
+    host: "127.0.0.1"
+    port: 7030
+  openclaw:
+    host: "127.0.0.1"
+    port: 7040
+  api_gateway:
+    host: "127.0.0.1"
+    port: 7000

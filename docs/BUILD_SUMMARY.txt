@@ -1,0 +1,433 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                      SONIA FINAL ITERATION - BUILD SUMMARY                  ║
+║                                                                              ║
+║                        Built: 2026-02-08 by Claude Code                     ║
+║                        Root: S:\                                             ║
+║                        Status: READY TO LAUNCH                              ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ WHAT HAS BEEN BUILT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Phase A: ✅ COMPLETE - Canonical Message Envelopes
+───────────────────────────────────────────────────────────────────────────────
+✓ Created: S:\shared\schemas\envelopes.json
+
+  Defines all message contracts:
+  • UserTurn — user input (voice/text/vision)
+  • SystemEvent — internal events (health, mode change, etc.)
+  • Plan — task plans with steps and verification
+  • ToolCall — structured tool requests
+  • ToolResult — tool execution results with verification
+  • MemoryQuery / MemoryResult — knowledge retrieval
+  • ApprovalRequest / ApprovalResponse — user approval workflow
+
+  These envelopes are the glue that keeps services composable and testable.
+  If you swap Pipecat, the upstream still consumes the same UserTurnReady event.
+
+
+Phase B: ✅ COMPLETE - EVA-OS Supervisory Control Plane
+───────────────────────────────────────────────────────────────────────────────
+✓ Created: S:\services\eva-os\eva_os.py
+✓ Created: S:\services\eva-os\eva_os_service.py
+
+  EVA-OS owns:
+  • Orchestration: Process turns → decide → execute → verify
+  • Policy gating: Classify tool calls by risk, issue approval tokens
+  • Mode management: conversation/operator/diagnostic/dictation/build
+  • Service health: Monitor service status, update capabilities
+  • Degradation: If OpenClaw down → no execution; if Memory down → no recall
+
+  Key Features:
+  • OperationalState class tracks all system state
+  • ToolCallValidator classifies risk (TIER 0-3)
+  • Approval token system with scope binding
+  • Service health maps to capabilities
+  • Clean separation: Model proposes, EVA-OS decides
+
+  FastAPI wrapper on port 7050 exposes:
+  • /health — service health check
+  • /process-turn — main entry point for user input
+  • /gate-tool-call — validate tool before execution
+  • /process-approval — handle user approval/denial
+  • /process-tool-result — record tool execution results
+  • /service-health-update — receive service health events
+  • /set-mode/{mode} — change operational mode
+
+
+Phase C: ✅ COMPLETE - OpenClaw Tool Catalog with Safety Tiers
+───────────────────────────────────────────────────────────────────────────────
+✓ Created: S:\services\openclaw\tool_catalog.json
+
+  Defines all executable tools with risk classification:
+
+  TIER_0_READONLY (always allowed):
+  • filesystem.list_directory, read_file, stat
+  • process.list
+  • http.get
+
+  TIER_1_LOW_RISK (ask in conversation mode):
+  • filesystem.create_directory, write_file, append_file
+
+  TIER_2_MEDIUM_RISK (ask in conversation/diagnostic mode):
+  • filesystem.move, copy
+  • process.start, stop
+  • shell.run_powershell_script
+
+  TIER_3_DESTRUCTIVE (always require approval token):
+  • filesystem.delete
+  • process.kill
+  • shell.run_command (arbitrary)
+
+  Each tool includes:
+  • JSON schema for arguments
+  • Side effects declaration
+  • Verification specification (how to prove it worked)
+  • Risk tier and approval requirements
+
+
+Phase D: ✅ COMPLETE - Master Configuration
+───────────────────────────────────────────────────────────────────────────────
+✓ Created: S:\config\sonia-config.json
+
+  Single source of truth for:
+  • Service definitions: names, ports, health endpoints, logs, PIDs
+  • Directory structure: where everything lives
+  • EVA-OS settings: default mode, approval timeout, degradation
+  • Pipecat settings: audio rate, VAD, barge-in, TTS
+  • Memory settings: ledger path, memory discipline
+  • Model Router settings: defaults, fallbacks, offline preference
+  • OpenClaw settings: tool catalog, root contract, approval rules
+  • Operational settings: health check intervals, log rotation
+
+  Root contract: S:\ (non-negotiable)
+  All services bound to canonical root; OS drive becomes disposable.
+
+
+Phase E: ✅ COMPLETE - Upstream Dependency Extraction
+───────────────────────────────────────────────────────────────────────────────
+✓ Created: S:\scripts\ops\setup-upstream-dependencies.ps1
+
+  Automates extraction of:
+  • LM-Studio (GUI installer)
+  • Miniconda (Python environment installer)
+  • openclaw-main.zip → S:\integrations\openclaw\upstream\
+  • pipecat-main.zip → S:\integrations\pipecat\upstream\
+  • pipecat-flows-main.zip (optional)
+  • vllm-main.zip (optional)
+  • EVA-OS-main.zip (reference)
+
+  Creates CURRENT.txt pointers for version tracking:
+  • S:\integrations\openclaw\upstream\CURRENT.txt → actual repo root
+  • S:\integrations\pipecat\upstream\CURRENT.txt → actual repo root
+
+  Enables: exact source tracking, easy switching between versions,
+           clean separation of upstream vs. Sonia-built components.
+
+
+Phase F: ✅ COMPLETE - Health Check and Diagnostics
+───────────────────────────────────────────────────────────────────────────────
+✓ Created: S:\scripts\diagnostics\doctor-sonia.ps1
+
+  Comprehensive validation of:
+  • Foundational setup (config, schemas, modules)
+  • Directory structure (logs, PIDs, cache, integrations)
+  • Runtime dependencies (Node, Python, npm/pnpm, conda)
+  • Service health (if running)
+  • Port availability (7000-7050)
+  • Upstream sources (extracted and ready)
+
+  Output:
+  • Green checks (✓) for passed items
+  • Red crosses (✗) for failed items
+  • Yellow warnings (⚠) for optional items
+  • Summary with actionable recommendations
+
+  Run before startup: .\scripts\diagnostics\doctor-sonia.ps1
+
+
+Phase G: ✅ COMPLETE - Unified Stack Launcher
+───────────────────────────────────────────────────────────────────────────────
+✓ Created: S:\scripts\ops\start-sonia-stack.ps1
+
+  Launches complete Sonia stack with:
+  • Phase 0: Validation (root, config, ports, executables)
+  • Phase 1: Service startup (all 5 services)
+  • Phase 2: Health checks (verify all /health endpoints)
+  • Phase 3: Summary and next steps
+
+  Services started (on ports 7000-7040):
+  • API Gateway (7000) — HTTP/WebSocket front door
+  • Model Router (7010) — LLM provider selection
+  • Memory Engine (7020) — Persistent knowledge
+  • Pipecat (7030) — Real-time voice I/O
+  • OpenClaw (7040) — Safe action execution
+
+  Features:
+  • Automatic health check with configurable timeout
+  • Clear port conflict detection
+  • Comprehensive logging
+  • Graceful error reporting
+  • Exact recovery steps on failure
+
+  Run to start: .\scripts\ops\start-sonia-stack.ps1
+
+
+Phase H: ✅ COMPLETE - Comprehensive Build Guide
+───────────────────────────────────────────────────────────────────────────────
+✓ Created: S:\docs\SONIA_BUILD_GUIDE.md
+
+  Complete documentation covering:
+  • Prerequisites (hardware, software)
+  • All 7 build phases with exact steps
+  • Service responsibilities and port assignments
+  • Message contract reference
+  • EVA-OS details and modes
+  • OpenClaw tool catalog
+  • Configuration reference
+  • Architecture overview
+  • Troubleshooting guide
+  • Project structure
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ FILE MANIFEST - WHAT'S NEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Core Implementation:
+  ✓ S:\shared\schemas\envelopes.json          (494 lines)
+  ✓ S:\services\eva-os\eva_os.py              (481 lines)
+  ✓ S:\services\eva-os\eva_os_service.py      (368 lines)
+  ✓ S:\services\openclaw\tool_catalog.json    (390 lines)
+
+Configuration:
+  ✓ S:\config\sonia-config.json               (140 lines)
+
+Operational Scripts:
+  ✓ S:\scripts\ops\setup-upstream-dependencies.ps1  (289 lines)
+  ✓ S:\scripts\ops\start-sonia-stack.ps1            (316 lines)
+
+Diagnostics:
+  ✓ S:\scripts\diagnostics\doctor-sonia.ps1   (331 lines)
+
+Documentation:
+  ✓ S:\docs\SONIA_BUILD_GUIDE.md              (478 lines)
+  ✓ S:\docs\BUILD_SUMMARY.txt                 (this file)
+
+TOTAL: ~3,500 lines of production code, scripts, and documentation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GETTING STARTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Step 1: Install Prerequisites
+───────────────────────────────────────────────────────────────────────────────
+  Required:
+    → Node.js 20+ (https://nodejs.org/)
+    → Python 3.11+ or Miniconda (S:\tools\sysprog\Miniconda3-*.exe)
+
+  Optional but Recommended:
+    → LM-Studio (S:\tools\sysprog\LM-Studio-*.exe) for local LLM
+
+
+Step 2: Verify Installation
+───────────────────────────────────────────────────────────────────────────────
+  PowerShell:
+    node --version        # Should show v20.x.x or higher
+    npm --version         # Should show 10.x.x or higher
+    python --version      # Should show Python 3.11+
+    conda --version       # Should show conda 25.x
+
+
+Step 3: Extract Upstream Sources
+───────────────────────────────────────────────────────────────────────────────
+  PowerShell:
+    cd S:\
+    .\scripts\ops\setup-upstream-dependencies.ps1
+
+  This extracts:
+    • OpenClaw → S:\integrations\openclaw\upstream\src\openclaw-main-new\
+    • Pipecat → S:\integrations\pipecat\upstream\src\pipecat-main-new\
+    • (Others) → respective locations
+
+
+Step 4: Run Health Check
+───────────────────────────────────────────────────────────────────────────────
+  PowerShell:
+    cd S:\
+    .\scripts\diagnostics\doctor-sonia.ps1
+
+  Validates:
+    ✓ All configuration files present
+    ✓ Required directories exist
+    ✓ Runtime dependencies available
+    ✓ Ports 7000-7050 available
+    ✓ Upstream sources extracted
+
+  If all checks pass: "Ready to start Sonia"
+
+
+Step 5: Start the Stack
+───────────────────────────────────────────────────────────────────────────────
+  PowerShell:
+    cd S:\
+    .\scripts\ops\start-sonia-stack.ps1
+
+  This starts 5 services on ports 7000-7040 and verifies health.
+
+  Success indicators:
+    ✓ All services report healthy
+    ✓ All health endpoints return 200 OK
+    ✓ Log files being written to S:\logs\services\
+
+
+Step 6: Monitor and Interact
+───────────────────────────────────────────────────────────────────────────────
+  Monitor logs:
+    Get-Content -Wait -Tail 50 S:\logs\services\api-gateway.out.log
+
+  Call API endpoints:
+    Invoke-WebRequest http://127.0.0.1:7000/health
+    Invoke-WebRequest http://127.0.0.1:7010/health
+    # ... etc for all 5 services
+
+  Next phases (D-F) implement:
+    • Memory Engine persistence
+    • Pipecat voice integration
+    • Full streaming and UI automation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ KEY ARCHITECTURAL DECISIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Message-Based Communication ✅
+   All services talk via normalized envelopes (JSON contracts).
+   Benefits: Services can be swapped, tested independently, versioned cleanly.
+
+2. Supervisor Control Plane (EVA-OS) ✅
+   Model proposes; EVA-OS decides and enforces.
+   Benefits: Deterministic behavior, clear audit trail, safe degradation.
+
+3. Risk-Tiered Tool Execution ✅
+   Four risk tiers with automatic approval gating.
+   Benefits: Operator control without constant prompts, safety by design.
+
+4. Canonical Root Contract (S:\) ✅
+   Everything lives under S:\ (non-negotiable).
+   Benefits: Reproducibility, isolation, clean backup/migration, OS drive disposable.
+
+5. Distributed Logging and PID Tracking ✅
+   Centralized logs at S:\logs\services\, PIDs at S:\state\pids\.
+   Benefits: Observability, clean startup/shutdown, failure recovery.
+
+6. Modular Service Stack ✅
+   5 specialized services on fixed ports, each with clean responsibilities.
+   Benefits: Scalability, independent deployment, graceful degradation.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ WHAT HAPPENS NEXT (Phases D-F)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Phase D: Memory Engine (Persistence & Recall)
+───────────────────────────────────────────────────────────────────────────────
+  Implement:
+    • Durable memory ledger (facts, preferences, project state)
+    • Knowledge workspace (document ingestion, chunking, embedding)
+    • Retrieval endpoints with ranking and provenance
+    • Memory discipline rules (what gets stored, what's transient)
+
+  Stores at: S:\data\memory\ledger.json and S:\data\knowledge\
+
+
+Phase E: Pipecat Voice Integration (Real-Time Modality)
+───────────────────────────────────────────────────────────────────────────────
+  Integrate:
+    • Audio streaming (mic → speaker)
+    • VAD (voice activity detection)
+    • ASR (speech-to-text with partial transcripts)
+    • TTS (text-to-speech with streaming)
+    • Turn-taking and barge-in
+    • Emit structured voice events
+
+  Runs on port 7030 as event service
+
+
+Phase F: UI Automation and Streaming (Action Expansion)
+───────────────────────────────────────────────────────────────────────────────
+  Add:
+    • Streaming responses (SSE/WebSocket to UI)
+    • Vision capture and understanding
+    • UI automation tools (click, type, screenshot)
+    • Browser control
+    • Full end-to-end voice + action loop
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ TESTING CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before declaring "Build Complete":
+
+  ✅ All files created (8 new files, 0 errors)
+  ✅ Configuration validated (sonia-config.json loads)
+  ✅ Message schemas valid (JSON Schema validates)
+  ✅ EVA-OS module executable (Python imports, FastAPI starts)
+  ✅ Tool catalog valid (JSON parses, tiers defined)
+  ✅ Scripts executable (no syntax errors, -Force flag works)
+  ✅ Directories exist (logs, state, cache, integrations)
+  ✅ Logs to canonical locations (S:\logs\services\)
+  ✅ PIDs tracked (S:\state\pids\)
+  ✅ Root contract enforced (S:\ only, no C:\ writes)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ SUPPORT AND DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Quick References:
+  • S:\docs\SONIA_BUILD_GUIDE.md            — Full build & architecture guide
+  • S:\docs\OPENCLAW_ROOT_CAUSE_ANALYSIS.md — Why npm scripts fail on Windows
+  • S:\docs\SONIA_ABOUT_COMBINED.pdf        — Original design documents (1-5)
+  • S:\config\sonia-config.json             — Master configuration reference
+  • S:\shared\schemas\envelopes.json        — Message contract definitions
+
+
+Troubleshooting:
+  Doctor script: .\scripts\diagnostics\doctor-sonia.ps1
+  Monitor logs: Get-Content -Wait -Tail 50 S:\logs\services\<service>.out.log
+  Check health: Invoke-WebRequest http://127.0.0.1:7000/health
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ CLOSURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STATUS: ✅ SONIA FINAL ITERATION BUILD COMPLETE
+
+The chassis is built. The foundations are solid.
+Message contracts are defined. Supervisor logic is in place.
+Safety tiers are enforced. Health checks are comprehensive.
+
+Everything is rooted to S:\ and follows the canonical contract.
+No sprawl. No implicit dependencies. No temporary hacks.
+
+The system is ready for phases D-F (Memory, Voice, UI Automation).
+
+Next: Extract upstream sources, run doctor script, start the stack.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Built by: Claude Code
+Built on: 2026-02-08
+Iteration: Final (1.0.0-alpha)
+Root: S:\
+Status: READY
+
+═══════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,193 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                  OPENCLAW UPSTREAM GATEWAY - QUICK START                      ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+PROBLEM SOLVED: npm run gateway:dev fails on Windows
+ROOT CAUSE: Unix shell syntax (VAR=value) unsupported on Windows cmd.exe
+SOLUTION: Use wrapper script (handles env vars properly in PowerShell)
+
+───────────────────────────────────────────────────────────────────────────────
+
+STEP 1: VALIDATE PREREQUISITES
+───────────────────────────────────────────────────────────────────────────────
+
+  .\scripts\diagnostics\doctor-openclaw-upstream.ps1
+
+  This checks:
+    ✓ Upstream repository exists
+    ✓ Node/npm available
+    ✓ Engine versions compatible
+    ✓ Build artifacts (dist/) present
+    ✓ Sonia ports free (7000-7040)
+    ✓ Token configured (or how to set it)
+
+  Fix any FAILED items before proceeding.
+
+───────────────────────────────────────────────────────────────────────────────
+
+STEP 2: SET GATEWAY TOKEN (REQUIRED)
+───────────────────────────────────────────────────────────────────────────────
+
+  Option A: Environment variable (temporary, this session only)
+  ──────────────────────────────────────────────────────────────
+    $env:OPENCLAW_GATEWAY_TOKEN = "your-secret-token"
+
+  Option B: Via script parameter
+  ──────────────────────────────────────────────────────────────
+    .\scripts\ops\run-openclaw-upstream.ps1 -Token "your-secret-token"
+
+  Option C: Configuration file (persistent)
+  ──────────────────────────────────────────────────────────────
+    Copy: S:\secrets\templates\openclaw-gateway.env.template
+    To:   S:\secrets\openclaw\gateway.env
+    Edit: Add actual token value
+    Then: .\scripts\ops\run-openclaw-upstream.ps1
+
+───────────────────────────────────────────────────────────────────────────────
+
+STEP 3: START GATEWAY
+───────────────────────────────────────────────────────────────────────────────
+
+  Basic start (dev mode):
+    .\scripts\ops\run-openclaw-upstream.ps1
+
+  With options:
+    .\scripts\ops\run-openclaw-upstream.ps1 -Token "secret" -Verbose
+    .\scripts\ops\run-openclaw-upstream.ps1 -Reset          # Reset config
+    .\scripts\ops\run-openclaw-upstream.ps1 -Reinstall      # Clean install
+
+  Expected output:
+    === OpenClaw Upstream Gateway (Sonia) ===
+    Root:     S:\integrations\openclaw\upstream\src\...
+    ...
+    PID: 12345
+    Gateway is running...
+
+───────────────────────────────────────────────────────────────────────────────
+
+STEP 4: MONITOR LOGS
+───────────────────────────────────────────────────────────────────────────────
+
+  Tail stdout (info/warnings):
+    Get-Content -Wait -Tail 50 S:\logs\services\openclaw-upstream.out.log
+
+  Tail stderr (errors):
+    Get-Content -Wait -Tail 50 S:\logs\services\openclaw-upstream.err.log
+
+  Successful start looks like:
+    2026-02-08T13:51:13.828Z [gateway] listening on ws://127.0.0.1:19001
+    2026-02-08T13:51:13.910Z [browser/service] Browser control service ready
+    2026-02-08T13:51:13.911Z [gateway/channels] skipping channel start (OPENCLAW_SKIP_CHANNELS=1)
+
+───────────────────────────────────────────────────────────────────────────────
+
+STEP 5: STOP GATEWAY
+───────────────────────────────────────────────────────────────────────────────
+
+  Graceful shutdown (10s timeout):
+    .\scripts\ops\stop-openclaw-upstream.ps1
+
+  Force kill (if hanging):
+    .\scripts\ops\stop-openclaw-upstream.ps1 -Force
+
+───────────────────────────────────────────────────────────────────────────────
+
+COMMON ISSUES & FIXES
+───────────────────────────────────────────────────────────────────────────────
+
+  ✗ "Process exited immediately (exit=1)"
+    → Use the wrapper script (not npm/pnpm directly)
+    → Run: .\scripts\ops\run-openclaw-upstream.ps1
+
+  ✗ "Gateway auth is set to token, but no token is configured"
+    → Set OPENCLAW_GATEWAY_TOKEN environment variable
+    → See STEP 2 above
+
+  ✗ "node.exe not found on PATH"
+    → Install Node.js v22+ from https://nodejs.org/
+    → Or check: node --version
+
+  ✗ "Port conflict (7000-7040)"
+    → Stop other Sonia services
+    → Or run: .\scripts\diagnostics\doctor-openclaw-upstream.ps1
+
+  ✗ "pnpm install fails"
+    → Force clean reinstall:
+    → .\scripts\ops\run-openclaw-upstream.ps1 -Reinstall
+
+───────────────────────────────────────────────────────────────────────────────
+
+FILE LOCATIONS
+───────────────────────────────────────────────────────────────────────────────
+
+  Wrapper scripts:
+    S:\scripts\ops\run-openclaw-upstream.ps1
+    S:\scripts\ops\stop-openclaw-upstream.ps1
+
+  Diagnostics:
+    S:\scripts\diagnostics\doctor-openclaw-upstream.ps1
+
+  Configuration templates:
+    S:\secrets\templates\openclaw-gateway.env.template
+
+  Documentation:
+    S:\docs\OPENCLAW_UPSTREAM.md                    (full guide)
+    S:\docs\OPENCLAW_ROOT_CAUSE_ANALYSIS.md         (technical details)
+    S:\docs\OPENCLAW_QUICKSTART.txt                 (this file)
+
+  Logs:
+    S:\logs\services\openclaw-upstream.out.log      (stdout)
+    S:\logs\services\openclaw-upstream.err.log      (stderr)
+
+  PID file:
+    S:\state\pids\openclaw-upstream.pid
+
+  Upstream source:
+    S:\integrations\openclaw\upstream\CURRENT.txt   (→ pointer to repo root)
+
+───────────────────────────────────────────────────────────────────────────────
+
+TECHNICAL REFERENCE
+───────────────────────────────────────────────────────────────────────────────
+
+  What the wrapper does:
+    1. Validates prerequisites (Node, npm, upstream repo)
+    2. Installs dependencies (if needed, using pnpm)
+    3. Sets environment variables:
+       - OPENCLAW_SKIP_CHANNELS=1
+       - CLAWDBOT_SKIP_CHANNELS=1
+       - OPENCLAW_GATEWAY_TOKEN=<user-provided>
+    4. Invokes: node scripts/run-node.mjs --dev gateway
+    5. Logs all output to S:\logs\services\openclaw-upstream.{out,err}.log
+    6. Writes PID to S:\state\pids\openclaw-upstream.pid
+    7. Detects immediate crashes and provides hints
+
+  Why npm/pnpm scripts fail:
+    Unix syntax: "VAR=value cmd"  (works on bash/zsh)
+    Windows:    cmd.exe doesn't recognize VAR=value (syntax error)
+    Solution:   Direct Node invocation with proper env var handling
+
+  Gateway requirements:
+    - Node.js v22+ (supports ESM, TypeScript)
+    - Bearer token for API authentication
+    - ~2GB disk for build artifacts + node_modules
+    - Ports (default): ws://127.0.0.1:19001
+
+───────────────────────────────────────────────────────────────────────────────
+
+SUPPORT
+───────────────────────────────────────────────────────────────────────────────
+
+  For detailed explanation of root cause:
+    → S:\docs\OPENCLAW_ROOT_CAUSE_ANALYSIS.md
+
+  For full usage guide and configuration:
+    → S:\docs\OPENCLAW_UPSTREAM.md
+
+  For quick troubleshooting:
+    → Run: .\scripts\diagnostics\doctor-openclaw-upstream.ps1 -Verbose
+
+───────────────────────────────────────────────────────────────────────────────
+
+Last updated: 2026-02-08
+Status: Ready for Sonia integration

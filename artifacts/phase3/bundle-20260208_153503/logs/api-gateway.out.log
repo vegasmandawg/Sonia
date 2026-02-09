@@ -1,0 +1,2 @@
+{"level": "INFO", "service": "api-gateway", "event": "startup", "message": "API Gateway initialized with downstream clients", "timestamp": "2026-02-08T22:06:43.702503Z"}
+INFO:     127.0.0.1:58629 - "GET /healthz HTTP/1.1" 200 OK

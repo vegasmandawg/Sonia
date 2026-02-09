@@ -1,0 +1,20 @@
+10:55:36 [HEADER] === PHASE 3 GO/NO-GO GATE START ===
+10:55:36 [INFO] Timestamp: 20260208_105536
+10:55:36 [INFO] StartupTimeoutSeconds: 90
+10:55:36 [INFO] CycleCount: 10
+10:55:36 [INFO] 
+10:55:36 [HEADER] 
+=== GATE 1: 10 Consecutive Start/Stop Cycles ===
+10:55:36 [INFO] Each cycle MUST: start stack, verify all PIDs + processes + healthz, stop cleanly, zero zombies
+10:55:36 [INFO] 
+Cycle 1/10
+10:55:36 [DEBUG]   Starting stack...
+10:55:36 [FAIL]   FAIL - Cycle 1 failed: At S:\scripts\ops\start-sonia-stack.ps1:225 char:48
++ if (-not $SkipHealthCheck -and -not $TestOnly) {
++                                                ~
+Missing closing '}' in statement block or type definition.
+
+At S:\scripts\ops\start-sonia-stack.ps1:49 char:24
++ function Write-Success {
++                        ~
+Missing closing '}' in statement block or type definition.

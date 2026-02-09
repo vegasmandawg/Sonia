@@ -1,0 +1,10 @@
+{"timestamp": "2026-02-08T22:45:46.553841Z", "level": "INFO", "service": "openclaw", "event": "startup", "tools_registered": 4, "tools_implemented": 4}
+INFO:     127.0.0.1:56582 - "GET /healthz HTTP/1.1" 200 OK
+{"timestamp": "2026-02-08T22:45:50.669826Z", "level": "INFO", "service": "openclaw", "event": "tool_execution", "tool_name": "shell.run", "status": "error", "correlation_id": "req_35f8191ea68f", "duration_ms": 0.0}
+INFO:     127.0.0.1:56620 - "POST /execute HTTP/1.1" 200 OK
+{"timestamp": "2026-02-08T22:45:50.820493Z", "level": "INFO", "service": "openclaw", "event": "tool_execution", "tool_name": "shell.run", "status": "error", "correlation_id": "req_ad7e7765ec02", "duration_ms": 0.0}
+INFO:     127.0.0.1:56620 - "POST /execute HTTP/1.1" 200 OK
+{"timestamp": "2026-02-08T22:45:50.969852Z", "level": "INFO", "service": "openclaw", "event": "tool_execution", "tool_name": "unknown.tool", "status": "not_implemented", "correlation_id": "req_2b85b1bdd6dc", "duration_ms": 0.0}
+INFO:     127.0.0.1:56620 - "POST /execute HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56620 - "GET /status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56620 - "GET /status HTTP/1.1" 200 OK

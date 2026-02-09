@@ -1,0 +1,9 @@
+﻿STEP 1 OK: Created S:\artifacts\phase3\rc-1
+STEP 2 OK: Copied top-level files
+STEP 3 OK: evidence\gate1 (3 files)
+STEP 3 OK: evidence\gate2 (3 files)
+STEP 3 OK: evidence\gate2b (3 files)
+STEP 3 OK: evidence\gate3 (19 files)
+STEP 4 OK: release-bundle (16 files)
+STEP 5 OK: SHA256SUMS.txt (49 files hashed)
+BUILD COMPLETE

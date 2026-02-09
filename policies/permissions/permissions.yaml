@@ -1,0 +1,11 @@
+﻿permissions:
+  filesystem:
+    allow_roots:
+      - "S:\\"
+    deny_paths:
+      - "C:\\Windows\\System32\\"
+  network:
+    default: "deny"
+    allowlist:
+      - "127.0.0.1"
+      - "localhost"

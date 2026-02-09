@@ -1,0 +1,58 @@
+Phase 3 Python Environment Diagnostic
+=====================================
+Timestamp: 2026-02-09 10:35:00
+
+BLOCKER IDENTIFIED: Windows 11 App Execution Aliases redirecting python.exe
+
+Status:
+- where python: C:\Users\iamth\AppData\Local\Microsoft\WindowsApps\python.exe
+- python --version: "Python was not found; run without arguments to install from the Microsoft Store..."
+- This is NOT a real Python installation - it's a Windows alias
+
+Root Cause:
+Windows 11 has App Execution Aliases that redirect python.exe to Microsoft Store installer instead of actual Python binary.
+
+Solution:
+1. Remove python alias from Settings > Apps > Advanced app settings > App execution aliases
+   - Uncheck "python.exe" and "python3.exe"
+2. Install Python 3.10+ from https://www.python.org/downloads/
+   - Check "Add Python to PATH" during installation
+3. Verify: python --version (should show actual version, not alias)
+
+OR Alternative:
+Use explicit path or installer-based Python from:
+- Winget: winget install Python.Python.3.12
+- Chocolatey: choco install python
+
+Gates Cannot Execute:
+- Gate 1: Blocked (services require Python)
+- Gate 2: Blocked (depends on Gate 1)
+- Gate 3: Blocked (depends on Gate 2)
+- Gate 4: Blocked (depends on Gate 3)
+- Gate 5: Blocked (depends on Gate 4)
+- Release: Blocked (depends on all gates)
+
+Evidence of Blocker:
+- Prerequisite check: FAILED
+- Python resolution: FAILED
+- venv creation: SKIPPED (no Python)
+- Dependency installation: SKIPPED (no Python)
+- Preflight validation: SKIPPED (no Python)
+
+Timeline to Unblock:
+1. Disable Python alias in Settings: ~2 minutes
+2. Install Python 3.10+ from python.org: ~5-10 minutes
+3. Verify installation: ~1 minute
+4. Rerun phase3-prereq.ps1: ~30 minutes (first run, dependency install)
+5. Execute Gate 1: ~1 hour
+
+Total estimated: 45-60 minutes from now
+
+Documentation:
+This blocker is specific to Windows 11 environment configuration and does not affect the Phase 3 framework or test infrastructure. Once Python is properly installed, prerequisites can be completed and Gate 1 execution can begin immediately.
+
+Next Action:
+1. Disable Python App Execution Alias in Windows Settings
+2. Install Python 3.10+ from official source with PATH enabled
+3. Rerun: .\phase3-prereq.ps1
+4. Proceed directly to Gate 1

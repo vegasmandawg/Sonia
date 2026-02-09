@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash($env:OPENCLAW_SKIP_CHANNELS=1)",
+      "Bash($env:CLAWDBOT_SKIP_CHANNELS=1)",
+      "Bash(pnpm gateway:dev:*)",
+      "Bash(tee:*)",
+      "Bash(echo:*)",
+      "Bash(OPENCLAW_SKIP_CHANNELS=1 CLAWDBOT_SKIP_CHANNELS=1 pnpm gateway:dev:*)",
+      "Bash(grep:*)",
+      "Bash(OPENCLAW_SKIP_CHANNELS=1 CLAWDBOT_SKIP_CHANNELS=1 node scripts/run-node.mjs:*)",
+      "Bash(OPENCLAW_SKIP_CHANNELS=1 CLAWDBOT_SKIP_CHANNELS=1 OPENCLAW_GATEWAY_TOKEN=test-token node:*)",
+      "Bash(OPENCLAW_SKIP_CHANNELS=1 CLAWDBOT_SKIP_CHANNELS=1 OPENCLAW_GATEWAY_TOKEN=test-token timeout 8 node:*)",
+      "Bash(powershell -Command:*)"
+    ]
+  }
+}

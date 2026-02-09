@@ -1,0 +1,24 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260208103155
+Username: SYLENCESPC\iamth
+RunAs User: SYLENCESPC\iamth
+Configuration Name: 
+Machine: SYLENCESPC (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell.exe -NoProfile -ExecutionPolicy Bypass -File phase3-prereq.ps1
+Process ID: 38740
+PSVersion: 5.1.26100.7705
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7705
+BuildVersion: 10.0.26100.7705
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+=== Phase 3 Prerequisite Check ===
+ERROR: You cannot call a method on a null-valued expression.
+**********************
+Windows PowerShell transcript end
+End time: 20260208103156
+**********************

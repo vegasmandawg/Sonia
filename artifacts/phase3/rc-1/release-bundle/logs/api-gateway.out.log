@@ -1,0 +1,22 @@
+{"level": "INFO", "service": "api-gateway", "event": "startup", "message": "API Gateway initialized with downstream clients", "timestamp": "2026-02-08T23:19:57.532324Z"}
+INFO:     127.0.0.1:49264 - "GET /healthz HTTP/1.1" 200 OK
+{"level": "INFO", "service": "api-gateway", "operation": "chat", "correlation_id": "req_ec21f995d90e", "status": "ok", "duration_ms": 711.3018035888672, "timestamp": "2026-02-08T23:20:03.110466Z"}
+INFO:     127.0.0.1:49274 - "POST /v1/chat?message=Hello HTTP/1.1" 200 OK
+{"level": "INFO", "service": "api-gateway", "operation": "chat", "correlation_id": "req_c57060443c00", "status": "ok", "duration_ms": 405.08127212524414, "timestamp": "2026-02-08T23:20:03.656097Z"}
+INFO:     127.0.0.1:49282 - "POST /v1/chat?message=What+is+2%2B2%3F HTTP/1.1" 200 OK
+{"level": "INFO", "service": "api-gateway", "operation": "chat", "correlation_id": "req_6fd6a9f0e0b5", "status": "ok", "duration_ms": 575.2313137054443, "timestamp": "2026-02-08T23:20:04.507722Z"}
+INFO:     127.0.0.1:49290 - "POST /v1/chat?message=Remember+this+fact&session_id=22b61046-82a4-4893-b479-1a5e6f6cfd61 HTTP/1.1" 200 OK
+{"level": "INFO", "service": "api-gateway", "operation": "chat", "correlation_id": "req_84be1abd24c2", "status": "ok", "duration_ms": 494.4789409637451, "timestamp": "2026-02-08T23:20:05.146487Z"}
+INFO:     127.0.0.1:49298 - "POST /v1/chat?message=Test HTTP/1.1" 200 OK
+{"level": "INFO", "service": "api-gateway", "operation": "action", "tool_name": "shell.run", "correlation_id": "req_40e4938ff991", "status": "failed", "duration_ms": 0.0, "timestamp": "2026-02-08T23:20:05.283359Z"}
+INFO:     127.0.0.1:49305 - "POST /v1/action?tool_name=shell.run&args=%7B%22command%22%3A+%22Get-ChildItem%22%7D HTTP/1.1" 200 OK
+{"level": "INFO", "service": "api-gateway", "operation": "action", "tool_name": "shell.run", "correlation_id": "req_af8e4f7ab681", "status": "failed", "duration_ms": 0.0, "timestamp": "2026-02-08T23:20:05.432523Z"}
+INFO:     127.0.0.1:49311 - "POST /v1/action?tool_name=shell.run&args=%7B%22command%22%3A+%22python+--version%22%7D HTTP/1.1" 200 OK
+{"level": "INFO", "service": "api-gateway", "operation": "action", "tool_name": "unknown.tool", "correlation_id": "req_78d9014f5592", "status": "failed", "duration_ms": 0.0, "timestamp": "2026-02-08T23:20:05.583369Z"}
+INFO:     127.0.0.1:49316 - "POST /v1/action?tool_name=unknown.tool&args=%7B%7D HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49321 - "GET /v1/deps HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49327 - "GET /v1/deps HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49358 - "GET /status HTTP/1.1" 200 OK
+{"level": "INFO", "service": "api-gateway", "operation": "chat", "correlation_id": "req_9fc33c1c4974", "status": "ok", "duration_ms": 433.4301948547363, "timestamp": "2026-02-08T23:20:07.832800Z"}
+INFO:     127.0.0.1:49368 - "POST /v1/chat?message=Test HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49380 - "GET /healthz HTTP/1.1" 200 OK

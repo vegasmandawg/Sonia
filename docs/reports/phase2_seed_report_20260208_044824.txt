@@ -1,0 +1,8 @@
+﻿Sonia Phase 2 seed report
+Timestamp: 2026-02-08 04:48:24
+Root: S:\
+Created: 23
+Overwritten: 0
+Skipped: 3
+DryRun: False
+Force: False

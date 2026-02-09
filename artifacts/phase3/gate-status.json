@@ -1,0 +1,40 @@
+﻿{
+    "overall":  "ALL GATES PASSED - RELEASE CANDIDATE READY FOR VALIDATION",
+    "gates":  {
+                  "gate1":  {
+                                "detail":  "10/10 cycles, zero zombies",
+                                "status":  "PASS",
+                                "evidence_bundle":  "S:\\artifacts\\phase3\\gate-results\\gate1-20260208-172235",
+                                "run_timestamp":  "2026-02-08T16:48:11"
+                            },
+                  "gate2b":  {
+                                 "run2_passed":  18,
+                                 "run_timestamp":  "2026-02-08T17:19:38",
+                                 "run2_failed":  2,
+                                 "status":  "PASS",
+                                 "run1_passed":  18,
+                                 "evidence_bundle":  "S:\\artifacts\\phase3\\gate-results\\gate2b-20260208-172235",
+                                 "run1_failed":  2,
+                                 "detail":  "DETERMINISTIC: Run 1 === Run 2 (Both: 18 passed, 2 failed). Failed: TestPipecatWebSocket (websockets library API mismatch). See BOOT_CONTRACT.md for waiver.",
+                                 "corrected":  "v1.1 - parsing fix: Select-String line count replaced with pytest summary regex"
+                             },
+                  "gate3":  {
+                                "detail":  "Release artifact bundle captured: config hash, PIDs, dependency locks, service logs",
+                                "status":  "PASS",
+                                "artifact_bundle":  "S:\\artifacts\\phase3\\bundle-20260208_164811",
+                                "evidence_bundle":  "S:\\artifacts\\phase3\\gate-results\\gate3-20260208-172235",
+                                "run_timestamp":  "2026-02-08T17:20:08"
+                            },
+                  "gate2":  {
+                                "actual_checks":  2118,
+                                "actual_intervals":  353,
+                                "failed_checks":  0,
+                                "required_duration_minutes":  30,
+                                "status":  "PASS",
+                                "evidence_bundle":  "S:\\artifacts\\phase3\\gate-results\\gate2-20260208-172235",
+                                "run_timestamp":  "2026-02-08T16:49:29",
+                                "detail":  "353 intervals, 2118 checks, 0 failures over 30 minutes (min 342 intervals required)"
+                            }
+              },
+    "updated":  "2026-02-08T23:22:35Z"
+}

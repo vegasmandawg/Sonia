@@ -1,0 +1,11 @@
+﻿theme:
+  name: "red-black"
+  mode: "dark"
+  colors:
+    background: "#070707"
+    panel: "#111111"
+    panel_alt: "#161616"
+    accent_primary: "#8B0000"
+    accent_secondary: "#B22222"
+    text_primary: "#F5F5F5"
+    text_muted: "#B0B0B0"

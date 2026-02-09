@@ -1,0 +1,12 @@
+﻿=== SOAK MONITOR STATUS CHECK v2 ===
+Time: 2026-02-08 17:48:18
+Expected monitor PID: 18864
+Monitor PID 18864 RUNNING (CPU=0.5s RSS=106728KB)
+Log file: 5 lines
+Last 3:
+  2026-02-08 17:44:25 [INFO] End time: 2026-02-10 17:44:25
+  2026-02-08 17:44:25 [INFO] Baseline: S:\artifacts\phase3\soak\t0-baseline.json
+  2026-02-08 17:44:25 [PASS] [snapshot-1] Snapshot 20260208_174425: 6/6 healthy, 0 sev events, elapsed=0.07h
+Snapshots: 1
+Elapsed since T0: 8.2 minutes
+Next snapshot expected at: 17:55:05 (T0+15m)

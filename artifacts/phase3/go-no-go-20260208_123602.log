@@ -1,0 +1,23 @@
+12:36:02 [HEADER] === PHASE 3 GO/NO-GO GATE START ===
+12:36:02 [INFO] Timestamp: 20260208_123602
+12:36:02 [INFO] StartupTimeoutSeconds: 20
+12:36:02 [INFO] CycleCount: 1
+12:36:02 [INFO] 
+12:36:02 [HEADER] 
+=== GATE 1: 1 Consecutive Start/Stop Cycles ===
+12:36:02 [INFO] Each cycle MUST: start stack, verify all PIDs + processes + healthz, stop cleanly, zero zombies
+12:36:02 [DEBUG]   Pre-gate cleanup: stopping any running services...
+12:36:06 [INFO] 
+Cycle 1/1
+12:36:06 [DEBUG]   Starting stack...
+12:36:10 [DEBUG]   Waiting for stack to become healthy (20s timeout)...
+12:36:10 [DEBUG]   Stack healthy - stopping...
+12:36:14 [PASS]   PASS - Cycle complete (PID cleanup verified)
+12:36:14 [SUMMARY] 
+=== GATE 1 RESULT ===
+12:36:14 [SUMMARY] Cycles passed: 1/1
+12:36:14 [PASS] GATE 1 PASSED
+12:36:14 [INFO] 
+=== GATE 1 ONLY MODE - Skipping Gates 2, 2B, 3 ===
+12:36:14 [PASS] Gate 1: 1/1 cycles PASSED
+12:36:14 [INFO] Gates 2/2B/3: SKIPPED (use full run for go/no-go verdict)

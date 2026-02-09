@@ -1,0 +1,27 @@
+2026-02-08 17:19:58,384 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-02-08 17:19:58,385 [INFO] model-router.providers: Ollama provider available
+2026-02-08 17:19:58,388 [INFO] model-router.providers: Initialized 1 providers
+2026-02-08 17:19:58,389 [INFO] model-router: Model Router starting up...
+2026-02-08 17:19:58,389 [INFO] model-router: Available providers: ollama
+2026-02-08 17:19:58,531 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-02-08 17:19:58,532 [INFO] model-router: Total available models: 5
+INFO:     127.0.0.1:49265 - "GET /healthz HTTP/1.1" 200 OK
+2026-02-08 17:20:02,567 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-02-08 17:20:03,106 [INFO] httpx: HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:49275 - "POST /chat HTTP/1.1" 200 OK
+2026-02-08 17:20:03,400 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-02-08 17:20:03,651 [INFO] httpx: HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:49275 - "POST /chat HTTP/1.1" 200 OK
+2026-02-08 17:20:04,100 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-02-08 17:20:04,503 [INFO] httpx: HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:49275 - "POST /chat HTTP/1.1" 200 OK
+2026-02-08 17:20:04,801 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-02-08 17:20:05,142 [INFO] httpx: HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:49275 - "POST /chat HTTP/1.1" 200 OK
+2026-02-08 17:20:05,883 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:49275 - "GET /status HTTP/1.1" 200 OK
+2026-02-08 17:20:06,183 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:49275 - "GET /status HTTP/1.1" 200 OK
+2026-02-08 17:20:07,552 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-02-08 17:20:07,828 [INFO] httpx: HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:49275 - "POST /chat HTTP/1.1" 200 OK

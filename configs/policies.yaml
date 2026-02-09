@@ -1,0 +1,72 @@
+---
+# Policy Configuration for EVA-OS
+
+approval_workflow:
+  tier_0:
+    auto_execute: true
+    approval_timeout_seconds: 0
+    tools:
+      - filesystem.list
+      - filesystem.read
+      - filesystem.stat
+      - process.list
+      - http.get
+
+  tier_1:
+    auto_execute: true
+    approval_timeout_seconds: 30
+    tools:
+      - filesystem.create
+      - process.start
+
+  tier_2:
+    auto_execute: false
+    approval_timeout_seconds: 300
+    requires_operator: true
+    tools:
+      - filesystem.write
+      - filesystem.append
+      - filesystem.move
+      - filesystem.copy
+      - process.stop
+
+  tier_3:
+    auto_execute: false
+    approval_timeout_seconds: 600
+    requires_operator: true
+    requires_confirmation_code: true
+    tools:
+      - filesystem.delete
+      - process.kill
+      - shell.arbitrary_command
+
+approval_token:
+  ttl_seconds: 300  # 5 minutes
+  single_use: true
+  scope_bound: true  # Cannot reuse for different actions
+
+root_contract:
+  canonical_root: S:\
+  enforcement: strict  # Reject any operation outside root
+  exceptions: none
+
+operational_modes:
+  conversation:
+    tool_tier_max: 2
+    requires_approval: true
+
+  operator:
+    tool_tier_max: 3
+    requires_approval: true
+
+  diagnostic:
+    tool_tier_max: 1
+    requires_approval: false
+
+  dictation:
+    tool_tier_max: 0
+    requires_approval: false
+
+  build:
+    tool_tier_max: 3
+    requires_approval: true

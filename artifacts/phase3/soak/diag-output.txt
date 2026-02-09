@@ -1,0 +1,12 @@
+﻿=== SOAK DIAGNOSTIC ===
+Time: 02/08/2026 17:41:16
+Baseline exists: True
+Baseline length: 2151
+Baseline parsed OK
+Start time: 2026-02-08T17:40:05.5707236-06:00
+Config hash: 34F1009B0AF22E2ACDD701758244BEAD15089E307D1F0435BE97C675F1A8EDCB
+PID count: 1 1 1 1 1 1
+Metrics count: 6
+Elapsed hours: 0.02
+api-gateway healthz: 200
+ALL CHECKS PASSED

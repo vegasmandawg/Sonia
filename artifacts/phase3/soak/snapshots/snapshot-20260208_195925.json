@@ -1,0 +1,79 @@
+﻿{
+    "log_burst":  {
+                      "count":  0
+                  },
+    "timestamp":  "2026-02-08T19:59:25.5816362-06:00",
+    "services":  [
+                     {
+                         "PID":  46436,
+                         "Healthy":  true,
+                         "RSS_KB":  57120,
+                         "Handles":  223,
+                         "PIDMatch":  true,
+                         "Name":  "api-gateway",
+                         "Port":  7000,
+                         "Threads":  1
+                     },
+                     {
+                         "PID":  46940,
+                         "Healthy":  true,
+                         "RSS_KB":  61388,
+                         "Handles":  236,
+                         "PIDMatch":  true,
+                         "Name":  "model-router",
+                         "Port":  7010,
+                         "Threads":  2
+                     },
+                     {
+                         "PID":  45788,
+                         "Healthy":  true,
+                         "RSS_KB":  50112,
+                         "Handles":  223,
+                         "PIDMatch":  true,
+                         "Name":  "memory-engine",
+                         "Port":  7020,
+                         "Threads":  2
+                     },
+                     {
+                         "PID":  39264,
+                         "Healthy":  true,
+                         "RSS_KB":  54352,
+                         "Handles":  218,
+                         "PIDMatch":  true,
+                         "Name":  "pipecat",
+                         "Port":  7030,
+                         "Threads":  1
+                     },
+                     {
+                         "PID":  46908,
+                         "Healthy":  true,
+                         "RSS_KB":  48312,
+                         "Handles":  217,
+                         "PIDMatch":  true,
+                         "Name":  "openclaw",
+                         "Port":  7040,
+                         "Threads":  1
+                     },
+                     {
+                         "PID":  38196,
+                         "Healthy":  true,
+                         "RSS_KB":  48100,
+                         "Handles":  223,
+                         "PIDMatch":  true,
+                         "Name":  "eva-os",
+                         "Port":  7050,
+                         "Threads":  2
+                     }
+                 ],
+    "config_drift":  {
+                         "BaselineHash":  "34F1009B0AF22E2ACDD701758244BEAD15089E307D1F0435BE97C675F1A8EDCB",
+                         "Drifted":  false,
+                         "CurrentHash":  "34F1009B0AF22E2ACDD701758244BEAD15089E307D1F0435BE97C675F1A8EDCB"
+                     },
+    "all_healthy":  true,
+    "sev_events":  [
+
+                   ],
+    "tag":  "checkpoint-2",
+    "elapsed_hours":  2.32
+}

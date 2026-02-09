@@ -1,0 +1,14 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sonia.event.schema",
+  "title": "SoniaEvent",
+  "type": "object",
+  "required": ["timestamp", "type", "source"],
+  "properties": {
+    "timestamp": { "type": "string", "format": "date-time" },
+    "type": { "type": "string" },
+    "source": { "type": "string" },
+    "payload": { "type": "object" }
+  },
+  "additionalProperties": false
+}

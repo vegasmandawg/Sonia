@@ -1,0 +1,20 @@
+---
+# Port Assignment Configuration
+# Hard-coded, non-negotiable port assignments
+
+ports:
+  api_gateway: 7000
+  model_router: 7010
+  memory_engine: 7020
+  pipecat: 7030
+  openclaw: 7040
+
+# Port availability check on startup
+check_available_on_start: true
+conflict_handling: fail_fast  # Never use dynamic ports
+
+# Port allocation notes
+reserved_ports:
+  - 7000-7040  # Sonia services
+  - 3000-3100  # Reserved for local development
+  - 5000-5100  # Reserved for databases/caches

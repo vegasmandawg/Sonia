@@ -1,0 +1,13 @@
+﻿approvals:
+  delete_files:
+    require_confirmation: true
+    reason_required: true
+  system_shutdown:
+    require_confirmation: true
+    reason_required: true
+  registry_write:
+    require_confirmation: true
+    reason_required: true
+  shell_exec:
+    require_confirmation: false
+    reason_required: false

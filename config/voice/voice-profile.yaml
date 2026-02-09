@@ -1,0 +1,9 @@
+﻿voice:
+  name: "Sonia"
+  style: "confident, clear, grounded"
+  accent_target: "irish_female"
+  sample_rate_hz: 24000
+  vad: "silero"
+  tts_model: "xtts-v2"
+  dataset_dir: "S:\\voice\\datasets"
+  recordings_dir: "S:\\voice\\recordings"

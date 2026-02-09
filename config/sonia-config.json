@@ -1,0 +1,139 @@
+{
+  "sonia_version": "1.0.0",
+  "final_iteration": true,
+  "canonical_root": "S:\\",
+  "session_id": "sonia-final-iteration-2026-02",
+  
+  "services": {
+    "api_gateway": {
+      "name": "API Gateway",
+      "port": 7000,
+      "host": "127.0.0.1",
+      "description": "Stable front door, UI transport, input normalization",
+      "health_endpoint": "/healthz",
+      "status_endpoint": "/status",
+      "log_file": "S:\\logs\\services\\api-gateway.out.log",
+      "pid_file": "S:\\state\\pids\\api-gateway.pid"
+    },
+    "model_router": {
+      "name": "Model Router",
+      "port": 7010,
+      "host": "127.0.0.1",
+      "description": "Provider/model selection, routing policy",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\model-router.out.log",
+      "pid_file": "S:\\state\\pids\\model-router.pid"
+    },
+    "memory_engine": {
+      "name": "Memory Engine",
+      "port": 7020,
+      "host": "127.0.0.1",
+      "description": "Persistence, ledger, retrieval, knowledge workspace",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\memory-engine.out.log",
+      "pid_file": "S:\\state\\pids\\memory-engine.pid"
+    },
+    "pipecat": {
+      "name": "Pipecat",
+      "port": 7030,
+      "host": "127.0.0.1",
+      "description": "Real-time modality gateway, voice I/O, events",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\pipecat.out.log",
+      "pid_file": "S:\\state\\pids\\pipecat.pid"
+    },
+    "openclaw": {
+      "name": "OpenClaw",
+      "port": 7040,
+      "host": "127.0.0.1",
+      "description": "Action executor, tool catalog, verification",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\openclaw.out.log",
+      "pid_file": "S:\\state\\pids\\openclaw.pid"
+    },
+    "eva_os": {
+      "name": "EVA-OS",
+      "port": 7050,
+      "host": "127.0.0.1",
+      "description": "Supervisory control plane, orchestration, policy",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\eva-os.out.log",
+      "pid_file": "S:\\state\\pids\\eva-os.pid"
+    }
+  },
+
+  "directories": {
+    "logs_services": "S:\\logs\\services",
+    "state_pids": "S:\\state\\pids",
+    "config": "S:\\config",
+    "schemas": "S:\\shared\\schemas",
+    "scripts_ops": "S:\\scripts\\ops",
+    "scripts_diagnostics": "S:\\scripts\\diagnostics",
+    "cache_npm": "S:\\cache\\npm",
+    "cache_pnpm": "S:\\cache\\pnpm-store",
+    "cache_node_gyp": "S:\\cache\\node-gyp",
+    "tools_catalog": "S:\\services\\openclaw\\tool_catalog.json"
+  },
+
+  "eva_os": {
+    "default_mode": "conversation",
+    "root_contract": "S:\\",
+    "approval_timeout_seconds": 300,
+    "auto_degrade_on_service_failure": true,
+    "log_all_tool_calls": true,
+    "require_verification": true,
+    "memory_discipline": "strict"
+  },
+
+  "pipecat": {
+    "audio_sample_rate_hz": 16000,
+    "vad_enabled": true,
+    "vad_hangover_ms": 300,
+    "turn_finalization_silence_ms": 1000,
+    "streaming_asr_enabled": true,
+    "barge_in_enabled": true,
+    "save_audio_artifacts": false,
+    "audio_artifact_path": "S:\\voice\\recordings\\raw"
+  },
+
+  "memory_engine": {
+    "memory_discipline": "strict",
+    "ledger_path": "S:\\data\\memory\\ledger.json",
+    "knowledge_workspace": "S:\\data\\knowledge",
+    "auto_archive_days": 90,
+    "durable_memory_types": ["fact", "preference", "project_state", "stable_constraint"]
+  },
+
+  "model_router": {
+    "default_model": "anthropic/claude-opus-4-6",
+    "fallback_model": "local/qwen",
+    "local_endpoint": "http://127.0.0.1:11434",
+    "offline_preferred": true,
+    "context_length_default": 8000
+  },
+
+  "openclaw": {
+    "tool_catalog": "S:\\services\\openclaw\\tool_catalog.json",
+    "root_contract": "S:\\",
+    "deny_escaping_root": true,
+    "require_approval_for_tier": "TIER_3_DESTRUCTIVE",
+    "verify_all_executions": true,
+    "logs_tool_calls": "S:\\logs\\tools\\calls.log",
+    "audit_log": "S:\\audit\\tool-calls.json"
+  },
+
+  "api_gateway": {
+    "max_request_size_mb": 100,
+    "streaming_enabled": true,
+    "cors_enabled": true,
+    "request_timeout_seconds": 300
+  },
+
+  "operational": {
+    "health_check_interval_seconds": 10,
+    "stale_pid_cleanup_seconds": 60,
+    "log_rotation_days": 7,
+    "log_max_size_mb": 500,
+    "safe_shutdown_timeout_seconds": 30
+  }
+}

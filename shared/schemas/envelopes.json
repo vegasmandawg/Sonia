@@ -1,0 +1,493 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sonia Message Envelopes",
+  "description": "Canonical message contracts for all Sonia services (Phase A)",
+  "definitions": {
+    "UserTurn": {
+      "type": "object",
+      "title": "User Input Turn",
+      "description": "A finalized user utterance (voice or text)",
+      "required": ["id", "timestamp", "text", "mode"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique turn ID (UUID or sequential)",
+          "examples": ["turn-2026-02-08-001", "550e8400-e29b-41d4-a716-446655440000"]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when turn was finalized"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["conversation", "operator", "diagnostic", "dictation", "build"],
+          "description": "Current Sonia operational mode"
+        },
+        "text": {
+          "type": "string",
+          "description": "Final transcribed or input text"
+        },
+        "language": {
+          "type": "string",
+          "default": "en-US",
+          "description": "Language code (e.g., en-US, es-ES)"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Confidence of transcription (1.0 for text input)"
+        },
+        "input_type": {
+          "type": "string",
+          "enum": ["voice", "text", "vision"],
+          "default": "text",
+          "description": "Source of input"
+        },
+        "attachments": {
+          "type": "array",
+          "description": "Optional attached files or vision context",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["file", "vision_snapshot", "screen_capture"]
+              },
+              "path_or_ref": {
+                "type": "string"
+              },
+              "mime_type": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Device/context metadata",
+          "properties": {
+            "device_name": {"type": "string"},
+            "session_id": {"type": "string"},
+            "user_id": {"type": "string"},
+            "active_task_id": {"type": ["string", "null"]}
+          }
+        }
+      }
+    },
+
+    "SystemEvent": {
+      "type": "object",
+      "title": "System Event",
+      "description": "Internal system event (service health, mode change, etc.)",
+      "required": ["id", "timestamp", "event_type", "source_service"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique event ID"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "event_type": {
+          "type": "string",
+          "enum": [
+            "service_health_change",
+            "mode_change",
+            "task_state_change",
+            "capability_update",
+            "error",
+            "warning"
+          ]
+        },
+        "source_service": {
+          "type": "string",
+          "enum": ["eva-os", "gateway", "pipecat", "memory-engine", "model-router", "openclaw"]
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["info", "warning", "error", "critical"]
+        },
+        "payload": {
+          "type": "object",
+          "description": "Event-specific data"
+        }
+      }
+    },
+
+    "Plan": {
+      "type": "object",
+      "title": "Task Plan",
+      "description": "A structured plan for executing a task with multiple steps",
+      "required": ["id", "goal", "constraints", "steps"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique plan ID"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "goal": {
+          "type": "string",
+          "description": "High-level goal statement"
+        },
+        "constraints": {
+          "type": "array",
+          "description": "Constraints on execution (e.g., 'within S:\\', 'offline only')",
+          "items": {"type": "string"}
+        },
+        "steps": {
+          "type": "array",
+          "description": "Ordered steps to achieve goal",
+          "items": {
+            "type": "object",
+            "required": ["step_num", "action"],
+            "properties": {
+              "step_num": {"type": "integer"},
+              "action": {"type": "string"},
+              "tool_calls": {
+                "type": "array",
+                "items": {"$ref": "#/definitions/ToolCall"}
+              },
+              "verification_criteria": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "needs_approval": {"type": "boolean"},
+              "estimated_duration_ms": {"type": "integer"}
+            }
+          }
+        }
+      }
+    },
+
+    "ToolCall": {
+      "type": "object",
+      "title": "Tool Call Request",
+      "description": "A structured request to execute a tool via OpenClaw",
+      "required": ["id", "tool_name", "args"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique tool call ID"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tool_name": {
+          "type": "string",
+          "description": "Fully qualified tool name (e.g., 'filesystem.write_file')",
+          "examples": [
+            "filesystem.list_directory",
+            "filesystem.read_file",
+            "filesystem.write_file",
+            "process.start",
+            "shell.run_powershell_script"
+          ]
+        },
+        "args": {
+          "type": "object",
+          "description": "Typed arguments for the tool"
+        },
+        "side_effects_declared": {
+          "type": "array",
+          "description": "Side effects this tool will have",
+          "items": {
+            "type": "string",
+            "enum": [
+              "creates_file",
+              "modifies_file",
+              "deletes_file",
+              "starts_process",
+              "stops_process",
+              "modifies_config",
+              "modifies_registry",
+              "network_access",
+              "system_shutdown"
+            ]
+          }
+        },
+        "approval_required": {
+          "type": "boolean",
+          "description": "Does this tool call require explicit user approval?"
+        },
+        "approval_token": {
+          "type": ["string", "null"],
+          "description": "Token granting approval for this specific call (scope-bound)"
+        },
+        "expected_outputs": {
+          "type": "array",
+          "description": "What outputs we expect from success",
+          "items": {"type": "string"}
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "description": "Timeout in milliseconds"
+        }
+      }
+    },
+
+    "ToolResult": {
+      "type": "object",
+      "title": "Tool Execution Result",
+      "description": "Result of executing a tool call",
+      "required": ["id", "tool_call_id", "status"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique result ID"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tool_call_id": {
+          "type": "string",
+          "description": "Reference to original ToolCall"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["success", "partial_success", "failed", "timeout", "blocked"],
+          "description": "Execution status"
+        },
+        "outputs": {
+          "type": "object",
+          "description": "Tool-specific outputs"
+        },
+        "artifacts": {
+          "type": "array",
+          "description": "Created/modified artifacts (paths, IDs, etc.)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {"type": "string", "enum": ["file", "process", "config", "log"]},
+              "path_or_id": {"type": "string"},
+              "size_bytes": {"type": "integer"},
+              "hash": {"type": "string"}
+            }
+          }
+        },
+        "side_effects_observed": {
+          "type": "array",
+          "description": "Side effects actually observed (vs. declared)",
+          "items": {"type": "string"}
+        },
+        "verification_results": {
+          "type": "object",
+          "description": "Evidence that the action succeeded",
+          "properties": {
+            "file_exists": {"type": "boolean"},
+            "file_hash": {"type": "string"},
+            "process_running": {"type": "boolean"},
+            "process_pid": {"type": "integer"},
+            "health_check_passed": {"type": "boolean"}
+          }
+        },
+        "error": {
+          "type": ["object", "null"],
+          "description": "Error details if status is not success",
+          "properties": {
+            "code": {"type": "string"},
+            "message": {"type": "string"},
+            "stack_trace": {"type": "string"}
+          }
+        },
+        "logs_ref": {
+          "type": "string",
+          "description": "Path to detailed logs for this execution"
+        }
+      }
+    },
+
+    "MemoryQuery": {
+      "type": "object",
+      "title": "Memory Query Request",
+      "description": "Query the Memory Engine for relevant context",
+      "required": ["id", "intent"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "intent": {
+          "type": "string",
+          "description": "What we're trying to recall",
+          "examples": ["retrieve_project_state", "retrieve_preferences", "retrieve_recent_tasks"]
+        },
+        "turn_text": {
+          "type": "string",
+          "description": "The user's turn text (for context-aware retrieval)"
+        },
+        "constraints": {
+          "type": "object",
+          "description": "Retrieval constraints",
+          "properties": {
+            "memory_type": {
+              "type": "string",
+              "enum": ["fact", "preference", "project_state", "task_history", "knowledge"]
+            },
+            "recency_hours": {"type": "integer"},
+            "offline_only": {"type": "boolean"}
+          }
+        },
+        "top_k": {
+          "type": "integer",
+          "default": 8,
+          "description": "Number of results to return"
+        }
+      }
+    },
+
+    "MemoryResult": {
+      "type": "object",
+      "title": "Memory Query Result",
+      "description": "Results from Memory Engine query",
+      "required": ["id", "query_id", "items"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "query_id": {
+          "type": "string",
+          "description": "Reference to MemoryQuery"
+        },
+        "items": {
+          "type": "array",
+          "description": "Retrieved memory items with provenance",
+          "items": {
+            "type": "object",
+            "required": ["type", "key", "value"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["fact", "preference", "project_state", "task_history", "knowledge"]
+              },
+              "key": {
+                "type": "string",
+                "description": "Memory key or identifier"
+              },
+              "value": {
+                "type": ["string", "object", "array"],
+                "description": "The actual memory value"
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "provenance": {
+                "type": "string",
+                "description": "How/when this memory was recorded"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When this memory was recorded"
+              }
+            }
+          }
+        },
+        "total_items": {
+          "type": "integer"
+        }
+      }
+    },
+
+    "ApprovalRequest": {
+      "type": "object",
+      "title": "Approval Request to User",
+      "description": "Request explicit approval for a high-risk action",
+      "required": ["id", "tool_call_id", "action_summary", "impact"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Approval request ID"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tool_call_id": {
+          "type": "string",
+          "description": "Reference to ToolCall requiring approval"
+        },
+        "action_summary": {
+          "type": "string",
+          "description": "Human-readable summary of what will happen"
+        },
+        "exact_targets": {
+          "type": "array",
+          "description": "Exact paths/IDs that will be affected",
+          "items": {"type": "string"}
+        },
+        "expected_impact": {
+          "type": "string",
+          "description": "What impact is expected (e.g., 'Will delete 3 files')"
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "rollback_notes": {
+          "type": ["string", "null"],
+          "description": "How to undo if needed"
+        },
+        "approval_token": {
+          "type": "string",
+          "description": "Token that user must include in response"
+        },
+        "scope_hash": {
+          "type": "string",
+          "description": "Hash of tool_name + args (prevents scope creep)"
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "description": "How long to wait for approval"
+        }
+      }
+    },
+
+    "ApprovalResponse": {
+      "type": "object",
+      "title": "User Approval Response",
+      "description": "User's response to an ApprovalRequest",
+      "required": ["id", "approval_request_id", "decision"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "approval_request_id": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string",
+          "enum": ["approved", "denied"]
+        },
+        "approval_token": {
+          "type": "string",
+          "description": "Token from ApprovalRequest (validates scope)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Optional reason for denial"
+        }
+      }
+    }
+  }
+}

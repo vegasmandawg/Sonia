@@ -1,0 +1,44 @@
+﻿[
+    {
+        "Target":  "api-gateway",
+        "Url":  "http://127.0.0.1:7000/health",
+        "OK":  true,
+        "Ms":  50,
+        "Body":  "{\"ok\":true,\"service\":\"api-gateway\"}"
+    },
+    {
+        "Target":  "model-router",
+        "Url":  "http://127.0.0.1:7010/health",
+        "OK":  true,
+        "Ms":  3,
+        "Body":  "{\"ok\":true,\"service\":\"model-router\"}"
+    },
+    {
+        "Target":  "memory-engine",
+        "Url":  "http://127.0.0.1:7020/health",
+        "OK":  true,
+        "Ms":  2,
+        "Body":  "{\"ok\":true,\"service\":\"memory-engine\"}"
+    },
+    {
+        "Target":  "pipecat",
+        "Url":  "http://127.0.0.1:7030/health",
+        "OK":  true,
+        "Ms":  2,
+        "Body":  "{\"ok\":true,\"service\":\"pipecat\"}"
+    },
+    {
+        "Target":  "openclaw",
+        "Url":  "http://127.0.0.1:7040/health",
+        "OK":  true,
+        "Ms":  2,
+        "Body":  "{\"ok\":true,\"service\":\"openclaw\"}"
+    },
+    {
+        "Target":  "version",
+        "Url":  "http://127.0.0.1:7000/version",
+        "OK":  true,
+        "Ms":  3,
+        "Body":  "{\"name\":\"sonia-final\",\"version\":\"0.1.0\"}"
+    }
+]

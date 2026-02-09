@@ -1,0 +1,9 @@
+﻿ERROR: At S:\scripts\testing\soak-monitor.ps1:205 char:26
++     Log "[$Tag] Snapshot $stamp: $healthyCount/6 healthy, $($sevEvent ...
++                          ~~~~~~~
+Variable reference is not valid. ':' was not followed by a valid variable name character. Consider using ${} to delimit the name.
+
+At S:\scripts\testing\soak-monitor.ps1:253 char:21
++     Log "Checkpoint $CheckpointNum: availability=$availability%, snap ...
++                     ~~~~~~~~~~~~~~~
+Variable reference is not valid. ':' was not followed by a valid variable name character. Consider using ${} to delimit the name.

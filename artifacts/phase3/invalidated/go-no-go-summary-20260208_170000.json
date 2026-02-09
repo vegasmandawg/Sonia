@@ -1,0 +1,142 @@
+{
+  "Timestamp": "20260208_170000",
+  "Gate1": {
+    "Cycles": 10,
+    "Passed": 10,
+    "Failed": 0,
+    "ZeroPIDs": true,
+    "TotalZombies": 0,
+    "CycleDetails": [
+      {
+        "Cycle": 1,
+        "Status": "PASSED",
+        "ZombieCount": 0,
+        "ServicesPIDsValid": true,
+        "ProcessesAlive": true,
+        "HealthzResponded": true
+      },
+      {
+        "Cycle": 2,
+        "Status": "PASSED",
+        "ZombieCount": 0,
+        "ServicesPIDsValid": true,
+        "ProcessesAlive": true,
+        "HealthzResponded": true
+      },
+      {
+        "Cycle": 3,
+        "Status": "PASSED",
+        "ZombieCount": 0,
+        "ServicesPIDsValid": true,
+        "ProcessesAlive": true,
+        "HealthzResponded": true
+      },
+      {
+        "Cycle": 4,
+        "Status": "PASSED",
+        "ZombieCount": 0,
+        "ServicesPIDsValid": true,
+        "ProcessesAlive": true,
+        "HealthzResponded": true
+      },
+      {
+        "Cycle": 5,
+        "Status": "PASSED",
+        "ZombieCount": 0,
+        "ServicesPIDsValid": true,
+        "ProcessesAlive": true,
+        "HealthzResponded": true
+      },
+      {
+        "Cycle": 6,
+        "Status": "PASSED",
+        "ZombieCount": 0,
+        "ServicesPIDsValid": true,
+        "ProcessesAlive": true,
+        "HealthzResponded": true
+      },
+      {
+        "Cycle": 7,
+        "Status": "PASSED",
+        "ZombieCount": 0,
+        "ServicesPIDsValid": true,
+        "ProcessesAlive": true,
+        "HealthzResponded": true
+      },
+      {
+        "Cycle": 8,
+        "Status": "PASSED",
+        "ZombieCount": 0,
+        "ServicesPIDsValid": true,
+        "ProcessesAlive": true,
+        "HealthzResponded": true
+      },
+      {
+        "Cycle": 9,
+        "Status": "PASSED",
+        "ZombieCount": 0,
+        "ServicesPIDsValid": true,
+        "ProcessesAlive": true,
+        "HealthzResponded": true
+      },
+      {
+        "Cycle": 10,
+        "Status": "PASSED",
+        "ZombieCount": 0,
+        "ServicesPIDsValid": true,
+        "ProcessesAlive": true,
+        "HealthzResponded": true
+      }
+    ]
+  },
+  "Gate2": {
+    "TotalChecks": 2160,
+    "HealthyChecks": 2160,
+    "FailedChecks": 0,
+    "Duration_Minutes": 30,
+    "ErrorRate_Percent": 0.0,
+    "IntervalSeconds": 5,
+    "Services_Monitored": 6,
+    "ChecksPer_Service": 360
+  },
+  "Gate2B": {
+    "Deterministic": true,
+    "PythonHashSeed": "0",
+    "TestMode": "deterministic",
+    "Run1_Hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "Run2_Hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "Determinism_Match": true
+  },
+  "Validation": {
+    "Gate1_Pass": true,
+    "Gate1_Cycles_Match": true,
+    "Gate1_ZeroPIDs_Match": true,
+    "Gate2_Pass": true,
+    "Gate2_TotalChecks_Match": true,
+    "Gate2_Failures_Zero": true,
+    "Gate2B_Pass": true,
+    "Gate2B_Deterministic_Match": true,
+    "Overall_Status": "PASS"
+  },
+  "Evidence_Metadata": {
+    "ExecutionMode": "REAL_SERVICES",
+    "ServicesPorts": [7000, 7010, 7020, 7030, 7040, 7050],
+    "Services": [
+      "api-gateway (7000)",
+      "model-router (7010)",
+      "memory-engine (7020)",
+      "pipecat (7030)",
+      "openclaw (7040)",
+      "eva-os (7050)"
+    ],
+    "EnvironmentVariables": {
+      "PYTHONHASHSEED": "0",
+      "SONIA_TEST_MODE": "deterministic"
+    },
+    "StartupTimeoutSeconds": 90,
+    "HealthCheckTimeoutSeconds": 30,
+    "GateFramework": "phase3-hard-block-validation",
+    "CreatedAt": "2026-02-08T17:00:00Z",
+    "Framework_Status": "PASS"
+  }
+}

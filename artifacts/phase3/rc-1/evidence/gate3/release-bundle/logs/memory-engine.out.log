@@ -1,0 +1,8 @@
+2026-02-08 17:19:59,249 [INFO] memory-engine.db: Initializing database: S:\data\memory.db
+2026-02-08 17:19:59,250 [INFO] memory-engine.db: Database schema initialized
+2026-02-08 17:19:59,250 [INFO] memory-engine: Memory Engine starting up...
+2026-02-08 17:19:59,250 [INFO] memory-engine: Database loaded: 0 active memories
+INFO:     127.0.0.1:49266 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49291 - "POST /search HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49291 - "GET /status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49291 - "GET /status HTTP/1.1" 200 OK

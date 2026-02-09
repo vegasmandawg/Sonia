@@ -1,0 +1,77 @@
+
+================================
+Phase 3: Gate 1 Execution
+================================
+Timestamp: Sun 02/08/2026 10:40:16.42
+
+[INFO] Environment variables set:
+  PYTHONHASHSEED=0
+  SONIA_TEST_MODE=deterministic
+
+[STEP 1] Checking Python installation...
+[INFO] Miniconda3 not found, checking for py launcher...
+'where' is not recognized as an internal or external command,
+operable program or batch file.
+[ERROR] No Python found. Installing Miniconda3...
+[INFO] Executing: S:\tools\sysprog\Miniconda3-py311_25.11.1-1-Windows-x86_64.exe
+Welcome to Miniconda3 py311_25.11.1-1
+::error: Path C:\Miniconda3 is not writable. Please check permissions or try respawning the installer with elevated privileges.
+[INFO] Installation completed, waiting for PATH refresh...
+'timeout' is not recognized as an internal or external command,
+operable program or batch file.
+
+[STEP 2] Executing Gate 1...
+10:40:16 [HEADER] === PHASE 3 GO/NO-GO GATE START ===
+10:40:16 [INFO] Timestamp: 20260208_104016
+10:40:16 [INFO] StartupTimeoutSeconds: 90
+10:40:16 [INFO] CycleCount: 10
+10:40:16 [INFO] 
+10:40:16 [HEADER] 
+=== GATE 1: 10 Consecutive Start/Stop Cycles ===
+10:40:16 [INFO] Each cycle MUST: start stack, verify all PIDs + processes + healthz, stop cleanly, zero zombies
+10:40:16 [INFO] 
+Cycle 1/10
+10:40:16 [DEBUG]   Starting stack...
+10:40:16 [FAIL]   FAIL - Cycle 1 failed: At S:\scripts\ops\start-sonia-stack.ps1:143 char:29
++         Write-Success "Port $port: available"
++                             ~~~~~~
+Variable reference is not valid. ':' was not followed by a valid variable name character. Consider using ${} to delimit the name.
+
+At S:\scripts\ops\start-sonia-stack.ps1:145 char:34
++         Write-Error-Custom "Port $port: IN USE"
++                                  ~~~~~~
+Variable reference is not valid. ':' was not followed by a valid variable name character. Consider using ${} to delimit the name.
+
+At S:\scripts\ops\start-sonia-stack.ps1:225 char:48
++ if (-not $SkipHealthCheck -and -not $TestOnly) {
++                                                ~
+Missing closing '}' in statement block or type definition.
+
+At S:\scripts\ops\start-sonia-stack.ps1:49 char:24
++ function Write-Success {
++                        ~
+Missing closing '}' in statement block or type definition.
+At S:\scripts\ops\start-sonia-stack.ps1:143 char:29
++         Write-Success "Port $port: available"
++                             ~~~~~~
+Variable reference is not valid. ':' was not followed by a valid variable name character. Consider using ${} to 
+delimit the name.
+At S:\scripts\ops\start-sonia-stack.ps1:145 char:34
++         Write-Error-Custom "Port $port: IN USE"
++                                  ~~~~~~
+Variable reference is not valid. ':' was not followed by a valid variable name character. Consider using ${} to 
+delimit the name.
+At S:\scripts\ops\start-sonia-stack.ps1:225 char:48
++ if (-not $SkipHealthCheck -and -not $TestOnly) {
++                                                ~
+Missing closing '}' in statement block or type definition.
+At S:\scripts\ops\start-sonia-stack.ps1:49 char:24
++ function Write-Success {
++                        ~
+Missing closing '}' in statement block or type definition.
+    + CategoryInfo          : ParserError: (:) [], ParseException
+    + FullyQualifiedErrorId : InvalidVariableReferenceWithDrive
+ 
+
+[INFO] Gate 1 completed with exit code: 1
+[ERROR] GATE 1 FAILED

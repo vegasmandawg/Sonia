@@ -1,0 +1,22 @@
+{"level": "INFO", "service": "pipecat", "event": "startup", "message": "Pipecat initialized with session manager", "timestamp": "2026-02-08T22:45:45.655819Z"}
+INFO:     127.0.0.1:56581 - "GET /healthz HTTP/1.1" 200 OK
+{"level": "INFO", "service": "pipecat", "operation": "session_start", "session_id": "1e6e2e2a-2833-4ed7-bd54-ba34974fc33c", "correlation_id": "req_e7af07e5c266", "timestamp": "2026-02-08T22:45:49.420460Z"}
+INFO:     127.0.0.1:56603 - "POST /session/start HTTP/1.1" 200 OK
+{"level": "INFO", "service": "pipecat", "operation": "session_start", "session_id": "94225557-0d99-44e9-a394-bc8895cdefc4", "correlation_id": "req_47db0efcb9fb", "timestamp": "2026-02-08T22:45:51.702736Z"}
+INFO:     127.0.0.1:56647 - "POST /session/start HTTP/1.1" 200 OK
+{"level": "INFO", "service": "pipecat", "operation": "session_start", "session_id": "27b0f685-3de8-4933-990e-ac079fc6fb2c", "correlation_id": "req_2c06fc5e1d80", "timestamp": "2026-02-08T22:45:51.855684Z"}
+INFO:     127.0.0.1:56652 - "POST /session/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56652 - "GET /session/27b0f685-3de8-4933-990e-ac079fc6fb2c HTTP/1.1" 200 OK
+{"level": "INFO", "service": "pipecat", "operation": "session_start", "session_id": "0cb8967a-b38c-47d6-9f18-3dc7109d64a8", "correlation_id": "req_bb33057488a7", "timestamp": "2026-02-08T22:45:52.003825Z"}
+INFO:     127.0.0.1:56657 - "POST /session/start HTTP/1.1" 200 OK
+{"level": "INFO", "service": "pipecat", "operation": "session_stop", "session_id": "0cb8967a-b38c-47d6-9f18-3dc7109d64a8", "reason": "user_requested", "correlation_id": "req_74337922406d", "timestamp": "2026-02-08T22:45:52.003825Z"}
+INFO:     127.0.0.1:56657 - "POST /session/stop?session_id=0cb8967a-b38c-47d6-9f18-3dc7109d64a8 HTTP/1.1" 200 OK
+{"level": "INFO", "service": "pipecat", "operation": "session_start", "session_id": "07c816c0-9f8d-46fa-b865-6c81dea8018d", "correlation_id": "req_2a9913bd4a7d", "timestamp": "2026-02-08T22:45:52.154565Z"}
+INFO:     127.0.0.1:56662 - "POST /session/start HTTP/1.1" 200 OK
+{"level": "INFO", "service": "pipecat", "operation": "session_start", "session_id": "a04f52f7-1269-4152-9a71-678ac2f0bf6d", "correlation_id": "req_33e86f098e43", "timestamp": "2026-02-08T22:45:52.353858Z"}
+INFO:     127.0.0.1:56667 - "POST /session/start HTTP/1.1" 200 OK
+{"level": "INFO", "service": "pipecat", "operation": "session_start", "session_id": "08413d28-e05d-44b9-aa6b-fe841da88903", "correlation_id": "req_f65702bf7fcc", "timestamp": "2026-02-08T22:45:52.654698Z"}
+INFO:     127.0.0.1:56677 - "POST /session/start HTTP/1.1" 200 OK
+{"level": "INFO", "service": "pipecat", "operation": "session_start", "session_id": "c8b02161-3692-4e7b-b941-fed84856141a", "correlation_id": "req_52710646e3eb", "timestamp": "2026-02-08T22:45:53.353902Z"}
+INFO:     127.0.0.1:56689 - "POST /session/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56699 - "GET /healthz HTTP/1.1" 200 OK

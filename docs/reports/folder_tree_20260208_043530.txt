@@ -1,0 +1,306 @@
+Folder PATH listing for volume Sonia's Soul
+Volume serial number is 7E7D-F933
+S:\
++---apps
+|   +---api
+|   |   +---src
+|   |   |   +---middleware
+|   |   |   +---routers
+|   |   |   +---schemas
+|   |   |   \---services
+|   |   \---tests
+|   +---desktop
+|   |   +---public
+|   |   \---src
+|   |       +---components
+|   |       +---store
+|   |       +---styles
+|   |       \---views
+|   \---operator-console
++---assets
+|   +---avatar
+|   |   +---animations
+|   |   +---blend
+|   |   +---fbx
+|   |   +---morphs
+|   |   +---rigs
+|   |   \---textures
+|   +---branding
+|   |   +---logos
+|   |   \---sigils
+|   +---fonts
+|   +---icons
+|   +---images
+|   |   +---chapters
+|   |   \---ui
+|   \---sfx
++---audit
+|   +---approvals
+|   +---events
+|   +---security
+|   +---sessions
+|   +---side-effects
+|   \---tool-calls
++---backups
+|   +---daily
+|   +---milestones
+|   \---weekly
++---bin
++---cache
+|   +---conda
+|   +---datasets
+|   +---hf
+|   +---lmstudio
+|   +---ollama
+|   +---pip
+|   +---transformers
+|   +---triton
+|   +---vllm
+|   \---whisper
++---config
+|   +---env
+|   +---models
+|   +---policies
+|   +---profiles
+|   +---prompts
+|   +---routing
+|   +---services
+|   +---ui
+|   \---voice
++---data
+|   +---exports
+|   +---imports
+|   +---incoming
+|   |   +---audio
+|   |   +---image
+|   |   +---text
+|   |   \---video
+|   +---indexes
+|   |   +---hybrid
+|   |   +---keyword
+|   |   \---vector
+|   +---knowledge
+|   |   +---chunks
+|   |   +---clean
+|   |   \---raw
+|   +---processed
+|   |   +---audio
+|   |   +---image
+|   |   +---text
+|   |   \---video
+|   +---sessions
+|   \---telemetry
++---datasets
+|   +---dpo
+|   +---eval
+|   +---instruction
+|   +---persona
+|   +---sft
+|   +---synthetic
+|   +---vision
+|   \---voice
++---docs
+|   +---adr
+|   +---api
+|   +---architecture
+|   +---changelog
+|   +---contracts
+|   +---reports
+|   \---runbooks
++---envs
+|   +---build
+|   +---sonia-core
+|   \---training
++---integrations
+|   +---anthropic
+|   +---github
+|   +---huggingface
+|   +---local-network
+|   +---ollama
+|   +---openrouter
+|   \---webhooks
++---knowledge
+|   \---path-of-the-star-and-the-snake
+|       +---black-ledger
+|       +---book-1
+|       +---book-2
+|       +---book-3
+|       +---book-4
+|       +---book-5
+|       +---book-6
+|       +---grimoire-of-nomos
+|       +---references
+|       +---research
+|       \---stations-and-thresholds
++---logs
+|   +---boot
+|   +---errors
+|   +---services
+|   +---sessions
+|   +---tools
+|   +---training
+|   +---vision
+|   \---voice
++---memory
+|   +---archive
+|   +---ledger
+|   |   +---beliefs
+|   |   +---facts
+|   |   +---preferences
+|   |   +---projects
+|   |   \---relationships
+|   +---redactions
+|   +---reviews
+|   +---snapshots
+|   \---timeline
+|       +---conflicts
+|       +---recorded-time
+|       \---valid-time
++---models
+|   +---asr
+|   +---checkpoints
+|   +---embeddings
+|   +---llm
+|   |   +---base
+|   |   +---finetuned
+|   |   \---quantized
+|   +---manifests
+|   +---reranker
+|   +---tokenizers
+|   +---tts
+|   +---vision
+|   \---vlm
+|       +---base
+|       +---finetuned
+|       \---quantized
++---pipelines
+|   +---ingestion
+|   |   +---chunk
+|   |   +---embed
+|   |   +---ocr
+|   |   +---parse
+|   |   +---rerank
+|   |   \---transcribe
+|   +---realtime
+|   |   +---tool-loop
+|   |   +---vision-loop
+|   |   \---voice-loop
+|   \---training
+|       +---dpo
+|       +---eval
+|       +---merge
+|       +---preference
+|       +---quantize
+|       \---sft
++---policies
+|   +---network
+|   +---permissions
+|   +---safety
+|   \---side-effects
++---profiles
+|   +---default
+|   +---performance
+|   \---safe
++---projects
+|   +---active
+|   \---archive
++---prompts
+|   +---evaluation
+|   +---persona
+|   +---system
+|   \---tools
++---scripts
+|   +---bootstrap
+|   +---dataset
+|   +---diagnostics
+|   +---install
+|   +---maintenance
+|   +---migrations
+|   +---ops
+|   +---release
+|   \---training
++---secrets
+|   +---local
+|   \---templates
++---services
+|   +---memory-engine
+|   |   +---indexers
+|   |   +---jobs
+|   |   \---ledger
+|   +---model-router
+|   |   +---config
+|   |   \---providers
+|   +---openclaw
+|   |   +---actions
+|   |   +---adapters
+|   |   \---config
+|   +---perception
+|   |   +---audio
+|   |   \---vision
+|   +---pipecat
+|   |   +---config
+|   |   +---pipelines
+|   |   \---plugins
+|   +---policy
+|   |   +---approvals
+|   |   \---rules
+|   +---task-engine
+|   |   +---queues
+|   |   +---schedules
+|   |   \---workers
+|   \---telemetry
+|       +---collectors
+|       \---dashboards
++---shared
+|   +---contracts
+|   +---messages
+|   +---schemas
+|   +---types
+|   \---utils
++---state
+|   +---checkpoints
+|   +---jobs
+|   +---locks
+|   +---pids
+|   +---queues
+|   \---snapshots
++---tests
+|   +---e2e
+|   +---integration
+|   +---load
+|   +---smoke
+|   \---unit
++---tmp
++---tools
+|   +---cuda
+|   +---ffmpeg
+|   +---git
+|   +---lmstudio
+|   +---node
+|   +---ollama
+|   +---python
+|   \---vllm
++---ui
+|   +---components
+|   +---layouts
+|   +---themes
+|   |   \---red-black
+|   \---tokens
++---voice
+|   +---datasets
+|   +---eval
+|   +---inference
+|   +---models
+|   +---profiles
+|   |   \---sonia
+|   \---recordings
+|       +---clean
+|       +---raw
+|       \---segments
+\---workspace
+    +---drafts
+    +---experiments
+    +---exports
+    +---imports
+    +---notebooks
+    \---scratch

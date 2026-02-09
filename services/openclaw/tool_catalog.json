@@ -1,0 +1,389 @@
+{
+  "catalog_version": "1.0.0",
+  "description": "OpenClaw Tool Catalog with Risk Tiers and Verification Specs",
+  "tools": {
+    "filesystem.list_directory": {
+      "tier": "TIER_0_READONLY",
+      "description": "List contents of a directory",
+      "schema": {
+        "type": "object",
+        "required": ["path"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Directory path to list"
+          },
+          "recursive": {
+            "type": "boolean",
+            "default": false,
+            "description": "List recursively"
+          }
+        }
+      },
+      "verification_spec": {
+        "type": "file_listing",
+        "check_path_exists": true
+      }
+    },
+    "filesystem.read_file": {
+      "tier": "TIER_0_READONLY",
+      "description": "Read contents of a file",
+      "schema": {
+        "type": "object",
+        "required": ["path"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "encoding": {
+            "type": "string",
+            "default": "utf-8"
+          }
+        }
+      },
+      "verification_spec": {
+        "type": "file_content",
+        "check_path_exists": true,
+        "return_hash": true
+      }
+    },
+    "filesystem.stat": {
+      "tier": "TIER_0_READONLY",
+      "description": "Get file/directory metadata",
+      "schema": {
+        "type": "object",
+        "required": ["path"],
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      },
+      "verification_spec": {
+        "type": "file_stat",
+        "return_size": true,
+        "return_modified": true
+      }
+    },
+    "process.list": {
+      "tier": "TIER_0_READONLY",
+      "description": "List running processes",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "filter_name": {
+            "type": "string",
+            "description": "Optional process name filter"
+          }
+        }
+      },
+      "verification_spec": {
+        "type": "process_list",
+        "return_pids": true
+      }
+    },
+    "http.get": {
+      "tier": "TIER_0_READONLY",
+      "description": "Make HTTP GET request",
+      "schema": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "default": 30
+          }
+        }
+      },
+      "verification_spec": {
+        "type": "http_response",
+        "check_status_code": true
+      }
+    },
+    "filesystem.create_directory": {
+      "tier": "TIER_1_LOW_RISK",
+      "description": "Create a new directory",
+      "schema": {
+        "type": "object",
+        "required": ["path"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "recursive": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "side_effects": ["creates_file"],
+      "verification_spec": {
+        "type": "directory_creation",
+        "check_exists_after": true
+      }
+    },
+    "filesystem.write_file": {
+      "tier": "TIER_1_LOW_RISK",
+      "description": "Write content to a new or existing file",
+      "schema": {
+        "type": "object",
+        "required": ["path", "content"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "encoding": {
+            "type": "string",
+            "default": "utf-8"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["write", "append"],
+            "default": "write"
+          }
+        }
+      },
+      "side_effects": ["creates_file", "modifies_file"],
+      "verification_spec": {
+        "type": "file_write",
+        "check_exists": true,
+        "return_hash": true,
+        "return_bytes_written": true
+      }
+    },
+    "filesystem.append_file": {
+      "tier": "TIER_1_LOW_RISK",
+      "description": "Append content to a file",
+      "schema": {
+        "type": "object",
+        "required": ["path", "content"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "side_effects": ["modifies_file"],
+      "verification_spec": {
+        "type": "file_append",
+        "check_exists": true,
+        "return_bytes_written": true
+      }
+    },
+    "filesystem.move": {
+      "tier": "TIER_2_MEDIUM_RISK",
+      "description": "Move or rename a file/directory",
+      "schema": {
+        "type": "object",
+        "required": ["source", "destination"],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string"
+          }
+        }
+      },
+      "side_effects": ["modifies_file"],
+      "verification_spec": {
+        "type": "file_move",
+        "check_source_gone": true,
+        "check_destination_exists": true
+      }
+    },
+    "filesystem.copy": {
+      "tier": "TIER_2_MEDIUM_RISK",
+      "description": "Copy a file or directory",
+      "schema": {
+        "type": "object",
+        "required": ["source", "destination"],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string"
+          },
+          "recursive": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "side_effects": ["creates_file"],
+      "verification_spec": {
+        "type": "file_copy",
+        "check_destination_exists": true,
+        "compare_hashes": true
+      }
+    },
+    "process.start": {
+      "tier": "TIER_2_MEDIUM_RISK",
+      "description": "Start a new process",
+      "schema": {
+        "type": "object",
+        "required": ["command"],
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "args": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "working_directory": {
+            "type": "string"
+          },
+          "capture_output": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "side_effects": ["starts_process"],
+      "verification_spec": {
+        "type": "process_start",
+        "check_pid_exists": true,
+        "check_running": true
+      }
+    },
+    "process.stop": {
+      "tier": "TIER_2_MEDIUM_RISK",
+      "description": "Stop a running process (graceful)",
+      "schema": {
+        "type": "object",
+        "required": ["pid"],
+        "properties": {
+          "pid": {
+            "type": "integer"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "default": 10
+          }
+        }
+      },
+      "side_effects": ["stops_process"],
+      "verification_spec": {
+        "type": "process_stop",
+        "check_not_running": true
+      }
+    },
+    "shell.run_powershell_script": {
+      "tier": "TIER_2_MEDIUM_RISK",
+      "description": "Execute a PowerShell script safely",
+      "schema": {
+        "type": "object",
+        "required": ["script"],
+        "properties": {
+          "script": {
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "default": 60
+          },
+          "capture_output": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "side_effects": ["modifies_file", "starts_process", "modifies_config"],
+      "verification_spec": {
+        "type": "script_execution",
+        "check_exit_code": true,
+        "capture_stdout": true,
+        "capture_stderr": true
+      }
+    },
+    "filesystem.delete": {
+      "tier": "TIER_3_DESTRUCTIVE",
+      "description": "Delete a file or directory",
+      "requires_approval": true,
+      "schema": {
+        "type": "object",
+        "required": ["path"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "recursive": {
+            "type": "boolean",
+            "default": false
+          },
+          "move_to_trash": {
+            "type": "boolean",
+            "default": true,
+            "description": "Move to trash instead of permanent delete"
+          }
+        }
+      },
+      "side_effects": ["deletes_file"],
+      "verification_spec": {
+        "type": "file_delete",
+        "check_not_exists": true,
+        "backup_before_delete": true
+      }
+    },
+    "process.kill": {
+      "tier": "TIER_3_DESTRUCTIVE",
+      "description": "Force kill a process (dangerous)",
+      "requires_approval": true,
+      "schema": {
+        "type": "object",
+        "required": ["pid"],
+        "properties": {
+          "pid": {
+            "type": "integer"
+          }
+        }
+      },
+      "side_effects": ["stops_process"],
+      "verification_spec": {
+        "type": "process_kill",
+        "check_not_running": true
+      }
+    },
+    "shell.run_command": {
+      "tier": "TIER_3_DESTRUCTIVE",
+      "description": "Execute arbitrary command (highly privileged)",
+      "requires_approval": true,
+      "schema": {
+        "type": "object",
+        "required": ["command"],
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "default": 60
+          }
+        }
+      },
+      "side_effects": ["modifies_file", "modifies_config", "modifies_registry", "system_shutdown"],
+      "verification_spec": {
+        "type": "command_execution",
+        "check_exit_code": true
+      }
+    }
+  },
+  "enforcement_rules": {
+    "default_root": "S:\\",
+    "deny_escaping_root": true,
+    "require_explicit_approval_for": ["TIER_3_DESTRUCTIVE"],
+    "log_all_executions": true,
+    "logs_location": "S:\\logs\\tools"
+  }
+}

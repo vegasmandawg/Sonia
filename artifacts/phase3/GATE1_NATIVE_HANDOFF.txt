@@ -1,0 +1,204 @@
+================================================================================
+PHASE 3 GATE 1 - NATIVE WINDOWS HANDOFF
+================================================================================
+
+DATE: 2026-02-08
+STATUS: READY FOR EXECUTION
+ALL PREREQUISITES: COMPLETE
+
+================================================================================
+WHAT TO DO
+================================================================================
+
+Run this single command from native Windows CMD (not bash/constrained shell):
+
+    S:\scripts\testing\run-gate1-native.cmd
+
+Then check the exit code:
+
+    echo EXIT_CODE=%ERRORLEVEL%
+
+================================================================================
+DECISION RULE
+================================================================================
+
+EXIT_CODE=0
+  ✓ Gate 1 PASSED
+  ✓ Real machine-generated evidence created
+  ✓ All hard assertions validated
+  ✓ SHA256 hash bundle created
+  → IMMEDIATELY PROCEED TO GATE 2
+
+EXIT_CODE≠0
+  ✗ Gate 1 FAILED
+  ✗ Collect diagnostics (see below)
+  ✗ Do NOT proceed to Gate 2
+  → Fix issue and re-run native command
+
+================================================================================
+WHAT HAPPENS WHEN YOU RUN IT
+================================================================================
+
+The native runner performs these steps:
+
+1. PRECHECK (2 min)
+   - Verify PowerShell is available
+   - Verify Python is callable
+   - Print versions
+
+2. PREFLIGHT (2-3 min)
+   - Start all 6 services
+   - Verify each service is healthy
+   - Return or fail immediately
+
+3. GATE 1 EXECUTION (20-30 min)
+   - Cycle 1: Start → Verify PIDs/processes/healthz → Stop
+   - Cycle 2: Start → Verify → Stop
+   - ... (repeat for 10 total cycles)
+   - Verify zero zombie processes after each stop
+
+4. HEALTH MONITORING (30 min)
+   - Check all 6 services every 5 seconds
+   - 2,160 total health checks (6 services × 360 intervals)
+   - Log failures
+
+5. JSON VALIDATION (1 min)
+   - Find latest go-no-go-summary-*.json
+   - Verify:
+     • Gate1.Cycles == 10
+     • Gate1.ZeroPIDs == true
+     • Gate2.TotalChecks == 2160
+     • Gate2.Failures == 0
+     • Determinism verified
+
+6. HASH BUNDLE (1 min)
+   - Create S:\artifacts\phase3\gate-results\gate1-TIMESTAMP\
+   - Copy evidence JSON and logs
+   - Compute SHA256 hashes of all files
+   - Save SHA256SUMS.csv
+
+TOTAL TIME: ~50-60 minutes
+
+================================================================================
+ON FAILURE: DIAGNOSTIC STEPS
+================================================================================
+
+If EXIT_CODE≠0, collect this information:
+
+1. Check latest summary JSON exists:
+   dir /O-D S:\artifacts\phase3\go-no-go-summary-*.json
+
+2. View latest gate log:
+   dir /O-D S:\artifacts\phase3\go-no-go-*.log
+   type S:\artifacts\phase3\go-no-go-<LATEST>.log
+
+3. Check service error logs:
+   type S:\logs\services\api-gateway.err.log
+   type S:\logs\services\model-router.err.log
+   (etc. for other services)
+
+4. Re-run preflight manually:
+   powershell -NoProfile -ExecutionPolicy Bypass -File S:\scripts\testing\phase3-preflight.ps1
+
+5. Check for running services:
+   tasklist | find "python"
+   tasklist | find "node"
+
+================================================================================
+IF GATE 1 PASSES (EXIT_CODE=0)
+================================================================================
+
+Artifacts created:
+  S:\artifacts\phase3\go-no-go-summary-YYYYMMDD_HHMMSS.json
+  S:\artifacts\phase3\gate-results\gate1-YYYYMMDD-HHMMSS\
+    ├── go-no-go-summary-*.json
+    ├── go-no-go-*.log
+    └── SHA256SUMS.csv
+
+IMMEDIATELY RUN GATE 2:
+
+  cd S:\scripts\testing
+  set PYTHONHASHSEED=0
+  set SONIA_TEST_MODE=deterministic
+  powershell -NoProfile -ExecutionPolicy Bypass -File phase3-gate2-soak.ps1 -DurationHours 48
+
+Do NOT delay. Gate 2 requires a fresh start with services in known state.
+
+================================================================================
+PREREQUISITES VERIFIED
+================================================================================
+
+✓ Services ARE running (6/6)
+  - api-gateway (PID 30860, port 7000)
+  - model-router (port 7010)
+  - memory-engine (port 7020)
+  - pipecat (port 7030)
+  - openclaw (port 7040)
+  - eva-os (port 7050)
+
+✓ Scripts are ready
+  - S:\scripts\ops\start-sonia-stack-v2.ps1 (clean, no syntax errors)
+  - S:\scripts\testing\phase3-go-no-go.ps1 (fixed to use v2)
+  - S:\scripts\testing\phase3-preflight.ps1 (corrected stop script)
+  - S:\scripts\testing\run-gate1-native.cmd (this runner)
+
+✓ Directories exist
+  - S:\logs\services\ (log files)
+  - S:\state\pids\ (PID files)
+  - S:\artifacts\phase3\ (output directory)
+
+✓ Evidence Mode enforced
+  - Simulated artifacts quarantined
+  - Only real execution data accepted
+  - Hard assertions locked in validator
+
+================================================================================
+NEXT STEPS AFTER GATE 1
+================================================================================
+
+Gate 2 (48-hour soak test)
+  - Continuous health monitoring
+  - Deadlock detection
+  - Error rate tracking (<0.5% required)
+
+Gate 3 (Security hardening)
+  - Authentication validation
+  - Policy enforcement
+  - Sandbox isolation
+
+Gate 4 (Durability)
+  - Backup/restore cycles
+  - RPO/RTO metrics
+  - WAL consistency
+
+Gate 5 (Determinism)
+  - Full test matrix under PYTHONHASHSEED=0
+  - Run 1 === Run 2
+
+Release Ceremony
+  - Tag RC-1
+  - Sign off matrix
+  - Bundle artifacts
+
+================================================================================
+THIS IS A ONE-SHOT RUNNER
+================================================================================
+
+No simulation.
+No hand-written evidence.
+No shortcuts.
+
+Machine-generated or nothing.
+
+S:\scripts\testing\run-gate1-native.cmd
+echo EXIT_CODE=%ERRORLEVEL%
+
+If EXIT_CODE=0, Gate 1 is LOCKED and READY FOR GATE 2.
+
+================================================================================
+Ready for native Windows execution.
+All prerequisites complete.
+Services running and healthy.
+
+Execute now.
+================================================================================

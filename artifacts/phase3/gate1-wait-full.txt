@@ -1,0 +1,19 @@
+At S:\scripts\testing\wait-and-execute-gate1.ps1:84 char:52
++ Write-Host "3. Check python directory size/contents"
++                                                    ~
+The string is missing the terminator: ".
+At S:\scripts\testing\wait-and-execute-gate1.ps1:34 char:36
++         if ($pythonExitCode -eq 0) {
++                                    ~
+Missing closing '}' in statement block or type definition.
+At S:\scripts\testing\wait-and-execute-gate1.ps1:25 char:32
++     if (Test-Path $pythonPath) {
++                                ~
+Missing closing '}' in statement block or type definition.
+At S:\scripts\testing\wait-and-execute-gate1.ps1:21 char:33
++ while ((Get-Date) -lt $maxTime) {
++                                 ~
+Missing closing '}' in statement block or type definition.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : TerminatorExpectedAtEndOfString
+ 

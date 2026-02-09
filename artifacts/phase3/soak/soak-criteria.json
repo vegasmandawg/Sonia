@@ -1,0 +1,92 @@
+{
+  "soak_version": "1.0",
+  "rc_version": "RC-1",
+  "duration_hours": 48,
+  "config_hash_t0": null,
+  "config_hash_t48": null,
+  "manifest_ref": "S:\\artifacts\\phase3\\rc-1\\SHA256SUMS.txt",
+
+  "acceptance_criteria": {
+    "availability": {
+      "target_percent": 99.9,
+      "denominator": "15-minute health check intervals (192 intervals over 48h)",
+      "per_service": true,
+      "services": ["api-gateway", "model-router", "memory-engine", "pipecat", "openclaw", "eva-os"],
+      "fail_definition": "healthz returns non-200 or connection refused"
+    },
+    "error_rate": {
+      "ceiling_percent": 0.0,
+      "counting_method": "Failed healthz checks / total healthz checks per service",
+      "note": "Any single health check failure is a Sev-2 event"
+    },
+    "process_stability": {
+      "rss_drift_max_percent": 50,
+      "rss_drift_baseline": "T0 RSS per process",
+      "handle_drift_max_absolute": 500,
+      "thread_drift_max_absolute": 50,
+      "measurement_note": "Compared against T0 baseline snapshot"
+    },
+    "restart_tolerance": {
+      "max_restarts": 0,
+      "detection_method": "PID file comparison: T0 PIDs must match current PIDs at every checkpoint",
+      "any_pid_change": "Sev-1 abort"
+    },
+    "log_integrity": {
+      "fatal_burst_threshold": 0,
+      "traceback_burst_threshold": 5,
+      "burst_window_minutes": 15,
+      "unclassified_fatal_pattern": "(FATAL|CRITICAL|Traceback|panic|SIGSEGV|unhandled exception)",
+      "note": "Any unclassified fatal/traceback burst within a 15-min window is a Sev-2 event"
+    },
+    "determinism_spot_check": {
+      "timing": "T+48h (end of soak)",
+      "method": "Re-run Gate 2B integration suite twice, compare results to frozen baseline (18 passed, 2 failed)",
+      "pass_criteria": "Identical to baseline OR better (fewer failures acceptable, more failures = Sev-2)"
+    }
+  },
+
+  "severity_definitions": {
+    "sev1": {
+      "definition": "Service down (healthz unreachable), PID changed (unexpected restart), process crash",
+      "action": "ABORT soak immediately. Re-enter Gate 1."
+    },
+    "sev2": {
+      "definition": "Health check failure (non-200), RSS/handle/thread drift exceeds threshold, unclassified fatal burst, determinism regression",
+      "action": "ABORT soak immediately. Re-enter Gate 1."
+    },
+    "sev3": {
+      "definition": "Non-fatal log anomaly, minor metric drift within thresholds",
+      "action": "Log and continue. Review at T+24h interim checkpoint."
+    }
+  },
+
+  "execution_cadence": {
+    "snapshot_interval_minutes": 15,
+    "checkpoint_interval_minutes": 60,
+    "interim_review_at": "T+24h",
+    "final_at": "T+48h",
+    "snapshot_captures": [
+      "healthz status per service",
+      "process PID verification",
+      "RSS memory per process (KB)",
+      "handle count per process",
+      "thread count per process",
+      "error log tail scan (last 15 min)"
+    ],
+    "checkpoint_captures": [
+      "all snapshot data",
+      "cumulative availability percentage",
+      "cumulative error count",
+      "RSS drift from T0 baseline",
+      "handle drift from T0 baseline",
+      "summary artifact written to soak/checkpoints/"
+    ]
+  },
+
+  "abort_triggers": [
+    "Any Sev-1 event",
+    "Any Sev-2 event",
+    "Config hash drift (T0 != current)",
+    "Manual abort by operator"
+  ]
+}

@@ -1,0 +1,51 @@
+---
+# Logging Configuration
+
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  default:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  json:
+    format: '{"timestamp": "%(asctime)s", "service": "%(name)s", "level": "%(levelname)s", "message": "%(message)s"}'
+  detailed:
+    format: '%(asctime)s [%(levelname)s] %(name)s:%(filename)s:%(funcName)s:%(lineno)d - %(message)s'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: default
+    stream: ext://sys.stdout
+
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: json
+    filename: S:\logs\sonia.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 10
+
+  audit:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: json
+    filename: S:\logs\audit\audit.log
+    maxBytes: 52428800  # 50MB
+    backupCount: 30
+
+loggers:
+  sonia:
+    level: DEBUG
+    handlers: [console, file]
+    propagate: false
+
+  audit:
+    level: INFO
+    handlers: [audit]
+    propagate: false
+
+root:
+  level: INFO
+  handlers: [console, file]

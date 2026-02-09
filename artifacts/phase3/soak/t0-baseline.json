@@ -1,0 +1,58 @@
+﻿{
+    "metrics":  [
+                    {
+                        "RSS_KB":  56740,
+                        "PID":  46436,
+                        "Name":  "api-gateway",
+                        "Threads":  1,
+                        "Handles":  224
+                    },
+                    {
+                        "RSS_KB":  62936,
+                        "PID":  46940,
+                        "Name":  "model-router",
+                        "Threads":  2,
+                        "Handles":  265
+                    },
+                    {
+                        "RSS_KB":  49472,
+                        "PID":  45788,
+                        "Name":  "memory-engine",
+                        "Threads":  2,
+                        "Handles":  224
+                    },
+                    {
+                        "RSS_KB":  54068,
+                        "PID":  39264,
+                        "Name":  "pipecat",
+                        "Threads":  1,
+                        "Handles":  219
+                    },
+                    {
+                        "RSS_KB":  48076,
+                        "PID":  46908,
+                        "Name":  "openclaw",
+                        "Threads":  1,
+                        "Handles":  218
+                    },
+                    {
+                        "RSS_KB":  47780,
+                        "PID":  38196,
+                        "Name":  "eva-os",
+                        "Threads":  2,
+                        "Handles":  224
+                    }
+                ],
+    "pids":  {
+                 "pipecat":  39264,
+                 "api-gateway":  46436,
+                 "memory-engine":  45788,
+                 "model-router":  46940,
+                 "openclaw":  46908,
+                 "eva-os":  38196
+             },
+    "rc_manifest":  "S:\\artifacts\\phase3\\rc-1\\SHA256SUMS.txt",
+    "config_hash":  "34F1009B0AF22E2ACDD701758244BEAD15089E307D1F0435BE97C675F1A8EDCB",
+    "soak_criteria":  "S:\\artifacts\\phase3\\soak\\soak-criteria.json",
+    "start_time":  "2026-02-08T17:40:05.5707236-06:00"
+}

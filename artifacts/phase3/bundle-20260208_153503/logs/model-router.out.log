@@ -1,0 +1,8 @@
+2026-02-08 16:06:44,344 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-02-08 16:06:44,344 [INFO] model-router.providers: Ollama provider available
+2026-02-08 16:06:44,348 [INFO] model-router.providers: Initialized 1 providers
+2026-02-08 16:06:44,348 [INFO] model-router: Model Router starting up...
+2026-02-08 16:06:44,351 [INFO] model-router: Available providers: ollama
+2026-02-08 16:06:44,504 [INFO] httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-02-08 16:06:44,505 [INFO] model-router: Total available models: 5
+INFO:     127.0.0.1:58630 - "GET /healthz HTTP/1.1" 200 OK

@@ -1,0 +1,2 @@
+{"timestamp": "2026-02-08T22:06:46.602668Z", "level": "INFO", "service": "openclaw", "event": "startup", "tools_registered": 4, "tools_implemented": 4}
+INFO:     127.0.0.1:58633 - "GET /healthz HTTP/1.1" 200 OK

@@ -1,0 +1,438 @@
+13:08:48 [HEADER] === PHASE 3 GO/NO-GO GATE START ===
+13:08:48 [INFO] Timestamp: 20260208_130848
+13:08:48 [INFO] StartupTimeoutSeconds: 30
+13:08:48 [INFO] CycleCount: 10
+13:08:48 [INFO] 
+13:08:48 [HEADER] 
+=== GATE 1: 10 Consecutive Start/Stop Cycles ===
+13:08:48 [INFO] Each cycle MUST: start stack, verify all PIDs + processes + healthz, stop cleanly, zero zombies
+13:08:48 [DEBUG]   Pre-gate cleanup: stopping any running services...
+13:08:52 [INFO] 
+Cycle 1/10
+13:08:52 [DEBUG]   Starting stack...
+13:08:57 [DEBUG]   Waiting for stack to become healthy (30s timeout)...
+13:08:57 [DEBUG]   Stack healthy - stopping...
+13:09:01 [PASS]   PASS - Cycle complete (PID cleanup verified)
+13:09:01 [INFO] 
+Cycle 2/10
+13:09:01 [DEBUG]   Starting stack...
+13:09:05 [DEBUG]   Waiting for stack to become healthy (30s timeout)...
+13:09:05 [DEBUG]   Stack healthy - stopping...
+13:09:09 [PASS]   PASS - Cycle complete (PID cleanup verified)
+13:09:09 [INFO] 
+Cycle 3/10
+13:09:09 [DEBUG]   Starting stack...
+13:09:13 [DEBUG]   Waiting for stack to become healthy (30s timeout)...
+13:09:13 [DEBUG]   Stack healthy - stopping...
+13:09:16 [PASS]   PASS - Cycle complete (PID cleanup verified)
+13:09:16 [INFO] 
+Cycle 4/10
+13:09:16 [DEBUG]   Starting stack...
+13:09:20 [DEBUG]   Waiting for stack to become healthy (30s timeout)...
+13:09:21 [DEBUG]   Stack healthy - stopping...
+13:09:24 [PASS]   PASS - Cycle complete (PID cleanup verified)
+13:09:24 [INFO] 
+Cycle 5/10
+13:09:24 [DEBUG]   Starting stack...
+13:09:28 [DEBUG]   Waiting for stack to become healthy (30s timeout)...
+13:09:29 [DEBUG]   Stack healthy - stopping...
+13:09:32 [PASS]   PASS - Cycle complete (PID cleanup verified)
+13:09:32 [INFO] 
+Cycle 6/10
+13:09:32 [DEBUG]   Starting stack...
+13:09:36 [DEBUG]   Waiting for stack to become healthy (30s timeout)...
+13:09:36 [DEBUG]   Stack healthy - stopping...
+13:09:40 [PASS]   PASS - Cycle complete (PID cleanup verified)
+13:09:40 [INFO] 
+Cycle 7/10
+13:09:40 [DEBUG]   Starting stack...
+13:09:44 [DEBUG]   Waiting for stack to become healthy (30s timeout)...
+13:09:44 [DEBUG]   Stack healthy - stopping...
+13:09:47 [PASS]   PASS - Cycle complete (PID cleanup verified)
+13:09:47 [INFO] 
+Cycle 8/10
+13:09:47 [DEBUG]   Starting stack...
+13:09:51 [DEBUG]   Waiting for stack to become healthy (30s timeout)...
+13:09:51 [DEBUG]   Stack healthy - stopping...
+13:09:55 [PASS]   PASS - Cycle complete (PID cleanup verified)
+13:09:55 [INFO] 
+Cycle 9/10
+13:09:55 [DEBUG]   Starting stack...
+13:09:59 [DEBUG]   Waiting for stack to become healthy (30s timeout)...
+13:09:59 [DEBUG]   Stack healthy - stopping...
+13:10:02 [PASS]   PASS - Cycle complete (PID cleanup verified)
+13:10:02 [INFO] 
+Cycle 10/10
+13:10:02 [DEBUG]   Starting stack...
+13:10:06 [DEBUG]   Waiting for stack to become healthy (30s timeout)...
+13:10:06 [DEBUG]   Stack healthy - stopping...
+13:10:10 [PASS]   PASS - Cycle complete (PID cleanup verified)
+13:10:10 [SUMMARY] 
+=== GATE 1 RESULT ===
+13:10:10 [SUMMARY] Cycles passed: 10/10
+13:10:10 [PASS] GATE 1 PASSED
+13:10:10 [HEADER] 
+=== GATE 2: Health Checks (30 min) ===
+13:10:10 [INFO] Expected: 30 minutes / 5s interval = 360 intervals
+13:10:10 [INFO] Expected: 360 intervals × 6 services = 2,160 total checks
+13:10:14 [DEBUG] Interval 1 (6 total checks): All healthy
+13:10:19 [DEBUG] Interval 2 (12 total checks): All healthy
+13:10:24 [DEBUG] Interval 3 (18 total checks): All healthy
+13:10:30 [DEBUG] Interval 4 (24 total checks): All healthy
+13:10:35 [DEBUG] Interval 5 (30 total checks): All healthy
+13:10:40 [DEBUG] Interval 6 (36 total checks): All healthy
+13:10:45 [DEBUG] Interval 7 (42 total checks): All healthy
+13:10:50 [DEBUG] Interval 8 (48 total checks): All healthy
+13:10:55 [DEBUG] Interval 9 (54 total checks): All healthy
+13:11:00 [DEBUG] Interval 10 (60 total checks): All healthy
+13:11:05 [DEBUG] Interval 11 (66 total checks): All healthy
+13:11:11 [DEBUG] Interval 12 (72 total checks): All healthy
+13:11:16 [DEBUG] Interval 13 (78 total checks): All healthy
+13:11:21 [DEBUG] Interval 14 (84 total checks): All healthy
+13:11:26 [DEBUG] Interval 15 (90 total checks): All healthy
+13:11:31 [DEBUG] Interval 16 (96 total checks): All healthy
+13:11:36 [DEBUG] Interval 17 (102 total checks): All healthy
+13:11:41 [DEBUG] Interval 18 (108 total checks): All healthy
+13:11:47 [DEBUG] Interval 19 (114 total checks): All healthy
+13:11:52 [DEBUG] Interval 20 (120 total checks): All healthy
+13:11:57 [DEBUG] Interval 21 (126 total checks): All healthy
+13:12:02 [DEBUG] Interval 22 (132 total checks): All healthy
+13:12:07 [DEBUG] Interval 23 (138 total checks): All healthy
+13:12:12 [DEBUG] Interval 24 (144 total checks): All healthy
+13:12:17 [DEBUG] Interval 25 (150 total checks): All healthy
+13:12:22 [DEBUG] Interval 26 (156 total checks): All healthy
+13:12:28 [DEBUG] Interval 27 (162 total checks): All healthy
+13:12:33 [DEBUG] Interval 28 (168 total checks): All healthy
+13:12:38 [DEBUG] Interval 29 (174 total checks): All healthy
+13:12:43 [DEBUG] Interval 30 (180 total checks): All healthy
+13:12:48 [DEBUG] Interval 31 (186 total checks): All healthy
+13:12:53 [DEBUG] Interval 32 (192 total checks): All healthy
+13:12:58 [DEBUG] Interval 33 (198 total checks): All healthy
+13:13:03 [DEBUG] Interval 34 (204 total checks): All healthy
+13:13:09 [DEBUG] Interval 35 (210 total checks): All healthy
+13:13:14 [DEBUG] Interval 36 (216 total checks): All healthy
+13:13:19 [DEBUG] Interval 37 (222 total checks): All healthy
+13:13:24 [DEBUG] Interval 38 (228 total checks): All healthy
+13:13:29 [DEBUG] Interval 39 (234 total checks): All healthy
+13:13:34 [DEBUG] Interval 40 (240 total checks): All healthy
+13:13:40 [DEBUG] Interval 41 (246 total checks): All healthy
+13:13:45 [DEBUG] Interval 42 (252 total checks): All healthy
+13:13:50 [DEBUG] Interval 43 (258 total checks): All healthy
+13:13:55 [DEBUG] Interval 44 (264 total checks): All healthy
+13:14:00 [DEBUG] Interval 45 (270 total checks): All healthy
+13:14:05 [DEBUG] Interval 46 (276 total checks): All healthy
+13:14:10 [DEBUG] Interval 47 (282 total checks): All healthy
+13:14:15 [DEBUG] Interval 48 (288 total checks): All healthy
+13:14:21 [DEBUG] Interval 49 (294 total checks): All healthy
+13:14:26 [DEBUG] Interval 50 (300 total checks): All healthy
+13:14:31 [DEBUG] Interval 51 (306 total checks): All healthy
+13:14:36 [DEBUG] Interval 52 (312 total checks): All healthy
+13:14:41 [DEBUG] Interval 53 (318 total checks): All healthy
+13:14:46 [DEBUG] Interval 54 (324 total checks): All healthy
+13:14:51 [DEBUG] Interval 55 (330 total checks): All healthy
+13:14:57 [DEBUG] Interval 56 (336 total checks): All healthy
+13:15:02 [DEBUG] Interval 57 (342 total checks): All healthy
+13:15:07 [DEBUG] Interval 58 (348 total checks): All healthy
+13:15:12 [DEBUG] Interval 59 (354 total checks): All healthy
+13:15:17 [DEBUG] Interval 60 (360 total checks): All healthy
+13:15:22 [DEBUG] Interval 61 (366 total checks): All healthy
+13:15:27 [DEBUG] Interval 62 (372 total checks): All healthy
+13:15:32 [DEBUG] Interval 63 (378 total checks): All healthy
+13:15:38 [DEBUG] Interval 64 (384 total checks): All healthy
+13:15:43 [DEBUG] Interval 65 (390 total checks): All healthy
+13:15:48 [DEBUG] Interval 66 (396 total checks): All healthy
+13:15:53 [DEBUG] Interval 67 (402 total checks): All healthy
+13:15:58 [DEBUG] Interval 68 (408 total checks): All healthy
+13:16:03 [DEBUG] Interval 69 (414 total checks): All healthy
+13:16:08 [DEBUG] Interval 70 (420 total checks): All healthy
+13:16:14 [DEBUG] Interval 71 (426 total checks): All healthy
+13:16:19 [DEBUG] Interval 72 (432 total checks): All healthy
+13:16:24 [DEBUG] Interval 73 (438 total checks): All healthy
+13:16:29 [DEBUG] Interval 74 (444 total checks): All healthy
+13:16:34 [DEBUG] Interval 75 (450 total checks): All healthy
+13:16:39 [DEBUG] Interval 76 (456 total checks): All healthy
+13:16:44 [DEBUG] Interval 77 (462 total checks): All healthy
+13:16:49 [DEBUG] Interval 78 (468 total checks): All healthy
+13:16:55 [DEBUG] Interval 79 (474 total checks): All healthy
+13:17:00 [DEBUG] Interval 80 (480 total checks): All healthy
+13:17:05 [DEBUG] Interval 81 (486 total checks): All healthy
+13:17:10 [DEBUG] Interval 82 (492 total checks): All healthy
+13:17:15 [DEBUG] Interval 83 (498 total checks): All healthy
+13:17:20 [DEBUG] Interval 84 (504 total checks): All healthy
+13:17:25 [DEBUG] Interval 85 (510 total checks): All healthy
+13:17:30 [DEBUG] Interval 86 (516 total checks): All healthy
+13:17:36 [DEBUG] Interval 87 (522 total checks): All healthy
+13:17:41 [DEBUG] Interval 88 (528 total checks): All healthy
+13:17:46 [DEBUG] Interval 89 (534 total checks): All healthy
+13:17:51 [DEBUG] Interval 90 (540 total checks): All healthy
+13:17:56 [DEBUG] Interval 91 (546 total checks): All healthy
+13:18:01 [DEBUG] Interval 92 (552 total checks): All healthy
+13:18:06 [DEBUG] Interval 93 (558 total checks): All healthy
+13:18:12 [DEBUG] Interval 94 (564 total checks): All healthy
+13:18:17 [DEBUG] Interval 95 (570 total checks): All healthy
+13:18:22 [DEBUG] Interval 96 (576 total checks): All healthy
+13:18:27 [DEBUG] Interval 97 (582 total checks): All healthy
+13:18:32 [DEBUG] Interval 98 (588 total checks): All healthy
+13:18:37 [DEBUG] Interval 99 (594 total checks): All healthy
+13:18:42 [DEBUG] Interval 100 (600 total checks): All healthy
+13:18:47 [DEBUG] Interval 101 (606 total checks): All healthy
+13:18:53 [DEBUG] Interval 102 (612 total checks): All healthy
+13:18:58 [DEBUG] Interval 103 (618 total checks): All healthy
+13:19:03 [DEBUG] Interval 104 (624 total checks): All healthy
+13:19:08 [DEBUG] Interval 105 (630 total checks): All healthy
+13:19:13 [DEBUG] Interval 106 (636 total checks): All healthy
+13:19:18 [DEBUG] Interval 107 (642 total checks): All healthy
+13:19:23 [DEBUG] Interval 108 (648 total checks): All healthy
+13:19:29 [DEBUG] Interval 109 (654 total checks): All healthy
+13:19:34 [DEBUG] Interval 110 (660 total checks): All healthy
+13:19:39 [DEBUG] Interval 111 (666 total checks): All healthy
+13:19:44 [DEBUG] Interval 112 (672 total checks): All healthy
+13:19:49 [DEBUG] Interval 113 (678 total checks): All healthy
+13:19:54 [DEBUG] Interval 114 (684 total checks): All healthy
+13:19:59 [DEBUG] Interval 115 (690 total checks): All healthy
+13:20:04 [DEBUG] Interval 116 (696 total checks): All healthy
+13:20:10 [DEBUG] Interval 117 (702 total checks): All healthy
+13:20:15 [DEBUG] Interval 118 (708 total checks): All healthy
+13:20:20 [DEBUG] Interval 119 (714 total checks): All healthy
+13:20:25 [DEBUG] Interval 120 (720 total checks): All healthy
+13:20:30 [DEBUG] Interval 121 (726 total checks): All healthy
+13:20:35 [DEBUG] Interval 122 (732 total checks): All healthy
+13:20:40 [DEBUG] Interval 123 (738 total checks): All healthy
+13:20:46 [DEBUG] Interval 124 (744 total checks): All healthy
+13:20:51 [DEBUG] Interval 125 (750 total checks): All healthy
+13:20:56 [DEBUG] Interval 126 (756 total checks): All healthy
+13:21:01 [DEBUG] Interval 127 (762 total checks): All healthy
+13:21:06 [DEBUG] Interval 128 (768 total checks): All healthy
+13:21:11 [DEBUG] Interval 129 (774 total checks): All healthy
+13:21:16 [DEBUG] Interval 130 (780 total checks): All healthy
+13:21:22 [DEBUG] Interval 131 (786 total checks): All healthy
+13:21:27 [DEBUG] Interval 132 (792 total checks): All healthy
+13:21:32 [DEBUG] Interval 133 (798 total checks): All healthy
+13:21:37 [DEBUG] Interval 134 (804 total checks): All healthy
+13:21:42 [DEBUG] Interval 135 (810 total checks): All healthy
+13:21:47 [DEBUG] Interval 136 (816 total checks): All healthy
+13:21:52 [DEBUG] Interval 137 (822 total checks): All healthy
+13:21:57 [DEBUG] Interval 138 (828 total checks): All healthy
+13:22:02 [DEBUG] Interval 139 (834 total checks): All healthy
+13:22:08 [DEBUG] Interval 140 (840 total checks): All healthy
+13:22:13 [DEBUG] Interval 141 (846 total checks): All healthy
+13:22:18 [DEBUG] Interval 142 (852 total checks): All healthy
+13:22:23 [DEBUG] Interval 143 (858 total checks): All healthy
+13:22:28 [DEBUG] Interval 144 (864 total checks): All healthy
+13:22:33 [DEBUG] Interval 145 (870 total checks): All healthy
+13:22:38 [DEBUG] Interval 146 (876 total checks): All healthy
+13:22:44 [DEBUG] Interval 147 (882 total checks): All healthy
+13:22:49 [DEBUG] Interval 148 (888 total checks): All healthy
+13:22:54 [DEBUG] Interval 149 (894 total checks): All healthy
+13:22:59 [DEBUG] Interval 150 (900 total checks): All healthy
+13:23:04 [DEBUG] Interval 151 (906 total checks): All healthy
+13:23:09 [DEBUG] Interval 152 (912 total checks): All healthy
+13:23:14 [DEBUG] Interval 153 (918 total checks): All healthy
+13:23:20 [DEBUG] Interval 154 (924 total checks): All healthy
+13:23:25 [DEBUG] Interval 155 (930 total checks): All healthy
+13:23:30 [DEBUG] Interval 156 (936 total checks): All healthy
+13:23:35 [DEBUG] Interval 157 (942 total checks): All healthy
+13:23:40 [DEBUG] Interval 158 (948 total checks): All healthy
+13:23:45 [DEBUG] Interval 159 (954 total checks): All healthy
+13:23:50 [DEBUG] Interval 160 (960 total checks): All healthy
+13:23:56 [DEBUG] Interval 161 (966 total checks): All healthy
+13:24:01 [DEBUG] Interval 162 (972 total checks): All healthy
+13:24:06 [DEBUG] Interval 163 (978 total checks): All healthy
+13:24:11 [DEBUG] Interval 164 (984 total checks): All healthy
+13:24:16 [DEBUG] Interval 165 (990 total checks): All healthy
+13:24:21 [DEBUG] Interval 166 (996 total checks): All healthy
+13:24:26 [DEBUG] Interval 167 (1002 total checks): All healthy
+13:24:32 [DEBUG] Interval 168 (1008 total checks): All healthy
+13:24:37 [DEBUG] Interval 169 (1014 total checks): All healthy
+13:24:42 [DEBUG] Interval 170 (1020 total checks): All healthy
+13:24:47 [DEBUG] Interval 171 (1026 total checks): All healthy
+13:24:52 [DEBUG] Interval 172 (1032 total checks): All healthy
+13:24:57 [DEBUG] Interval 173 (1038 total checks): All healthy
+13:25:02 [DEBUG] Interval 174 (1044 total checks): All healthy
+13:25:08 [DEBUG] Interval 175 (1050 total checks): All healthy
+13:25:13 [DEBUG] Interval 176 (1056 total checks): All healthy
+13:25:18 [DEBUG] Interval 177 (1062 total checks): All healthy
+13:25:23 [DEBUG] Interval 178 (1068 total checks): All healthy
+13:25:28 [DEBUG] Interval 179 (1074 total checks): All healthy
+13:25:33 [DEBUG] Interval 180 (1080 total checks): All healthy
+13:25:38 [DEBUG] Interval 181 (1086 total checks): All healthy
+13:25:43 [DEBUG] Interval 182 (1092 total checks): All healthy
+13:25:49 [DEBUG] Interval 183 (1098 total checks): All healthy
+13:25:54 [DEBUG] Interval 184 (1104 total checks): All healthy
+13:25:59 [DEBUG] Interval 185 (1110 total checks): All healthy
+13:26:04 [DEBUG] Interval 186 (1116 total checks): All healthy
+13:26:09 [DEBUG] Interval 187 (1122 total checks): All healthy
+13:26:14 [DEBUG] Interval 188 (1128 total checks): All healthy
+13:26:19 [DEBUG] Interval 189 (1134 total checks): All healthy
+13:26:25 [DEBUG] Interval 190 (1140 total checks): All healthy
+13:26:30 [DEBUG] Interval 191 (1146 total checks): All healthy
+13:26:35 [DEBUG] Interval 192 (1152 total checks): All healthy
+13:26:40 [DEBUG] Interval 193 (1158 total checks): All healthy
+13:26:45 [DEBUG] Interval 194 (1164 total checks): All healthy
+13:26:50 [DEBUG] Interval 195 (1170 total checks): All healthy
+13:26:55 [DEBUG] Interval 196 (1176 total checks): All healthy
+13:27:00 [DEBUG] Interval 197 (1182 total checks): All healthy
+13:27:06 [DEBUG] Interval 198 (1188 total checks): All healthy
+13:27:11 [DEBUG] Interval 199 (1194 total checks): All healthy
+13:27:16 [DEBUG] Interval 200 (1200 total checks): All healthy
+13:27:21 [DEBUG] Interval 201 (1206 total checks): All healthy
+13:27:26 [DEBUG] Interval 202 (1212 total checks): All healthy
+13:27:31 [DEBUG] Interval 203 (1218 total checks): All healthy
+13:27:36 [DEBUG] Interval 204 (1224 total checks): All healthy
+13:27:41 [DEBUG] Interval 205 (1230 total checks): All healthy
+13:27:46 [DEBUG] Interval 206 (1236 total checks): All healthy
+13:27:51 [DEBUG] Interval 207 (1242 total checks): All healthy
+13:27:57 [DEBUG] Interval 208 (1248 total checks): All healthy
+13:28:02 [DEBUG] Interval 209 (1254 total checks): All healthy
+13:28:07 [DEBUG] Interval 210 (1260 total checks): All healthy
+13:28:12 [DEBUG] Interval 211 (1266 total checks): All healthy
+13:28:17 [DEBUG] Interval 212 (1272 total checks): All healthy
+13:28:22 [DEBUG] Interval 213 (1278 total checks): All healthy
+13:28:27 [DEBUG] Interval 214 (1284 total checks): All healthy
+13:28:32 [DEBUG] Interval 215 (1290 total checks): All healthy
+13:28:37 [DEBUG] Interval 216 (1296 total checks): All healthy
+13:28:43 [DEBUG] Interval 217 (1302 total checks): All healthy
+13:28:48 [DEBUG] Interval 218 (1308 total checks): All healthy
+13:28:53 [DEBUG] Interval 219 (1314 total checks): All healthy
+13:28:58 [DEBUG] Interval 220 (1320 total checks): All healthy
+13:29:03 [DEBUG] Interval 221 (1326 total checks): All healthy
+13:29:08 [DEBUG] Interval 222 (1332 total checks): All healthy
+13:29:13 [DEBUG] Interval 223 (1338 total checks): All healthy
+13:29:18 [DEBUG] Interval 224 (1344 total checks): All healthy
+13:29:23 [DEBUG] Interval 225 (1350 total checks): All healthy
+13:29:29 [DEBUG] Interval 226 (1356 total checks): All healthy
+13:29:34 [DEBUG] Interval 227 (1362 total checks): All healthy
+13:29:39 [DEBUG] Interval 228 (1368 total checks): All healthy
+13:29:44 [DEBUG] Interval 229 (1374 total checks): All healthy
+13:29:49 [DEBUG] Interval 230 (1380 total checks): All healthy
+13:29:54 [DEBUG] Interval 231 (1386 total checks): All healthy
+13:29:59 [DEBUG] Interval 232 (1392 total checks): All healthy
+13:30:04 [DEBUG] Interval 233 (1398 total checks): All healthy
+13:30:09 [DEBUG] Interval 234 (1404 total checks): All healthy
+13:30:14 [DEBUG] Interval 235 (1410 total checks): All healthy
+13:30:20 [DEBUG] Interval 236 (1416 total checks): All healthy
+13:30:25 [DEBUG] Interval 237 (1422 total checks): All healthy
+13:30:30 [DEBUG] Interval 238 (1428 total checks): All healthy
+13:30:35 [DEBUG] Interval 239 (1434 total checks): All healthy
+13:30:40 [DEBUG] Interval 240 (1440 total checks): All healthy
+13:30:45 [DEBUG] Interval 241 (1446 total checks): All healthy
+13:30:50 [DEBUG] Interval 242 (1452 total checks): All healthy
+13:30:55 [DEBUG] Interval 243 (1458 total checks): All healthy
+13:31:00 [DEBUG] Interval 244 (1464 total checks): All healthy
+13:31:06 [DEBUG] Interval 245 (1470 total checks): All healthy
+13:31:11 [DEBUG] Interval 246 (1476 total checks): All healthy
+13:31:16 [DEBUG] Interval 247 (1482 total checks): All healthy
+13:31:21 [DEBUG] Interval 248 (1488 total checks): All healthy
+13:31:26 [DEBUG] Interval 249 (1494 total checks): All healthy
+13:31:31 [DEBUG] Interval 250 (1500 total checks): All healthy
+13:31:37 [DEBUG] Interval 251 (1506 total checks): All healthy
+13:31:42 [DEBUG] Interval 252 (1512 total checks): All healthy
+13:31:47 [DEBUG] Interval 253 (1518 total checks): All healthy
+13:31:52 [DEBUG] Interval 254 (1524 total checks): All healthy
+13:31:57 [DEBUG] Interval 255 (1530 total checks): All healthy
+13:32:02 [DEBUG] Interval 256 (1536 total checks): All healthy
+13:32:07 [DEBUG] Interval 257 (1542 total checks): All healthy
+13:32:12 [DEBUG] Interval 258 (1548 total checks): All healthy
+13:32:18 [DEBUG] Interval 259 (1554 total checks): All healthy
+13:32:23 [DEBUG] Interval 260 (1560 total checks): All healthy
+13:32:28 [DEBUG] Interval 261 (1566 total checks): All healthy
+13:32:33 [DEBUG] Interval 262 (1572 total checks): All healthy
+13:32:38 [DEBUG] Interval 263 (1578 total checks): All healthy
+13:32:43 [DEBUG] Interval 264 (1584 total checks): All healthy
+13:32:48 [DEBUG] Interval 265 (1590 total checks): All healthy
+13:32:54 [DEBUG] Interval 266 (1596 total checks): All healthy
+13:32:59 [DEBUG] Interval 267 (1602 total checks): All healthy
+13:33:04 [DEBUG] Interval 268 (1608 total checks): All healthy
+13:33:09 [DEBUG] Interval 269 (1614 total checks): All healthy
+13:33:14 [DEBUG] Interval 270 (1620 total checks): All healthy
+13:33:19 [DEBUG] Interval 271 (1626 total checks): All healthy
+13:33:24 [DEBUG] Interval 272 (1632 total checks): All healthy
+13:33:30 [DEBUG] Interval 273 (1638 total checks): All healthy
+13:33:35 [DEBUG] Interval 274 (1644 total checks): All healthy
+13:33:40 [DEBUG] Interval 275 (1650 total checks): All healthy
+13:33:45 [DEBUG] Interval 276 (1656 total checks): All healthy
+13:33:50 [DEBUG] Interval 277 (1662 total checks): All healthy
+13:33:55 [DEBUG] Interval 278 (1668 total checks): All healthy
+13:34:00 [DEBUG] Interval 279 (1674 total checks): All healthy
+13:34:06 [DEBUG] Interval 280 (1680 total checks): All healthy
+13:34:11 [DEBUG] Interval 281 (1686 total checks): All healthy
+13:34:16 [DEBUG] Interval 282 (1692 total checks): All healthy
+13:34:21 [DEBUG] Interval 283 (1698 total checks): All healthy
+13:34:26 [DEBUG] Interval 284 (1704 total checks): All healthy
+13:34:31 [DEBUG] Interval 285 (1710 total checks): All healthy
+13:34:36 [DEBUG] Interval 286 (1716 total checks): All healthy
+13:34:42 [DEBUG] Interval 287 (1722 total checks): All healthy
+13:34:47 [DEBUG] Interval 288 (1728 total checks): All healthy
+13:34:52 [DEBUG] Interval 289 (1734 total checks): All healthy
+13:34:57 [DEBUG] Interval 290 (1740 total checks): All healthy
+13:35:02 [DEBUG] Interval 291 (1746 total checks): All healthy
+13:35:07 [DEBUG] Interval 292 (1752 total checks): All healthy
+13:35:12 [DEBUG] Interval 293 (1758 total checks): All healthy
+13:35:17 [DEBUG] Interval 294 (1764 total checks): All healthy
+13:35:23 [DEBUG] Interval 295 (1770 total checks): All healthy
+13:35:28 [DEBUG] Interval 296 (1776 total checks): All healthy
+13:35:33 [DEBUG] Interval 297 (1782 total checks): All healthy
+13:35:38 [DEBUG] Interval 298 (1788 total checks): All healthy
+13:35:43 [DEBUG] Interval 299 (1794 total checks): All healthy
+13:35:48 [DEBUG] Interval 300 (1800 total checks): All healthy
+13:35:54 [DEBUG] Interval 301 (1806 total checks): All healthy
+13:35:59 [DEBUG] Interval 302 (1812 total checks): All healthy
+13:36:04 [DEBUG] Interval 303 (1818 total checks): All healthy
+13:36:09 [DEBUG] Interval 304 (1824 total checks): All healthy
+13:36:14 [DEBUG] Interval 305 (1830 total checks): All healthy
+13:36:19 [DEBUG] Interval 306 (1836 total checks): All healthy
+13:36:24 [DEBUG] Interval 307 (1842 total checks): All healthy
+13:36:29 [DEBUG] Interval 308 (1848 total checks): All healthy
+13:36:34 [DEBUG] Interval 309 (1854 total checks): All healthy
+13:36:40 [DEBUG] Interval 310 (1860 total checks): All healthy
+13:36:45 [DEBUG] Interval 311 (1866 total checks): All healthy
+13:36:50 [DEBUG] Interval 312 (1872 total checks): All healthy
+13:36:55 [DEBUG] Interval 313 (1878 total checks): All healthy
+13:37:00 [DEBUG] Interval 314 (1884 total checks): All healthy
+13:37:05 [DEBUG] Interval 315 (1890 total checks): All healthy
+13:37:10 [DEBUG] Interval 316 (1896 total checks): All healthy
+13:37:15 [DEBUG] Interval 317 (1902 total checks): All healthy
+13:37:21 [DEBUG] Interval 318 (1908 total checks): All healthy
+13:37:26 [DEBUG] Interval 319 (1914 total checks): All healthy
+13:37:31 [DEBUG] Interval 320 (1920 total checks): All healthy
+13:37:36 [DEBUG] Interval 321 (1926 total checks): All healthy
+13:37:41 [DEBUG] Interval 322 (1932 total checks): All healthy
+13:37:46 [DEBUG] Interval 323 (1938 total checks): All healthy
+13:37:51 [DEBUG] Interval 324 (1944 total checks): All healthy
+13:37:56 [DEBUG] Interval 325 (1950 total checks): All healthy
+13:38:01 [DEBUG] Interval 326 (1956 total checks): All healthy
+13:38:07 [DEBUG] Interval 327 (1962 total checks): All healthy
+13:38:12 [DEBUG] Interval 328 (1968 total checks): All healthy
+13:38:17 [DEBUG] Interval 329 (1974 total checks): All healthy
+13:38:22 [DEBUG] Interval 330 (1980 total checks): All healthy
+13:38:27 [DEBUG] Interval 331 (1986 total checks): All healthy
+13:38:32 [DEBUG] Interval 332 (1992 total checks): All healthy
+13:38:37 [DEBUG] Interval 333 (1998 total checks): All healthy
+13:38:42 [DEBUG] Interval 334 (2004 total checks): All healthy
+13:38:47 [DEBUG] Interval 335 (2010 total checks): All healthy
+13:38:53 [DEBUG] Interval 336 (2016 total checks): All healthy
+13:38:58 [DEBUG] Interval 337 (2022 total checks): All healthy
+13:39:03 [DEBUG] Interval 338 (2028 total checks): All healthy
+13:39:08 [DEBUG] Interval 339 (2034 total checks): All healthy
+13:39:13 [DEBUG] Interval 340 (2040 total checks): All healthy
+13:39:18 [DEBUG] Interval 341 (2046 total checks): All healthy
+13:39:23 [DEBUG] Interval 342 (2052 total checks): All healthy
+13:39:28 [DEBUG] Interval 343 (2058 total checks): All healthy
+13:39:33 [DEBUG] Interval 344 (2064 total checks): All healthy
+13:39:39 [DEBUG] Interval 345 (2070 total checks): All healthy
+13:39:44 [DEBUG] Interval 346 (2076 total checks): All healthy
+13:39:49 [DEBUG] Interval 347 (2082 total checks): All healthy
+13:39:54 [DEBUG] Interval 348 (2088 total checks): All healthy
+13:39:59 [DEBUG] Interval 349 (2094 total checks): All healthy
+13:40:04 [DEBUG] Interval 350 (2100 total checks): All healthy
+13:40:09 [DEBUG] Interval 351 (2106 total checks): All healthy
+13:40:14 [SUMMARY] 
+=== GATE 2 RESULT ===
+13:40:14 [SUMMARY] Total checks: 2106 (expected ~2160)
+13:40:14 [SUMMARY] Intervals: 351 (expected ~360, min 342)
+13:40:14 [SUMMARY] Failed checks: 0 (threshold: 0)
+13:40:14 [PASS] GATE 2 PASSED
+13:40:14 [HEADER] 
+=== GATE 2B: Integration Suite Determinism Lock ===
+13:40:14 [INFO] Requirement: Run 1 result MUST EQUAL Run 2 result exactly
+13:40:22 [INFO] Run 1: Executing integration tests...

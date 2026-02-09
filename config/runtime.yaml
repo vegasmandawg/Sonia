@@ -1,0 +1,24 @@
+﻿runtime:
+  name: sonia-final
+  root: "S:\\"
+  timezone: "America/Chicago"
+  mode: "local-first"
+  profile: "default"
+
+observability:
+  logs_dir: "S:\\logs"
+  audit_dir: "S:\\audit"
+  level: "info"
+
+safety:
+  require_confirmation_for:
+    - delete_files
+    - system_shutdown
+    - registry_write
+    - destructive_shell
+  policy_file: "S:\\policies\\side-effects\\approval-matrix.yaml"
+
+state:
+  pid_dir: "S:\\state\\pids"
+  lock_dir: "S:\\state\\locks"
+  checkpoints_dir: "S:\\state\\checkpoints"

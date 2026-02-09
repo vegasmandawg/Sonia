@@ -1,0 +1,22 @@
+﻿=== SNAPSHOT TEST ===
+Baseline loaded OK
+Current PID: 46436
+Baseline pids type: PSCustomObject
+Baseline pids keys:
+  pipecat = 39264
+  api-gateway = 46436
+  memory-engine = 45788
+  model-router = 46940
+  openclaw = 46908
+  eva-os = 38196
+Baseline PID for api-gateway: 46436
+PID Match: True
+Baseline metrics type: Object[]
+Baseline metrics count: 6
+Baseline entry: {"RSS_KB":56740,"PID":46436,"Name":"api-gateway","Threads":1,"Handles":224}
+Baseline RSS: 56740
+Healthz: 200
+Error log files: 6
+Current config hash: 34F1009B0AF22E2ACDD701758244BEAD15089E307D1F0435BE97C675F1A8EDCB
+Drift: False
+ALL TESTS PASSED

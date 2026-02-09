@@ -1,0 +1,67 @@
+﻿=== RC-1 MANIFEST DIRECTORY ===
+Location: S:\artifacts\phase3\rc-1
+
+DIR   evidence\
+DIR   release-bundle\
+FILE  BOOT_CONTRACT.md  (4,139 bytes)
+FILE  gate-status.json  (2,604 bytes)
+FILE  go-no-go-20260208_164811.log  (27,334 bytes)
+FILE  go-no-go-summary-20260208_164811.json  (1,146 bytes)
+FILE  phase3-go-no-go.ps1  (18,398 bytes)
+FILE  RC1_SIGNOFF.md  (4,834 bytes)
+FILE  SHA256SUMS.txt  (5,414 bytes)
+DIR   evidence\gate1\
+DIR   evidence\gate2\
+DIR   evidence\gate2b\
+DIR   evidence\gate3\
+FILE  evidence\gate1\go-no-go-20260208_164811.log  (27,334 bytes)
+FILE  evidence\gate1\go-no-go-summary-20260208_164811.json  (1,146 bytes)
+FILE  evidence\gate1\SHA256SUMS.csv  (362 bytes)
+FILE  evidence\gate2\go-no-go-20260208_164811.log  (27,334 bytes)
+FILE  evidence\gate2\go-no-go-summary-20260208_164811.json  (1,146 bytes)
+FILE  evidence\gate2\SHA256SUMS.csv  (362 bytes)
+FILE  evidence\gate2b\go-no-go-20260208_164811.log  (27,334 bytes)
+FILE  evidence\gate2b\go-no-go-summary-20260208_164811.json  (1,146 bytes)
+FILE  evidence\gate2b\SHA256SUMS.csv  (364 bytes)
+DIR   evidence\gate3\release-bundle\
+FILE  evidence\gate3\go-no-go-20260208_164811.log  (27,334 bytes)
+FILE  evidence\gate3\go-no-go-summary-20260208_164811.json  (1,146 bytes)
+FILE  evidence\gate3\SHA256SUMS.csv  (3,093 bytes)
+DIR   evidence\gate3\release-bundle\locks\
+DIR   evidence\gate3\release-bundle\logs\
+FILE  evidence\gate3\release-bundle\config-hash.json  (152 bytes)
+FILE  evidence\gate3\release-bundle\pids.json  (208 bytes)
+FILE  evidence\gate3\release-bundle\locks\requirements.lock  (461 bytes)
+FILE  evidence\gate3\release-bundle\logs\.gitkeep  (0 bytes)
+FILE  evidence\gate3\release-bundle\logs\api-gateway.err.log  (202 bytes)
+FILE  evidence\gate3\release-bundle\logs\api-gateway.out.log  (2,920 bytes)
+FILE  evidence\gate3\release-bundle\logs\eva-os.err.log  (202 bytes)
+FILE  evidence\gate3\release-bundle\logs\eva-os.out.log  (122 bytes)
+FILE  evidence\gate3\release-bundle\logs\memory-engine.err.log  (202 bytes)
+FILE  evidence\gate3\release-bundle\logs\memory-engine.out.log  (565 bytes)
+FILE  evidence\gate3\release-bundle\logs\model-router.err.log  (202 bytes)
+FILE  evidence\gate3\release-bundle\logs\model-router.out.log  (2,373 bytes)
+FILE  evidence\gate3\release-bundle\logs\openclaw.err.log  (202 bytes)
+FILE  evidence\gate3\release-bundle\logs\openclaw.out.log  (1,175 bytes)
+FILE  evidence\gate3\release-bundle\logs\pipecat.err.log  (202 bytes)
+FILE  evidence\gate3\release-bundle\logs\pipecat.out.log  (2,917 bytes)
+DIR   release-bundle\locks\
+DIR   release-bundle\logs\
+FILE  release-bundle\config-hash.json  (152 bytes)
+FILE  release-bundle\pids.json  (208 bytes)
+FILE  release-bundle\locks\requirements.lock  (461 bytes)
+FILE  release-bundle\logs\.gitkeep  (0 bytes)
+FILE  release-bundle\logs\api-gateway.err.log  (202 bytes)
+FILE  release-bundle\logs\api-gateway.out.log  (2,920 bytes)
+FILE  release-bundle\logs\eva-os.err.log  (202 bytes)
+FILE  release-bundle\logs\eva-os.out.log  (122 bytes)
+FILE  release-bundle\logs\memory-engine.err.log  (202 bytes)
+FILE  release-bundle\logs\memory-engine.out.log  (565 bytes)
+FILE  release-bundle\logs\model-router.err.log  (202 bytes)
+FILE  release-bundle\logs\model-router.out.log  (2,373 bytes)
+FILE  release-bundle\logs\openclaw.err.log  (202 bytes)
+FILE  release-bundle\logs\openclaw.out.log  (1,175 bytes)
+FILE  release-bundle\logs\pipecat.err.log  (202 bytes)
+FILE  release-bundle\logs\pipecat.out.log  (2,917 bytes)
+
+Total: 51 files, 11 directories
