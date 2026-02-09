@@ -13,6 +13,9 @@ from app.turn_taking import (
     is_terminal_or_idle,
 )
 from app.session_manager import VoiceSession, VoiceSessionManager
+from app.interruptions import handle_interrupt, InterruptResult, clear_interrupt_state
+from app.tts_client import synthesize_cancellable
+from app.model_router_client import infer_cancellable, close_client as close_model_client
 
 __all__ = [
     "TurnState",
@@ -22,4 +25,10 @@ __all__ = [
     "is_terminal_or_idle",
     "VoiceSession",
     "VoiceSessionManager",
+    "handle_interrupt",
+    "InterruptResult",
+    "clear_interrupt_state",
+    "synthesize_cancellable",
+    "infer_cancellable",
+    "close_model_client",
 ]
