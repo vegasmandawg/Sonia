@@ -3,11 +3,17 @@ OpenClaw Main Service
 FastAPI application with executor registry and strict safety enforcement.
 """
 
+from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from datetime import datetime
 import json
 import sys
+
+# Canonical version
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
+from version import SONIA_VERSION
 
 from schemas import (
     ExecuteRequest, ExecuteResponse, HealthzResponse, StatusResponse,
@@ -19,23 +25,16 @@ from registry import get_registry
 # FastAPI Application Setup
 # ============================================================================
 
-app = FastAPI(
-    title="OpenClaw",
-    description="Deterministic executor registry with strict safety boundaries",
-    version="1.0.0"
-)
-
 # Initialize registry on startup
 registry = None
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize registry and log startup."""
+@asynccontextmanager
+async def _lifespan(a):
+    """Startup and shutdown lifecycle for OpenClaw."""
     global registry
     registry = get_registry()
-    
-    # Log startup
+
     log_entry = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "level": "INFO",
@@ -46,10 +45,8 @@ async def startup_event():
     }
     print(json.dumps(log_entry))
 
+    yield  # ── app is running ──
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Log shutdown."""
     log_entry = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "level": "INFO",
@@ -57,6 +54,14 @@ async def shutdown_event():
         "event": "shutdown"
     }
     print(json.dumps(log_entry))
+
+
+app = FastAPI(
+    title="OpenClaw",
+    description="Deterministic executor registry with strict safety boundaries",
+    version=SONIA_VERSION,
+    lifespan=_lifespan,
+)
 
 
 # ============================================================================
@@ -84,7 +89,7 @@ async def root():
     return {
         "service": "openclaw",
         "status": "online",
-        "version": "1.0.0"
+        "version": SONIA_VERSION
     }
 
 

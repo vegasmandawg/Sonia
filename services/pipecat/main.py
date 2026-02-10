@@ -6,10 +6,16 @@ FastAPI application with session management and WebSocket support.
 import json
 import sys
 import uuid
+from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from typing import Optional
+
+# Canonical version
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
+from version import SONIA_VERSION
 
 from sessions import SessionManager, SessionState
 from routes.ws import websocket_handler
@@ -26,12 +32,6 @@ from app.voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
 # ============================================================================
 # FastAPI Application Setup
 # ============================================================================
-
-app = FastAPI(
-    title="Pipecat",
-    description="Session management and WebSocket real-time communication",
-    version="2.7.0"
-)
 
 # Global managers and clients
 session_manager: Optional[SessionManager] = None
@@ -52,23 +52,19 @@ def log_event(event_dict: dict):
     print(json.dumps(event_dict))
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize session manager and clients."""
+@asynccontextmanager
+async def _lifespan(a):
+    """Startup and shutdown lifecycle for Pipecat."""
     global session_manager, api_gateway_client, voice_session_manager, turn_telemetry, voice_turn_router
 
-    # Create session manager with optional persistence
     session_manager = SessionManager(persist_dir="S:\\data\\sessions")
     session_manager.load_persisted()
 
-    # Initialize API Gateway client (legacy, kept for backward compat)
     api_gateway_client = ApiGatewayClient(base_url="http://127.0.0.1:7000")
 
-    # Initialize voice loop hardening components
     voice_session_manager = VoiceSessionManager(cleanup_timeout=5.0)
     turn_telemetry = TurnTelemetryLogger()
 
-    # v2.7: Voice turn router (routes through gateway stream pipeline)
     voice_turn_router = VoiceTurnRouter(
         gateway_url="http://127.0.0.1:7000",
         turn_timeout=30.0,
@@ -78,16 +74,11 @@ async def startup_event():
         "level": "INFO",
         "service": "pipecat",
         "event": "startup",
-        "message": "Pipecat v2.7 initialized with voice turn router + gateway stream pipeline"
+        "message": f"Pipecat {SONIA_VERSION} initialized with voice turn router + gateway stream pipeline"
     })
 
+    yield  # ── app is running ──
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup resources."""
-    global api_gateway_client, voice_session_manager, voice_turn_router
-
-    # v2.7: Close all gateway stream clients
     if voice_turn_router:
         closed = await voice_turn_router.close_all()
         log_event({
@@ -97,7 +88,6 @@ async def shutdown_event():
             "sessions_closed": closed,
         })
 
-    # Close voice sessions cleanly
     if voice_session_manager:
         closed = await voice_session_manager.close_all(reason="shutdown")
         log_event({
@@ -107,7 +97,6 @@ async def shutdown_event():
             "count": closed,
         })
 
-    # Close HTTP clients
     await close_model_router_client()
 
     if api_gateway_client:
@@ -119,6 +108,14 @@ async def shutdown_event():
         "event": "shutdown",
         "message": "Pipecat shutdown complete"
     })
+
+
+app = FastAPI(
+    title="Pipecat",
+    description="Session management and WebSocket real-time communication",
+    version=SONIA_VERSION,
+    lifespan=_lifespan,
+)
 
 
 # ============================================================================
@@ -159,7 +156,7 @@ async def root():
     return {
         "service": "pipecat",
         "status": "online",
-        "version": "1.0.0"
+        "version": SONIA_VERSION
     }
 
 
@@ -173,7 +170,7 @@ async def status():
         "service": "pipecat",
         "status": "online",
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "version": "1.0.0",
+        "version": SONIA_VERSION,
         "sessions": {
             "active": active_sessions,
             "total": all_sessions

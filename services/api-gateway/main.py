@@ -6,10 +6,15 @@ FastAPI application that orchestrates requests to Memory Engine, Model Router, O
 import json
 import sys
 import uuid
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from typing import Optional
+
+# Canonical version
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent.parent / "shared"))
+from version import SONIA_VERSION
 
 from clients.memory_client import MemoryClient, MemoryClientError
 from clients.router_client import RouterClient, RouterClientError
@@ -38,14 +43,8 @@ from jsonl_logger import session_log, error_log
 # FastAPI Application Setup
 # ============================================================================
 
-BASELINE_VERSION = "2.5.0"
-BASELINE_CONTRACT = "v2.5.0"
-
-app = FastAPI(
-    title="API Gateway",
-    description="Request orchestration to Memory Engine, Model Router, OpenClaw, and Pipecat",
-    version=BASELINE_VERSION,
-)
+BASELINE_VERSION = SONIA_VERSION
+BASELINE_CONTRACT = f"v{SONIA_VERSION}"
 
 # Global clients (initialized on startup)
 memory_client: Optional[MemoryClient] = None
@@ -74,9 +73,9 @@ def log_event(event_dict: dict):
     print(json.dumps(event_dict))
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize clients and log startup."""
+@asynccontextmanager
+async def lifespan(a):
+    """Startup and shutdown lifecycle for API Gateway."""
     global memory_client, router_client, openclaw_client, action_pipeline, health_supervisor
 
     memory_client = MemoryClient(base_url="http://127.0.0.1:7020")
@@ -99,11 +98,7 @@ async def startup_event():
         "message": "API Gateway initialized with downstream clients and recovery subsystems"
     })
 
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Close clients and log shutdown."""
-    global memory_client, router_client, openclaw_client, health_supervisor
+    yield  # ── app is running ──
 
     # Stop health supervisor
     if health_supervisor:
@@ -122,6 +117,14 @@ async def shutdown_event():
         "event": "shutdown",
         "message": "API Gateway shutdown complete"
     })
+
+
+app = FastAPI(
+    title="API Gateway",
+    description="Request orchestration to Memory Engine, Model Router, OpenClaw, and Pipecat",
+    version=BASELINE_VERSION,
+    lifespan=lifespan,
+)
 
 
 # ============================================================================

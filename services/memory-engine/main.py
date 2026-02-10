@@ -5,6 +5,8 @@ Persistent memory and knowledge management with SQLite backend.
 Provides ledger-based storage, vector indexing, and semantic search.
 """
 
+from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 import logging
@@ -14,7 +16,13 @@ from datetime import datetime
 from typing import Optional, Dict, List
 from pydantic import BaseModel
 
+# Canonical version
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
+from version import SONIA_VERSION
+
 from db import get_db, MemoryDatabase
+from hybrid_search import HybridSearchLayer
+from core.provenance import ProvenanceTracker
 
 # Configure logging
 logging.basicConfig(
@@ -27,11 +35,17 @@ logger = logging.getLogger('memory-engine')
 # Initialize database
 db = get_db()
 
+# Initialize hybrid search layer
+_hybrid = HybridSearchLayer(db)
+
+# Initialize provenance tracker
+_provenance = ProvenanceTracker(db)
+
 # Create FastAPI app
 app = FastAPI(
     title="Sonia Memory Engine",
     description="Persistent memory and knowledge management",
-    version="1.0.0"
+    version=SONIA_VERSION
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -47,6 +61,11 @@ class RecallRequest(BaseModel):
     query: str
     limit: int = 10
 
+class HybridSearchRequest(BaseModel):
+    query: str
+    limit: int = 10
+    max_tokens: Optional[int] = None  # token budget for retrieval
+
 class UpdateRequest(BaseModel):
     content: Optional[str] = None
     metadata: Optional[Dict] = None
@@ -59,11 +78,13 @@ class UpdateRequest(BaseModel):
 def healthz():
     """Health check endpoint."""
     stats = db.get_stats()
+    hybrid_stats = _hybrid.get_stats()
     return {
         "ok": True,
         "service": "memory-engine",
         "timestamp": datetime.utcnow().isoformat(),
-        "memories": stats.get("active_memories", 0)
+        "memories": stats.get("active_memories", 0),
+        "hybrid_search": hybrid_stats,
     }
 
 @app.get("/")
@@ -72,7 +93,7 @@ def root():
     return {
         "service": "memory-engine",
         "status": "online",
-        "version": "1.0.0",
+        "version": SONIA_VERSION,
         "database": "SQLite"
     }
 
@@ -108,7 +129,21 @@ async def store(request: StoreRequest):
             content=request.content,
             metadata=request.metadata
         )
-        
+
+        # Index in hybrid search layer (non-blocking, best-effort)
+        try:
+            _hybrid.on_store(memory_id, request.content)
+        except Exception as e:
+            logger.warning(f"Hybrid index failed for {memory_id}: {e}")
+
+        # Track provenance (best-effort)
+        try:
+            source_type = (request.metadata or {}).get("source_type", "direct")
+            source_id = (request.metadata or {}).get("source_id")
+            _provenance.track(memory_id, source_type=source_type, source_id=source_id)
+        except Exception as e:
+            logger.warning(f"Provenance tracking failed for {memory_id}: {e}")
+
         return {
             "status": "stored",
             "id": memory_id,
@@ -182,6 +217,40 @@ async def search(request: RecallRequest):
         }
     except Exception as e:
         logger.error(f"Search error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/v1/search")
+async def hybrid_search(request: HybridSearchRequest):
+    """Hybrid search: BM25 ranking + LIKE fallback.
+
+    Upgraded search path for v2.9. Returns ranked results with
+    score and source provenance (bm25, like_fallback).
+    """
+    try:
+        results = _hybrid.search(request.query, limit=request.limit)
+
+        # Token budget enforcement: approximate 4 chars/token
+        if request.max_tokens and results:
+            budget = request.max_tokens * 4
+            trimmed = []
+            used = 0
+            for r in results:
+                content_len = len(r.get("content", ""))
+                if used + content_len > budget and trimmed:
+                    break
+                trimmed.append(r)
+                used += content_len
+            results = trimmed
+
+        return {
+            "query": request.query,
+            "results": results,
+            "count": len(results),
+            "search_mode": "hybrid",
+            "service": "memory-engine",
+        }
+    except Exception as e:
+        logger.error(f"Hybrid search error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.put("/recall/{memory_id}")
@@ -284,11 +353,38 @@ def stats():
         stats = db.get_stats()
         return {
             **stats,
+            "hybrid_search": _hybrid.get_stats(),
             "service": "memory-engine"
         }
     except Exception as e:
         logger.error(f"Stats error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Provenance Endpoints
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.get("/v1/provenance/{memory_id}")
+def get_provenance(memory_id: str):
+    """Get provenance record for a memory item."""
+    record = _provenance.get_provenance(memory_id)
+    if not record:
+        raise HTTPException(status_code=404, detail=f"No provenance for: {memory_id}")
+    return {
+        "provenance": record,
+        "service": "memory-engine",
+    }
+
+@app.get("/v1/provenance/{memory_id}/chain")
+def get_provenance_chain(memory_id: str, max_depth: int = 10):
+    """Get the full provenance chain for a memory item."""
+    chain = _provenance.get_chain(memory_id, max_depth=max_depth)
+    return {
+        "memory_id": memory_id,
+        "chain": chain,
+        "depth": len(chain),
+        "service": "memory-engine",
+    }
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Error Handlers
@@ -311,17 +407,26 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Startup & Shutdown
 # ─────────────────────────────────────────────────────────────────────────────
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize on startup."""
+@asynccontextmanager
+async def _lifespan(a):
+    """Startup and shutdown lifecycle for Memory Engine."""
     logger.info("Memory Engine starting up...")
     stats = db.get_stats()
     logger.info(f"Database loaded: {stats.get('active_memories', 0)} active memories")
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown."""
+    try:
+        _hybrid.initialize()
+        h_stats = _hybrid.get_stats()
+        logger.info(f"Hybrid search ready: {h_stats.get('bm25_indexed', 0)} docs indexed")
+    except Exception as e:
+        logger.error(f"Hybrid search init failed (LIKE fallback active): {e}")
+
+    yield  # ── app is running ──
+
     logger.info("Memory Engine shutting down...")
+
+
+app.router.lifespan_context = _lifespan
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Main Entry Point

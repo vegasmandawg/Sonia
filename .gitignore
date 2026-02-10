@@ -2,7 +2,7 @@
 reports/
 logs/
 tmp/
-state/
+/state/
 data/
 cache/
 
@@ -21,6 +21,10 @@ __pycache__/
 $RECYCLE.BIN/
 System Volume Information/
 nul
+DumpStack.log.tmp
+
+# Test output artifacts
+tests/*.txt
 
 # Large binary/tool directories
 tools/

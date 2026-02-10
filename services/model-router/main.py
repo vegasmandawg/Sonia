@@ -7,6 +7,7 @@ Provider abstraction and model routing with support for:
 - OpenRouter (optional, via API key)
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 import json
@@ -16,6 +17,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Dict
 from pydantic import BaseModel
+
+# Canonical version
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
+from version import SONIA_VERSION
 
 from providers import (
     get_router, TaskType, ProviderRouter, ModelInfo
@@ -40,11 +45,11 @@ _health_registry = None
 _budget_guard = None
 _audit_logger = None
 
-# Create FastAPI app
+# Create FastAPI app (lifespan defined below, assigned after)
 app = FastAPI(
     title="Sonia Model Router",
     description="Model and provider routing for Sonia",
-    version="1.0.0"
+    version=SONIA_VERSION,
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -59,6 +64,8 @@ class ChatRequest(BaseModel):
     messages: List[Dict]
     temperature: Optional[float] = 0.7
     max_tokens: Optional[int] = 2048
+    policy: Optional[str] = "cloud_allowed"  # local_only, cloud_allowed, provider_pinned
+    provider: Optional[str] = None  # For provider_pinned policy
 
 class ProfileRouteRequest(BaseModel):
     task_type: str = ""
@@ -99,7 +106,7 @@ def root():
     return {
         "service": "model-router",
         "status": "online",
-        "version": "1.0.0"
+        "version": SONIA_VERSION
     }
 
 @app.get("/status")
@@ -179,7 +186,7 @@ async def select(request: SelectRequest):
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
-    """Send chat request to routed provider."""
+    """Send chat request to routed provider with policy support."""
     try:
         # Validate task type
         try:
@@ -189,15 +196,63 @@ async def chat(request: ChatRequest):
                 status_code=400,
                 detail=f"Unknown task type: {request.task_type}"
             )
-        
-        # Route and execute
-        result = router.chat(task, request.messages)
-        
+
+        policy = request.policy or "cloud_allowed"
+        extra_kwargs = {}
+        if request.temperature is not None:
+            extra_kwargs["temperature"] = request.temperature
+        if request.max_tokens is not None:
+            extra_kwargs["max_tokens"] = request.max_tokens
+
+        # Policy-based routing
+        if policy == "provider_pinned" and request.provider:
+            # Direct provider dispatch
+            provider = router.providers.get(request.provider)
+            if not provider:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Unknown provider: {request.provider}"
+                )
+            if not provider.available:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Provider not available: {request.provider}"
+                )
+            model_info = provider.route(task)
+            if not model_info:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"No model for task {request.task_type} on {request.provider}"
+                )
+            result = provider.chat(model_info.name, request.messages, **extra_kwargs)
+
+        elif policy == "local_only":
+            # Only use local providers (ollama)
+            provider = router.providers.get("ollama")
+            if not provider or not provider.available:
+                raise HTTPException(
+                    status_code=503,
+                    detail="No local provider available"
+                )
+            model_info = provider.route(task)
+            if not model_info:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"No local model for task: {request.task_type}"
+                )
+            result = provider.chat(model_info.name, request.messages, **extra_kwargs)
+
+        else:
+            # cloud_allowed (default): try local first, fall back to cloud
+            result = router.chat(task, request.messages, **extra_kwargs)
+
         if result.get("status") == "error":
             raise HTTPException(status_code=503, detail=result.get("error"))
-        
+        if result.get("status") == "not_implemented":
+            raise HTTPException(status_code=501, detail=result.get("error"))
+
         return result
-    
+
     except HTTPException:
         raise
     except Exception as e:
@@ -347,9 +402,9 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Startup & Shutdown
 # ─────────────────────────────────────────────────────────────────────────────
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize on startup."""
+@asynccontextmanager
+async def _lifespan(a):
+    """Startup and shutdown lifecycle for Model Router."""
     global _routing_engine, _health_registry, _budget_guard, _audit_logger
 
     logger.info("Model Router starting up...")
@@ -425,10 +480,11 @@ async def startup_event():
         logger.error("Failed to initialise profile infrastructure: %s", e, exc_info=True)
         # Service remains healthy -- legacy routing still works
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown."""
+    yield  # ── app is running ──
+
     logger.info("Model Router shutting down...")
+
+app.router.lifespan_context = _lifespan
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Main Entry Point

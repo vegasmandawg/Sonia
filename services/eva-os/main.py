@@ -2,18 +2,24 @@
 Sonia EVA-OS - Main Entry Point
 
 EVA-OS is the supervisory control plane:
-  - Orchestration and task state management
-  - Policy gating and approval workflows
-  - Service health monitoring
-  - Degradation and fallback handling
+  - Active service health monitoring via /healthz probes
+  - Per-service state machine (healthy/degraded/unreachable/recovering)
+  - Policy gating and approval workflows (via SafeOrchestrator)
+  - Dependency graph awareness
+  - Maintenance mode toggle
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 import logging
 import sys
 from datetime import datetime
 from pathlib import Path
+
+# Canonical version
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
+from version import SONIA_VERSION
 
 # Configure logging
 logging.basicConfig(
@@ -31,12 +37,13 @@ if _openclaw_root not in sys.path:
 
 # Lazy-init: populated at startup
 _safe_orchestrator = None
+_supervisor = None
 
 # Create FastAPI app
 app = FastAPI(
     title="Sonia EVA-OS",
     description="Supervisory control plane and orchestration",
-    version="1.0.0"
+    version=SONIA_VERSION
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -53,6 +60,11 @@ def healthz():
     }
     if _safe_orchestrator is not None:
         health["safety"] = _safe_orchestrator.safety_status()
+    if _supervisor is not None:
+        health["supervision"] = {
+            "maintenance_mode": _supervisor.maintenance_mode,
+            "services_tracked": len(_supervisor.services),
+        }
     return health
 
 @app.get("/")
@@ -66,19 +78,25 @@ def root():
 
 @app.get("/status")
 def status():
-    """Detailed status endpoint."""
+    """Real-time status from active supervision probes."""
+    if _supervisor is None:
+        return {
+            "service": "eva-os",
+            "status": "online",
+            "operational_mode": "normal",
+            "uptime_seconds": 0,
+            "services": {},
+            "note": "supervisor not initialized",
+        }
+
+    sup_status = _supervisor.get_status()
     return {
         "service": "eva-os",
         "status": "online",
-        "operational_mode": "normal",
-        "uptime_seconds": 0,
-        "services": {
-            "api-gateway": "healthy",
-            "model-router": "healthy",
-            "memory-engine": "healthy",
-            "pipecat": "healthy",
-            "openclaw": "healthy"
-        }
+        "operational_mode": "maintenance" if _supervisor.maintenance_mode else "normal",
+        "uptime_seconds": sup_status["uptime_seconds"],
+        "maintenance_mode": sup_status["maintenance_mode"],
+        "services": sup_status["services"],
     }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -128,7 +146,7 @@ async def create_task(request: Request):
     try:
         data = await request.json()
         task_name = data.get("name", "unnamed")
-        
+
         return {
             "status": "created",
             "task_id": "task_001",
@@ -175,8 +193,6 @@ async def approve_action(request: Request):
                     token_id, trace_id=trace_id, reason=reason,
                 )
             else:
-                # For approve, the token is redeemed via gate_tool_call
-                # when the caller re-submits with the approval_token.
                 result = {
                     "status": "acknowledged",
                     "token_id": token_id,
@@ -196,42 +212,57 @@ async def approve_action(request: Request):
         raise HTTPException(status_code=400, detail=str(e))
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Service Health Endpoints
+# Supervision Endpoints (v2.9 -- real probes, no hardcoded data)
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.get("/health/all")
-def health_all():
-    """Check health of all downstream services."""
+async def health_all():
+    """Probe all downstream services and return real health data."""
+    if _supervisor is None:
+        raise HTTPException(status_code=503, detail="Supervisor not initialized")
+
+    await _supervisor.probe_all()
+    sup = _supervisor.get_status()
+
     return {
         "timestamp": datetime.utcnow().isoformat(),
-        "services": {
-            "api-gateway": {
-                "status": "healthy",
-                "latency_ms": 10,
-                "last_check": datetime.utcnow().isoformat()
-            },
-            "model-router": {
-                "status": "healthy",
-                "latency_ms": 8,
-                "last_check": datetime.utcnow().isoformat()
-            },
-            "memory-engine": {
-                "status": "healthy",
-                "latency_ms": 15,
-                "last_check": datetime.utcnow().isoformat()
-            },
-            "pipecat": {
-                "status": "healthy",
-                "latency_ms": 12,
-                "last_check": datetime.utcnow().isoformat()
-            },
-            "openclaw": {
-                "status": "healthy",
-                "latency_ms": 20,
-                "last_check": datetime.utcnow().isoformat()
-            }
-        }
+        "maintenance_mode": sup["maintenance_mode"],
+        "services": sup["services"],
     }
+
+@app.get("/v1/supervision/dependency-graph")
+def get_dependency_graph():
+    """Return the typed service dependency graph."""
+    if _supervisor is None:
+        raise HTTPException(status_code=503, detail="Supervisor not initialized")
+    return {
+        "graph": _supervisor.get_dependency_graph(),
+        "service": "eva-os",
+    }
+
+@app.post("/v1/supervision/maintenance-mode")
+async def toggle_maintenance(request: Request):
+    """Toggle maintenance mode."""
+    if _supervisor is None:
+        raise HTTPException(status_code=503, detail="Supervisor not initialized")
+    try:
+        data = await request.json()
+        enabled = data.get("enabled", False)
+        result = _supervisor.set_maintenance_mode(enabled)
+        return {**result, "service": "eva-os"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/v1/supervision/probe/{service_name}")
+async def probe_service(service_name: str):
+    """Manually probe a specific service."""
+    if _supervisor is None:
+        raise HTTPException(status_code=503, detail="Supervisor not initialized")
+    try:
+        record = await _supervisor.probe_service(service_name)
+        return {**record.to_dict(), "service": "eva-os"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Error Handlers
@@ -254,11 +285,13 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Startup & Shutdown
 # ─────────────────────────────────────────────────────────────────────────────
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize on startup."""
-    global _safe_orchestrator
+@asynccontextmanager
+async def _lifespan(a):
+    """Startup and shutdown lifecycle for EVA-OS."""
+    global _safe_orchestrator, _supervisor
     logger.info("EVA-OS starting up...")
+
+    # 1. Initialize SafeOrchestrator (policy gating via OpenClaw)
     try:
         import importlib.util
         _orch_path = str(Path(__file__).resolve().parent / "app" / "orchestrator.py")
@@ -272,10 +305,24 @@ async def startup_event():
         logger.error("EVA-OS: SafeOrchestrator init failed: %s", e)
         _safe_orchestrator = None
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown."""
+    # 2. Initialize ServiceSupervisor (active health probing)
+    try:
+        from service_supervisor import ServiceSupervisor
+        _supervisor = ServiceSupervisor()
+        await _supervisor.start_polling()
+        logger.info("EVA-OS: ServiceSupervisor initialized, polling started")
+    except Exception as e:
+        logger.error("EVA-OS: ServiceSupervisor init failed: %s", e)
+        _supervisor = None
+
+    yield  # ── app is running ──
+
     logger.info("EVA-OS shutting down...")
+    if _supervisor is not None:
+        await _supervisor.stop_polling()
+
+
+app.router.lifespan_context = _lifespan
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Main Entry Point

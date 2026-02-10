@@ -1,0 +1,70 @@
+﻿{
+    "passed":  12,
+    "version":  "2.9.0",
+    "timestamp":  "2026-02-09T19:57:17.5404513-06:00",
+    "total":  12,
+    "failed":  0,
+    "skipped":  0,
+    "gates":  [
+                  {
+                      "gate":  "Provider parity tests",
+                      "status":  "PASS",
+                      "duration_ms":  362
+                  },
+                  {
+                      "gate":  "EVA supervision tests",
+                      "status":  "PASS",
+                      "duration_ms":  352
+                  },
+                  {
+                      "gate":  "Memory hybrid search tests",
+                      "status":  "PASS",
+                      "duration_ms":  3136
+                  },
+                  {
+                      "gate":  "Version consistency (shared/version.py)",
+                      "status":  "PASS",
+                      "duration_ms":  32
+                  },
+                  {
+                      "gate":  "Single requirements-frozen.txt",
+                      "status":  "PASS",
+                      "duration_ms":  8
+                  },
+                  {
+                      "gate":  "No deprecated on_event in core services",
+                      "status":  "PASS",
+                      "duration_ms":  39
+                  },
+                  {
+                      "gate":  "No not_implemented stubs in providers.py",
+                      "status":  "PASS",
+                      "duration_ms":  6
+                  },
+                  {
+                      "gate":  "EVA-OS uses real supervision",
+                      "status":  "PASS",
+                      "duration_ms":  6
+                  },
+                  {
+                      "gate":  "Memory engine hybrid search active",
+                      "status":  "PASS",
+                      "duration_ms":  5
+                  },
+                  {
+                      "gate":  "Provenance tracker wired",
+                      "status":  "PASS",
+                      "duration_ms":  5
+                  },
+                  {
+                      "gate":  "Gitignore covers test artifacts",
+                      "status":  "PASS",
+                      "duration_ms":  9
+                  },
+                  {
+                      "gate":  "Shared version module exists",
+                      "status":  "PASS",
+                      "duration_ms":  6
+                  }
+              ]
+}

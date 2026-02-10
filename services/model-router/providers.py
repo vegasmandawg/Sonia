@@ -188,8 +188,11 @@ class OllamaProvider(Provider):
             payload = {
                 "model": model,
                 "prompt": prompt,
-                "stream": False
+                "stream": False,
             }
+            if "temperature" in kwargs:
+                payload["options"] = payload.get("options", {})
+                payload["options"]["temperature"] = kwargs["temperature"]
             
             response = httpx.post(
                 f"{self.endpoint}/api/generate",
@@ -240,32 +243,115 @@ class AnthropicProvider(Provider):
         """Get available Claude models."""
         if not self.available:
             return []
-        
+
         return [
-            ModelInfo("claude-opus-4-6", "anthropic", ["text"]),
-            ModelInfo("claude-sonnet-4-6", "anthropic", ["text"]),
-            ModelInfo("claude-haiku-4-5", "anthropic", ["text"])
+            ModelInfo("claude-opus-4-6", "anthropic", ["text", "vision"],
+                      config={"context_length": 200000}),
+            ModelInfo("claude-sonnet-4-6", "anthropic", ["text", "vision"],
+                      config={"context_length": 200000}),
+            ModelInfo("claude-haiku-4-5", "anthropic", ["text", "vision"],
+                      config={"context_length": 200000}),
         ]
     
     def route(self, task_type: TaskType) -> Optional[ModelInfo]:
         """Route to appropriate Claude model."""
-        if not self.available or task_type != TaskType.TEXT:
+        if not self.available:
             return None
-        
-        # Default to Opus
-        return ModelInfo("claude-opus-4-6", "anthropic", ["text"])
+        if task_type not in (TaskType.TEXT, TaskType.VISION):
+            return None
+
+        # Default to Opus for text, Sonnet for vision (cost-effective)
+        if task_type == TaskType.VISION:
+            return ModelInfo("claude-sonnet-4-6", "anthropic", ["text", "vision"],
+                             config={"context_length": 200000})
+        return ModelInfo("claude-opus-4-6", "anthropic", ["text", "vision"],
+                         config={"context_length": 200000})
     
     def chat(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
-        """Send chat request to Anthropic."""
+        """Send chat request to Anthropic Messages API."""
         if not self.available:
             return {"status": "error", "error": "Anthropic provider not available"}
-        
-        # TODO: Implement Anthropic API call
-        return {
-            "status": "not_implemented",
-            "error": "Anthropic provider chat not yet implemented",
-            "model": model
-        }
+
+        try:
+            # Build Anthropic Messages API payload
+            # Extract system message if present; Anthropic uses a top-level system param
+            system_text = ""
+            api_messages = []
+            for msg in messages:
+                role = msg.get("role", "user")
+                content = msg.get("content", "")
+                if role == "system":
+                    system_text = content
+                else:
+                    api_messages.append({"role": role, "content": content})
+
+            # Ensure at least one user message
+            if not api_messages:
+                api_messages.append({"role": "user", "content": ""})
+
+            payload = {
+                "model": model,
+                "messages": api_messages,
+                "max_tokens": kwargs.get("max_tokens", 2048),
+            }
+            if system_text:
+                payload["system"] = system_text
+            if "temperature" in kwargs:
+                payload["temperature"] = kwargs["temperature"]
+
+            headers = {
+                "x-api-key": self.api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            }
+
+            response = httpx.post(
+                f"{self.endpoint}/v1/messages",
+                json=payload,
+                headers=headers,
+                timeout=60,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            # Extract text from content blocks
+            text_parts = []
+            for block in data.get("content", []):
+                if block.get("type") == "text":
+                    text_parts.append(block.get("text", ""))
+
+            usage = data.get("usage", {})
+
+            return {
+                "status": "success",
+                "model": data.get("model", model),
+                "response": "".join(text_parts),
+                "metadata": {
+                    "prompt_tokens": usage.get("input_tokens"),
+                    "completion_tokens": usage.get("output_tokens"),
+                    "stop_reason": data.get("stop_reason"),
+                },
+            }
+
+        except httpx.HTTPStatusError as e:
+            error_body = ""
+            try:
+                error_body = e.response.json().get("error", {}).get("message", str(e))
+            except Exception:
+                error_body = str(e)
+            logger.error(f"Anthropic API error ({e.response.status_code}): {error_body}")
+            return {
+                "status": "error",
+                "error": f"Anthropic API error: {error_body}",
+                "model": model,
+            }
+        except Exception as e:
+            logger.error(f"Anthropic chat error: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "model": model,
+            }
 
 
 class OpenRouterProvider(Provider):
@@ -306,16 +392,85 @@ class OpenRouterProvider(Provider):
         return ModelInfo("openai/gpt-4", "openrouter", ["text"])
     
     def chat(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
-        """Send chat request to OpenRouter."""
+        """Send chat request to OpenRouter (OpenAI-compatible API)."""
         if not self.available:
             return {"status": "error", "error": "OpenRouter provider not available"}
-        
-        # TODO: Implement OpenRouter API call
-        return {
-            "status": "not_implemented",
-            "error": "OpenRouter provider chat not yet implemented",
-            "model": model
-        }
+
+        try:
+            # OpenRouter uses OpenAI-compatible chat/completions format
+            api_messages = []
+            for msg in messages:
+                api_messages.append({
+                    "role": msg.get("role", "user"),
+                    "content": msg.get("content", ""),
+                })
+
+            payload = {
+                "model": model,
+                "messages": api_messages,
+                "max_tokens": kwargs.get("max_tokens", 2048),
+            }
+            if "temperature" in kwargs:
+                payload["temperature"] = kwargs["temperature"]
+
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://sonia.local",
+                "X-Title": "Sonia AI Companion",
+            }
+
+            response = httpx.post(
+                f"{self.endpoint}/chat/completions",
+                json=payload,
+                headers=headers,
+                timeout=60,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            # Extract from OpenAI-compatible response
+            choices = data.get("choices", [])
+            text = ""
+            finish_reason = None
+            if choices:
+                choice = choices[0]
+                message = choice.get("message", {})
+                text = message.get("content", "")
+                finish_reason = choice.get("finish_reason")
+
+            usage = data.get("usage", {})
+
+            return {
+                "status": "success",
+                "model": data.get("model", model),
+                "response": text,
+                "metadata": {
+                    "prompt_tokens": usage.get("prompt_tokens"),
+                    "completion_tokens": usage.get("completion_tokens"),
+                    "finish_reason": finish_reason,
+                },
+            }
+
+        except httpx.HTTPStatusError as e:
+            error_body = ""
+            try:
+                error_body = e.response.json().get("error", {}).get("message", str(e))
+            except Exception:
+                error_body = str(e)
+            logger.error(f"OpenRouter API error ({e.response.status_code}): {error_body}")
+            return {
+                "status": "error",
+                "error": f"OpenRouter API error: {error_body}",
+                "model": model,
+            }
+        except Exception as e:
+            logger.error(f"OpenRouter chat error: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "model": model,
+            }
 
 
 class ProviderRouter:
@@ -371,24 +526,31 @@ class ProviderRouter:
     
     def chat(self, task_type: TaskType, messages: List[Dict], **kwargs) -> Dict[str, Any]:
         """Send chat request, routing to best available provider."""
-        model_info = self.route(task_type)
-        
-        if not model_info:
-            return {
-                "status": "error",
-                "error": f"No available provider for task: {task_type.value}"
-            }
-        
-        provider_name = model_info.provider
-        provider = self.providers.get(provider_name)
-        
-        if not provider:
-            return {
-                "status": "error",
-                "error": f"Provider not found: {provider_name}"
-            }
-        
-        return provider.chat(model_info.name, messages, **kwargs)
+        # Try providers in priority order until one succeeds
+        priority = ["ollama", "anthropic", "openrouter"]
+        last_error = None
+
+        for provider_name in priority:
+            if provider_name not in self.providers:
+                continue
+            provider = self.providers[provider_name]
+            if not provider.available:
+                continue
+            model_info = provider.route(task_type)
+            if not model_info:
+                continue
+
+            result = provider.chat(model_info.name, messages, **kwargs)
+            if result.get("status") == "success":
+                return result
+            # Record error but try next provider
+            last_error = result.get("error", "unknown error")
+            logger.warning(f"Provider {provider_name} failed: {last_error}, trying next")
+
+        return {
+            "status": "error",
+            "error": last_error or f"No available provider for task: {task_type.value}",
+        }
 
 
 # Global router instance
