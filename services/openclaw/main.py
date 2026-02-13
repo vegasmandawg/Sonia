@@ -314,9 +314,12 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(
         status_code=exc.status_code,
         content={
-            "status": "error",
-            "message": exc.detail,
-            "timestamp": datetime.utcnow().isoformat() + "Z"
+            "ok": False,
+            "service": "openclaw",
+            "error": {
+                "code": f"HTTP_{exc.status_code}",
+                "message": exc.detail
+            }
         }
     )
 
@@ -332,13 +335,16 @@ async def general_exception_handler(request: Request, exc: Exception):
         "path": request.url.path
     }
     print(json.dumps(log_entry), file=sys.stderr)
-    
+
     return JSONResponse(
         status_code=500,
         content={
-            "status": "error",
-            "message": "Internal server error",
-            "timestamp": datetime.utcnow().isoformat() + "Z"
+            "ok": False,
+            "service": "openclaw",
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "Internal server error"
+            }
         }
     )
 

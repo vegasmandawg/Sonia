@@ -13,7 +13,7 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 
-const BACKEND_WS = "ws://127.0.0.1:7000/v1/stream";
+const BACKEND_WS = "ws://127.0.0.1:7000/v1/ui/stream";
 const DEV_URL = "http://localhost:5173";
 const IS_DEV = process.env.NODE_ENV === "development" || !app.isPackaged;
 

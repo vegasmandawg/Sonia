@@ -235,7 +235,7 @@ class TestRoutingPolicy(unittest.TestCase):
         model = p.route(TaskType.TEXT)
         self.assertIsNotNone(model)
         self.assertEqual(model.provider, "openrouter")
-        self.assertEqual(model.name, "openai/gpt-4")
+        self.assertEqual(model.name, "openai/gpt-4o-mini")
 
 
 # ============================================================================

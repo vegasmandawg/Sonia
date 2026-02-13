@@ -5,7 +5,24 @@ Deterministic executor registry and dispatcher.
 
 from typing import Any, Dict, Optional, Callable
 from datetime import datetime
+from pathlib import Path
+import os
 import uuid
+
+# Root contract — all file I/O must stay within this boundary
+_ROOT_CONTRACT = os.environ.get("SONIA_ROOT", r"S:\\")
+
+
+def _validate_path(path: str) -> Optional[str]:
+    """Validate path is within the root contract. Returns error string or None."""
+    try:
+        resolved = Path(path).resolve()
+        root = Path(_ROOT_CONTRACT).resolve()
+        if not str(resolved).startswith(str(root)):
+            return f"path escapes root contract: {path}"
+    except (OSError, ValueError) as e:
+        return f"invalid path: {e}"
+    return None
 
 from schemas import ExecuteResponse, ExecuteRequest, ToolMetadata, RegistryStats
 from policy import get_policy, SecurityTier
@@ -13,6 +30,8 @@ from executors.shell_exec import ShellExecutor
 from executors.file_exec import FileExecutor
 from executors.browser_exec import BrowserExecutor
 from executors.desktop_exec import DesktopExecutor
+from executors.web_exec import WebExecutor
+from executors.notification_exec import NotificationExecutor
 
 
 # ============================================================================
@@ -70,10 +89,14 @@ class FileReadExecutor(ToolExecutor):
         path = args.get("path", "")
         timeout_ms = kwargs.get("timeout_ms")
         correlation_id = kwargs.get("correlation_id")
-        
+
         if not path:
             return {"error": "path argument required"}
-        
+
+        path_err = _validate_path(path)
+        if path_err:
+            return {"success": False, "result": None, "error": path_err}
+
         success, result, error = self.file.read(
             path,
             timeout_ms=timeout_ms,
@@ -99,13 +122,17 @@ class FileWriteExecutor(ToolExecutor):
         content = args.get("content", "")
         timeout_ms = kwargs.get("timeout_ms")
         correlation_id = kwargs.get("correlation_id")
-        
+
         if not path:
             return {"error": "path argument required"}
-        
+
         if content is None:
             return {"error": "content argument required"}
-        
+
+        path_err = _validate_path(path)
+        if path_err:
+            return {"success": False, "result": None, "error": path_err}
+
         success, result, error = self.file.write(
             path,
             content,
@@ -255,6 +282,52 @@ class ClipboardWriteExecutor(ToolExecutor):
         if text is None:
             return {"error": "text argument required"}
         success, result, error = self.desktop.clipboard_write(text, **kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+# ============================================================================
+# Web Executor Implementations (Phase 5b)
+# ============================================================================
+
+class WebSearchExecutor(ToolExecutor):
+    """Executor for web.search tool."""
+    def __init__(self):
+        self.web = WebExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        query = args.get("query", "")
+        max_results = args.get("max_results", 5)
+        if not query:
+            return {"error": "query argument required"}
+        success, result, error = self.web.search(
+            query, max_results=max_results, **kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+class WebFetchExecutor(ToolExecutor):
+    """Executor for web.fetch tool."""
+    def __init__(self):
+        self.web = WebExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        url = args.get("url", "")
+        max_chars = args.get("max_chars", 5000)
+        if not url:
+            return {"error": "url argument required"}
+        success, result, error = self.web.fetch(
+            url, max_chars=max_chars, **kwargs)
+        return {"success": success, "result": result, "error": error}
+
+
+class NotificationSendExecutor(ToolExecutor):
+    """Executor for notification.send tool."""
+    def __init__(self):
+        self.notifier = NotificationExecutor()
+    def execute(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        title = args.get("title", "")
+        body = args.get("body", "")
+        if not title:
+            return {"error": "title argument required"}
+        success, result, error = self.notifier.send(
+            title, body=body, **kwargs)
         return {"success": success, "result": result, "error": error}
 
 
@@ -422,6 +495,41 @@ class ToolRegistry:
             requires_sandboxing=False,
             default_timeout_ms=5000,
             executor=ClipboardWriteExecutor()
+        )
+
+        # ── Phase 5b: Web + Notification tools ────────────────────
+
+        # Tool 14: web.search
+        self.register_tool(
+            name="web.search",
+            display_name="Web Search",
+            description="Search the web using DuckDuckGo (no API key needed)",
+            tier=SecurityTier.TIER_0_READONLY.value,
+            requires_sandboxing=False,
+            default_timeout_ms=15000,
+            executor=WebSearchExecutor()
+        )
+
+        # Tool 15: web.fetch
+        self.register_tool(
+            name="web.fetch",
+            display_name="Web Fetch",
+            description="Fetch and extract text content from a URL",
+            tier=SecurityTier.TIER_0_READONLY.value,
+            requires_sandboxing=False,
+            default_timeout_ms=15000,
+            executor=WebFetchExecutor()
+        )
+
+        # Tool 16: notification.send
+        self.register_tool(
+            name="notification.send",
+            display_name="Notification Send",
+            description="Send a Windows toast notification",
+            tier=SecurityTier.TIER_1_COMPUTE.value,
+            requires_sandboxing=False,
+            default_timeout_ms=5000,
+            executor=NotificationSendExecutor()
         )
     
     def register_tool(

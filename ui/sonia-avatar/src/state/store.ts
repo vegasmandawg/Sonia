@@ -66,11 +66,21 @@ export interface DiagnosticsData {
   visible: boolean;
 }
 
+export type ControlField = "micEnabled" | "camEnabled" | "privacyEnabled" | "holdActive";
+
 export interface PendingControl {
-  field: string;
+  field: ControlField;
   targetValue: boolean;
   sentAt: number;
   timeoutMs: number;
+}
+
+/** v3.0: Chat message for the conversation panel. */
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant" | "error";
+  text: string;
+  timestamp: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -105,6 +115,9 @@ export interface SoniaState {
   // Interrupt / replay
   interruptPending: boolean;
   replayPending: boolean;
+
+  // v3.0: Chat messages
+  messages: ChatMessage[];
 
   // Diagnostics
   diagnostics: DiagnosticsData;
@@ -142,6 +155,10 @@ export interface SoniaState {
   requestReplay: () => void;
   ackReplay: () => void;
 
+  // --- Actions: chat messages (v3.0) ---
+  addMessage: (role: "user" | "assistant" | "error", text: string) => void;
+  clearMessages: () => void;
+
   // --- Actions: diagnostics ---
   updateDiagnostics: (d: Partial<DiagnosticsData>) => void;
   toggleDiagnostics: () => void;
@@ -172,6 +189,7 @@ const DEFAULT_DIAGNOSTICS: DiagnosticsData = {
 };
 
 const CONTROL_ACK_TIMEOUT_MS = 5000;
+const MAX_MESSAGES = 200;
 
 // ---------------------------------------------------------------------------
 // Store
@@ -201,6 +219,8 @@ export const useSoniaStore = create<SoniaState>((set, get) => ({
 
   interruptPending: false,
   replayPending: false,
+
+  messages: [],
 
   diagnostics: { ...DEFAULT_DIAGNOSTICS },
 
@@ -304,10 +324,11 @@ export const useSoniaStore = create<SoniaState>((set, get) => ({
     const s = get();
     const pending = s.pendingControls.find((p) => p.field === field);
     if (pending) {
-      set({
-        [field]: !pending.targetValue,
+      const update: Partial<SoniaState> = {
         pendingControls: s.pendingControls.filter((p) => p.field !== field),
-      } as any);
+      };
+      update[pending.field] = !pending.targetValue;
+      set(update);
     }
   },
 
@@ -320,16 +341,15 @@ export const useSoniaStore = create<SoniaState>((set, get) => ({
     if (expired.length === 0) return;
 
     // Rollback all expired
-    const rollbacks: Record<string, boolean> = {};
-    for (const p of expired) {
-      rollbacks[p.field] = !p.targetValue;
-    }
-    set({
-      ...rollbacks,
+    const update: Partial<SoniaState> = {
       pendingControls: s.pendingControls.filter(
         (p) => now - p.sentAt <= p.timeoutMs
       ),
-    } as any);
+    };
+    for (const p of expired) {
+      update[p.field] = !p.targetValue;
+    }
+    set(update);
   },
 
   // --- Interrupt / replay ---
@@ -338,6 +358,22 @@ export const useSoniaStore = create<SoniaState>((set, get) => ({
     set({ interruptPending: false, conversationState: "idle" }),
   requestReplay: () => set({ replayPending: true }),
   ackReplay: () => set({ replayPending: false }),
+
+  // --- Chat messages (v3.0) ---
+  addMessage: (role, text) =>
+    set((s) => {
+      const next = [
+        ...s.messages,
+        {
+          id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          role,
+          text,
+          timestamp: Date.now(),
+        },
+      ];
+      return { messages: next.length > MAX_MESSAGES ? next.slice(-MAX_MESSAGES) : next };
+    }),
+  clearMessages: () => set({ messages: [] }),
 
   // --- Diagnostics ---
   updateDiagnostics: (d) =>

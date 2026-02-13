@@ -24,7 +24,7 @@ from routes.action import handle_action
 from routes.turn import handle_turn
 from routes.sessions import handle_create_session, handle_get_session, handle_delete_session
 from routes.stream import handle_stream
-from routes.ui_stream import handle_ui_stream, ui_stream_manager
+from routes.ui_stream import handle_ui_stream, ui_stream_manager, inject_clients as inject_ui_clients
 from schemas.turn import TurnRequest
 from schemas.session import SessionCreateRequest, ConfirmationDecisionRequest
 from schemas.action import ActionPlanRequest, ActionPlanResponse, ActionStatusResponse, ActionQueueResponse
@@ -43,8 +43,7 @@ from jsonl_logger import session_log, error_log
 # FastAPI Application Setup
 # ============================================================================
 
-BASELINE_VERSION = SONIA_VERSION
-BASELINE_CONTRACT = f"v{SONIA_VERSION}"
+SONIA_CONTRACT = f"v{SONIA_VERSION}"
 
 # Global clients (initialized on startup)
 memory_client: Optional[MemoryClient] = None
@@ -81,6 +80,9 @@ async def lifespan(a):
     memory_client = MemoryClient(base_url="http://127.0.0.1:7020")
     router_client = RouterClient(base_url="http://127.0.0.1:7010")
     openclaw_client = OpenclawClient(base_url="http://127.0.0.1:7040")
+
+    # v3.0: inject clients into UI stream handler for conversation bridge
+    inject_ui_clients(memory_client, router_client, openclaw_client)
 
     # Stage 5 M2: initialize recovery subsystems
     breaker_registry = get_breaker_registry()
@@ -122,7 +124,7 @@ async def lifespan(a):
 app = FastAPI(
     title="API Gateway",
     description="Request orchestration to Memory Engine, Model Router, OpenClaw, and Pipecat",
-    version=BASELINE_VERSION,
+    version=SONIA_VERSION,
     lifespan=lifespan,
 )
 
@@ -137,8 +139,8 @@ async def healthz():
     return {
         "ok": True,
         "service": "api-gateway",
-        "version": BASELINE_VERSION,
-        "baseline_contract": BASELINE_CONTRACT,
+        "version": SONIA_VERSION,
+        "baseline_contract": SONIA_CONTRACT,
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
 
@@ -149,7 +151,7 @@ async def root():
     return {
         "service": "api-gateway",
         "status": "online",
-        "version": "1.0.0"
+        "version": SONIA_VERSION
     }
 
 
@@ -160,7 +162,7 @@ async def status():
         "service": "api-gateway",
         "status": "online",
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "version": "1.0.0"
+        "version": SONIA_VERSION
     }
 
 
@@ -666,6 +668,8 @@ async def list_actions_endpoint(
     offset: int = 0,
 ):
     """List actions with optional filters."""
+    limit = max(1, min(limit, 1000))
+    offset = max(0, offset)
     actions = await action_pipeline.store.list_actions(
         state=state, session_id=session_id, limit=limit, offset=offset
     )
@@ -764,6 +768,8 @@ async def list_dead_letters_endpoint(
     include_replayed: bool = False,
 ):
     """List dead letters with optional filters."""
+    limit = max(1, min(limit, 1000))
+    offset = max(0, offset)
     dlq = get_dead_letter_queue()
     letters = await dlq.list_letters(limit=limit, offset=offset,
                                       include_replayed=include_replayed)
@@ -819,6 +825,8 @@ async def replay_dead_letter_endpoint(
 @app.get("/v1/audit-trails")
 async def list_audit_trails_endpoint(limit: int = 50, offset: int = 0):
     """List recent action audit trails."""
+    limit = max(1, min(limit, 1000))
+    offset = max(0, offset)
     audit = get_audit_logger()
     trails = audit.list_trails(limit=limit, offset=offset)
     return {

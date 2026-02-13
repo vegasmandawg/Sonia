@@ -144,25 +144,18 @@ export default function ControlBar() {
   const isConnected = connectionStatus === "connected";
   const isPending = (field: string) => pendingControls.some((p) => p.field === field);
 
-  const handleToggleMic = () => {
-    const p = requestToggleMic();
-    connectionManager.sendControlToggle("micEnabled", p.targetValue);
+  const makeToggle = (
+    requestFn: () => { targetValue: boolean },
+    sendFn: (value: boolean) => void
+  ) => () => {
+    const p = requestFn();
+    sendFn(p.targetValue);
   };
 
-  const handleToggleCam = () => {
-    const p = requestToggleCam();
-    connectionManager.sendControlToggle("camEnabled", p.targetValue);
-  };
-
-  const handleTogglePrivacy = () => {
-    const p = requestTogglePrivacy();
-    connectionManager.sendControlToggle("privacyEnabled", p.targetValue);
-  };
-
-  const handleToggleHold = () => {
-    const p = requestToggleHold();
-    connectionManager.sendHold(p.targetValue);
-  };
+  const handleToggleMic = makeToggle(requestToggleMic, (v) => connectionManager.sendControlToggle("micEnabled", v));
+  const handleToggleCam = makeToggle(requestToggleCam, (v) => connectionManager.sendControlToggle("camEnabled", v));
+  const handleTogglePrivacy = makeToggle(requestTogglePrivacy, (v) => connectionManager.sendControlToggle("privacyEnabled", v));
+  const handleToggleHold = makeToggle(requestToggleHold, (v) => connectionManager.sendHold(v));
 
   const handleInterrupt = () => {
     requestInterrupt();

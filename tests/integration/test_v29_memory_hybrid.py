@@ -339,6 +339,8 @@ class TestEndpointWiring:
     @pytest.fixture(autouse=True)
     def setup_app(self, tmp_path):
         """Set up test app with temp database."""
+        import importlib.util
+
         # Patch db before importing main
         db_path = str(tmp_path / "test_api.db")
         schema_path = Path(r"S:\services\memory-engine\schema.sql")
@@ -348,13 +350,23 @@ class TestEndpointWiring:
         conn.close()
 
         from db import MemoryDatabase
+        from hybrid_search import HybridSearchLayer
+        from core.provenance import ProvenanceTracker
         test_db = MemoryDatabase(db_path=db_path)
 
-        import main as mem_main
+        # Force-load memory-engine main.py (avoid cached api-gateway main)
+        spec = importlib.util.spec_from_file_location(
+            "memory_engine_main",
+            r"S:\services\memory-engine\main.py",
+        )
+        mem_main = importlib.util.module_from_spec(spec)
+        sys.modules["memory_engine_main"] = mem_main
+        spec.loader.exec_module(mem_main)
+
         mem_main.db = test_db
-        mem_main._hybrid = mem_main.HybridSearchLayer(test_db)
+        mem_main._hybrid = HybridSearchLayer(test_db)
         mem_main._hybrid.initialize()
-        mem_main._provenance = mem_main.ProvenanceTracker(test_db)
+        mem_main._provenance = ProvenanceTracker(test_db)
 
         from fastapi.testclient import TestClient
         self.client = TestClient(mem_main.app)

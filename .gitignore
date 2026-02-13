@@ -5,6 +5,8 @@ tmp/
 /state/
 data/
 cache/
+backups/
+incidents/
 
 # Python
 *.pyc
@@ -22,6 +24,17 @@ $RECYCLE.BIN/
 System Volume Information/
 nul
 DumpStack.log.tmp
+pagefile.sys
+
+# IDE / tools
+.vscode/
+.playwright-mcp/
+
+# pip install artifacts (empty version files)
+=*
+
+# Release bundle logs
+RELEASE_BUNDLE_*.txt
 
 # Test output artifacts
 tests/*.txt
@@ -31,7 +44,28 @@ tools/
 models/
 envs/
 baselines/
+assets/
 .pnpm-store/
+
+# Node.js
+node_modules/
+dist/
+
+# Unity
+**/Library/
+**/Temp/
+**/Logs/
+**/obj/
+**/UserSettings/
+*.csproj
+*.slnx
+*.sln
+
+# Temp/staging
+temp_training_pkg/
+
+# Release artifacts (keep releases/ tracked selectively)
+releases/stage4-*/
 
 # Integration upstream sources
 integrations/*/upstream/

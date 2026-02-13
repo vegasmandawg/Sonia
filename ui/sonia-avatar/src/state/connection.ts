@@ -32,7 +32,26 @@
  */
 
 import { useSoniaStore } from "./store";
-import type { ConnectionStatus, Emotion, ConversationState } from "./store";
+import type { ConnectionStatus, Emotion, ConversationState, Viseme, DiagnosticsData } from "./store";
+
+// ---------------------------------------------------------------------------
+// Inbound message types (backend -> UI)
+// ---------------------------------------------------------------------------
+
+type InboundMessage =
+  | { type: "session.created"; session_id?: string }
+  | { type: "state.conversation"; state: string }
+  | { type: "state.emotion"; emotion: string }
+  | { type: "state.amplitude"; value?: number }
+  | { type: "state.viseme"; viseme?: Viseme }
+  | { type: "ack.control"; field: string }
+  | { type: "nack.control"; field: string; reason?: string }
+  | { type: "ack.interrupt" }
+  | { type: "ack.replay" }
+  | { type: "turn.assistant"; text?: string }
+  | { type: "turn.user"; text?: string }
+  | { type: "diagnostics"; data?: Partial<DiagnosticsData> }
+  | { type: "error"; message?: string };
 
 // ---------------------------------------------------------------------------
 // Config
@@ -98,6 +117,11 @@ class ConnectionManager {
     this.send({ type: "control.hold", active });
   }
 
+  /** v3.0: Send user text message through the turn pipeline. */
+  sendText(text: string): void {
+    this.send({ type: "input.text", text });
+  }
+
   // ---- internal ----
 
   private doConnect(): void {
@@ -126,7 +150,9 @@ class ConnectionManager {
     this.ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
-        this.handleMessage(msg);
+        if (msg && typeof msg.type === "string") {
+          this.handleMessage(msg as InboundMessage);
+        }
       } catch {
         // ignore malformed messages
       }
@@ -146,7 +172,7 @@ class ConnectionManager {
     };
   }
 
-  private handleMessage(msg: any): void {
+  private handleMessage(msg: InboundMessage): void {
     const store = useSoniaStore.getState();
 
     switch (msg.type) {
@@ -188,11 +214,13 @@ class ConnectionManager {
 
       case "turn.assistant":
         store.setLastAssistantMessage(msg.text || "");
+        store.addMessage("assistant", msg.text || "");
         store.incrementTurn();
         break;
 
       case "turn.user":
         store.setLastUserMessage(msg.text || "");
+        store.addMessage("user", msg.text || "");
         break;
 
       case "diagnostics":

@@ -392,9 +392,12 @@ async def general_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={
-            "error": "internal_server_error",
-            "message": str(exc),
-            "service": "model-router"
+            "ok": False,
+            "service": "model-router",
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": str(exc)
+            }
         }
     )
 
