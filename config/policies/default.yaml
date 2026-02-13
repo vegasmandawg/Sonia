@@ -1,0 +1,157 @@
+# SONIA Policy Configuration (v1.0)
+# Hot-reloadable YAML-based tool authorization rules.
+#
+# Policies are evaluated in order. First matching rule wins.
+# If no rule matches, the default_verdict applies.
+#
+# Rule fields:
+#   tool_pattern: glob pattern matching tool names (e.g., "filesystem.*", "shell.*")
+#   action: allow | deny | confirm
+#   reason: human-readable explanation
+#   conditions: (optional) additional constraints
+#     - time_range: HH:MM-HH:MM (UTC) time window
+#     - user_ids: list of allowed user IDs
+#     - max_per_minute: rate limit
+#     - require_tag: metadata tag requirement
+
+version: "1.0"
+description: "Default SONIA policy -- secure by default"
+
+default_verdict: confirm
+default_reason: "No explicit policy rule matched. Requiring confirmation."
+
+rules:
+  # ── Read-only tools: always allow ──────────────────────────
+  - name: allow_readonly
+    tool_pattern: "filesystem.list_directory"
+    action: allow
+    reason: "Directory listing is safe read-only operation"
+
+  - name: allow_file_read
+    tool_pattern: "filesystem.read_file"
+    action: allow
+    reason: "File reading within sandbox is safe"
+
+  - name: allow_file_stat
+    tool_pattern: "filesystem.stat"
+    action: allow
+    reason: "File stat is safe read-only operation"
+
+  - name: allow_process_list
+    tool_pattern: "process.list"
+    action: allow
+    reason: "Process listing is safe read-only operation"
+
+  - name: allow_http_get
+    tool_pattern: "http.get"
+    action: allow
+    reason: "HTTP GET is read-only"
+
+  - name: allow_web_search
+    tool_pattern: "web.search"
+    action: allow
+    reason: "Web search is read-only"
+
+  - name: allow_web_fetch
+    tool_pattern: "web.fetch"
+    action: allow
+    reason: "Web fetch is read-only"
+
+  - name: allow_clipboard_read
+    tool_pattern: "clipboard.read"
+    action: allow
+    reason: "Clipboard read is safe"
+
+  - name: allow_window_list
+    tool_pattern: "window.list"
+    action: allow
+    reason: "Window listing is safe"
+
+  # ── Low-risk tools: allow with rate limit ──────────────────
+  - name: allow_file_create
+    tool_pattern: "filesystem.create_directory"
+    action: allow
+    reason: "Directory creation is low risk"
+
+  - name: allow_file_write
+    tool_pattern: "filesystem.write_file"
+    action: allow
+    conditions:
+      max_per_minute: 20
+    reason: "File writing within sandbox, rate-limited"
+
+  - name: allow_file_append
+    tool_pattern: "filesystem.append_file"
+    action: allow
+    conditions:
+      max_per_minute: 20
+    reason: "File appending within sandbox, rate-limited"
+
+  - name: allow_notification
+    tool_pattern: "notification.send"
+    action: allow
+    conditions:
+      max_per_minute: 5
+    reason: "Notifications rate-limited to prevent spam"
+
+  # ── Medium-risk tools: require confirmation ────────────────
+  - name: confirm_file_move
+    tool_pattern: "filesystem.move"
+    action: confirm
+    reason: "File move requires confirmation"
+
+  - name: confirm_file_copy
+    tool_pattern: "filesystem.copy"
+    action: confirm
+    reason: "File copy requires confirmation"
+
+  - name: confirm_process_start
+    tool_pattern: "process.start"
+    action: confirm
+    reason: "Starting processes requires confirmation"
+
+  - name: confirm_process_stop
+    tool_pattern: "process.stop"
+    action: confirm
+    reason: "Stopping processes requires confirmation"
+
+  - name: confirm_shell_script
+    tool_pattern: "shell.run_powershell_script"
+    action: confirm
+    reason: "PowerShell scripts require confirmation"
+
+  - name: confirm_keyboard
+    tool_pattern: "keyboard.*"
+    action: confirm
+    reason: "Keyboard input requires confirmation"
+
+  - name: confirm_mouse
+    tool_pattern: "mouse.*"
+    action: confirm
+    reason: "Mouse input requires confirmation"
+
+  - name: confirm_app_launch
+    tool_pattern: "app.launch"
+    action: confirm
+    reason: "Launching applications requires confirmation"
+
+  - name: confirm_browser
+    tool_pattern: "browser.open"
+    action: confirm
+    reason: "Opening browser URLs requires confirmation"
+
+  # ── Destructive tools: deny by default ─────────────────────
+  - name: deny_delete
+    tool_pattern: "filesystem.delete"
+    action: deny
+    reason: "File deletion is blocked by default policy"
+
+  - name: deny_kill
+    tool_pattern: "process.kill"
+    action: deny
+    reason: "Process kill is blocked by default policy"
+
+  - name: deny_shell_command
+    tool_pattern: "shell.run_command"
+    action: deny
+    reason: "Arbitrary shell commands are blocked by default policy"

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command:*)",
+      "Bash(findstr:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:docs.unsloth.ai)",
+      "WebFetch(domain:www.runpod.io)",
+      "WebFetch(domain:unsloth.ai)",
+      "WebFetch(domain:computeprices.com)",
+      "WebFetch(domain:flexprice.io)",
+      "WebFetch(domain:northflank.com)",
+      "WebFetch(domain:apxml.com)",
+      "WebFetch(domain:qwen.readthedocs.io)",
+      "WebFetch(domain:wandb.ai)",
+      "WebFetch(domain:debuggercafe.com)",
+      "WebFetch(domain:docs.runpod.io)",
+      "Bash(python:*)"
+    ]
+  }
+}

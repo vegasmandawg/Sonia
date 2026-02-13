@@ -1,0 +1,39 @@
+{
+  "name": "Sonia Capabilities Dataset",
+  "version": "1.0.0",
+  "created_utc": "2026-02-12T22:00:44.055512Z",
+  "total_records": 4096,
+  "capability_counts": {
+    "computer_use": 900,
+    "search": 780,
+    "coding": 980,
+    "research": 760,
+    "long_form_generation": 676
+  },
+  "split_counts": {
+    "train": 3686,
+    "val": 205,
+    "test": 205
+  },
+  "difficulty_targets": {
+    "easy": 1024,
+    "medium": 2048,
+    "hard": 1024
+  },
+  "turn_targets": {
+    "single": 2458,
+    "multi": 1638
+  },
+  "files": {
+    "full_chat": "exports/sonia_capabilities_v1_full.jsonl",
+    "flat_sft": "exports/sonia_capabilities_v1_flat.jsonl",
+    "train": "exports/sonia_capabilities_v1_train.jsonl",
+    "val": "exports/sonia_capabilities_v1_val.jsonl",
+    "test": "exports/sonia_capabilities_v1_test.jsonl"
+  },
+  "policy": {
+    "max_response_chars": 1600,
+    "duplicate_hashes_expected": 0,
+    "phase": "capability_blend"
+  }
+}

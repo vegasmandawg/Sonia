@@ -1,0 +1,33 @@
+{
+  "name": "Sonia Dense Persona Dataset",
+  "version": "1.0.0",
+  "created_utc": "2026-02-12T21:55:34.211522Z",
+  "total_records": 2048,
+  "category_counts": {
+    "identity_lock": 320,
+    "cadence_style": 256,
+    "boundaries_loyalty": 256,
+    "correction_challenge": 256,
+    "refusal_redirect_safety": 320,
+    "continuity_memory": 256,
+    "tool_pressure_persona": 256,
+    "companion_operator_switch": 128
+  },
+  "split_counts": {
+    "train": 1844,
+    "val": 102,
+    "test": 102
+  },
+  "format_files": {
+    "chat_messages": "exports/sonia_persona_dense_v1_full.jsonl",
+    "train": "exports/sonia_persona_dense_v1_train.jsonl",
+    "val": "exports/sonia_persona_dense_v1_val.jsonl",
+    "test": "exports/sonia_persona_dense_v1_test.jsonl",
+    "flat_sft": "exports/sonia_persona_dense_v1_flat.jsonl"
+  },
+  "policy": {
+    "persona_weight": 4.0,
+    "refusal_style": "clear_no_plus_safe_redirect",
+    "no_extreme_outliers": true
+  }
+}

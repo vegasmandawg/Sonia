@@ -1,0 +1,29 @@
+{
+  "records_total": 4096,
+  "capability_counts": {
+    "research": 760,
+    "search": 780,
+    "computer_use": 900,
+    "long_form_generation": 676,
+    "coding": 980
+  },
+  "split_counts": {
+    "train": 3686,
+    "val": 205,
+    "test": 205
+  },
+  "difficulty_counts": {
+    "medium": 2048,
+    "hard": 1024,
+    "easy": 1024
+  },
+  "turn_type_counts": {
+    "single": 2458,
+    "multi": 1638
+  },
+  "output_chars": {
+    "min": 210,
+    "max": 483
+  },
+  "duplicate_hashes": 0
+}

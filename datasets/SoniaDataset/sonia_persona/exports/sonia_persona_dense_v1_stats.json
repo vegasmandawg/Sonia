@@ -1,0 +1,23 @@
+{
+  "records_total": 2048,
+  "category_counts": {
+    "refusal_redirect_safety": 320,
+    "continuity_memory": 256,
+    "identity_lock": 320,
+    "boundaries_loyalty": 256,
+    "cadence_style": 256,
+    "correction_challenge": 256,
+    "tool_pressure_persona": 256,
+    "companion_operator_switch": 128
+  },
+  "split_counts": {
+    "train": 1844,
+    "val": 102,
+    "test": 102
+  },
+  "output_chars": {
+    "min": 237,
+    "max": 310
+  },
+  "duplicate_hashes": 0
+}

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "sonia": {
+      "command": "S:\\envs\\sonia-core\\python.exe",
+      "args": ["S:\\services\\mcp-server\\server.py"],
+      "env": {}
+    }
+  }
+}
