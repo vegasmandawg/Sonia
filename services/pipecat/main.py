@@ -13,8 +13,16 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 from typing import Optional
 
+# Ensure pipecat's own directory is first in sys.path so local modules
+# (events.py, sessions.py, etc.) are found before shared/ equivalents.
+_pipecat_dir = str(Path(__file__).resolve().parent)
+_shared_dir = str(Path(__file__).resolve().parent.parent / "shared")
+if _pipecat_dir not in sys.path:
+    sys.path.insert(0, _pipecat_dir)
+if _shared_dir not in sys.path:
+    sys.path.insert(1, _shared_dir)
+
 # Canonical version
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
 from version import SONIA_VERSION
 
 from sessions import SessionManager, SessionState

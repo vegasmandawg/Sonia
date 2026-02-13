@@ -191,16 +191,16 @@ async def search(request: RecallRequest):
     """Search memories by content."""
     try:
         results = db.search(request.query, limit=request.limit)
-        
+
         formatted_results = []
         for result in results:
             metadata = {}
             if result.get('metadata'):
                 try:
                     metadata = json.loads(result['metadata'])
-                except:
+                except (json.JSONDecodeError, TypeError, ValueError):
                     pass
-            
+
             formatted_results.append({
                 "id": result['id'],
                 "type": result['type'],
@@ -208,7 +208,7 @@ async def search(request: RecallRequest):
                 "metadata": metadata,
                 "created_at": result['created_at']
             })
-        
+
         return {
             "query": request.query,
             "results": formatted_results,
@@ -218,6 +218,26 @@ async def search(request: RecallRequest):
     except Exception as e:
         logger.error(f"Search error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+
+
+def _apply_token_budget(results: List[Dict], max_tokens: Optional[int]) -> List[Dict]:
+    """Apply token budget enforcement to search results.
+
+    Uses a conservative 3.5 chars/token estimate (English average).
+    Ensures at least one result is always returned even if it exceeds budget.
+    """
+    if not max_tokens or not results:
+        return results
+    budget_chars = int(max_tokens * 3.5)
+    trimmed = []
+    used = 0
+    for r in results:
+        content_len = len(r.get("content", ""))
+        if used + content_len > budget_chars and trimmed:
+            break
+        trimmed.append(r)
+        used += content_len
+    return trimmed
 
 @app.post("/v1/search")
 async def hybrid_search(request: HybridSearchRequest):
@@ -229,18 +249,8 @@ async def hybrid_search(request: HybridSearchRequest):
     try:
         results = _hybrid.search(request.query, limit=request.limit)
 
-        # Token budget enforcement: approximate 4 chars/token
-        if request.max_tokens and results:
-            budget = request.max_tokens * 4
-            trimmed = []
-            used = 0
-            for r in results:
-                content_len = len(r.get("content", ""))
-                if used + content_len > budget and trimmed:
-                    break
-                trimmed.append(r)
-                used += content_len
-            results = trimmed
+        # Token budget enforcement
+        results = _apply_token_budget(results, request.max_tokens)
 
         return {
             "query": request.query,
@@ -314,20 +324,21 @@ def delete(memory_id: str):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.get("/query/by-type/{memory_type}")
-def list_by_type(memory_type: str, limit: int = 100):
-    """List all memories of a specific type."""
+def list_by_type(memory_type: str, limit: int = 100, max_tokens: Optional[int] = None):
+    """List all memories of a specific type with optional token budget."""
+    limit = max(1, min(limit, 1000))
     try:
         results = db.list_by_type(memory_type, limit=limit)
-        
+
         formatted = []
         for result in results:
             metadata = {}
             if result.get('metadata'):
                 try:
                     metadata = json.loads(result['metadata'])
-                except:
+                except (json.JSONDecodeError, TypeError, ValueError):
                     pass
-            
+
             formatted.append({
                 "id": result['id'],
                 "type": result['type'],
@@ -335,7 +346,10 @@ def list_by_type(memory_type: str, limit: int = 100):
                 "metadata": metadata,
                 "created_at": result['created_at']
             })
-        
+
+        # Apply token budget if requested
+        formatted = _apply_token_budget(formatted, max_tokens)
+
         return {
             "type": memory_type,
             "results": formatted,
@@ -397,9 +411,12 @@ async def general_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={
-            "error": "internal_server_error",
-            "message": str(exc),
-            "service": "memory-engine"
+            "ok": False,
+            "service": "memory-engine",
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": str(exc)
+            }
         }
     )
 

@@ -83,7 +83,7 @@ class OllamaProvider(Provider):
         """Initialize Ollama provider."""
         endpoint = endpoint or os.getenv("OLLAMA_ENDPOINT", "http://127.0.0.1:11434")
         super().__init__("ollama", endpoint, api_key=None)
-        self.default_model = os.getenv("OLLAMA_MODEL", "qwen2:7b")
+        self.default_model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
     
     def _check_availability(self):
         """Check if Ollama is running."""
@@ -301,7 +301,7 @@ class AnthropicProvider(Provider):
 
             headers = {
                 "x-api-key": self.api_key,
-                "anthropic-version": "2023-06-01",
+                "anthropic-version": "2023-06-01",  # Stable API version
                 "content-type": "application/json",
             }
 
@@ -372,24 +372,49 @@ class OpenRouterProvider(Provider):
             logger.debug("OpenRouter provider not configured (no API key)")
     
     def get_models(self) -> List[ModelInfo]:
-        """Get available models from OpenRouter."""
+        """Get available models from OpenRouter via API, with static fallback."""
         if not self.available:
             return []
-        
-        # Return some common models
-        return [
-            ModelInfo("openai/gpt-4", "openrouter", ["text"]),
-            ModelInfo("openai/gpt-3.5-turbo", "openrouter", ["text"]),
-            ModelInfo("anthropic/claude-3-opus", "openrouter", ["text"])
-        ]
-    
+
+        try:
+            headers = {"Authorization": f"Bearer {self.api_key}"}
+            response = httpx.get(
+                f"{self.endpoint}/models",
+                headers=headers,
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            models = []
+            for m in data.get("data", []):
+                model_id = m.get("id", "")
+                caps = ["text"]
+                arch = m.get("architecture", {})
+                if arch.get("modality", "") == "multimodal" or "vision" in model_id.lower():
+                    caps.append("vision")
+                models.append(ModelInfo(model_id, "openrouter", caps))
+            return models[:50]
+
+        except Exception as e:
+            logger.warning(f"OpenRouter model list fetch failed, using defaults: {e}")
+            return [
+                ModelInfo("anthropic/claude-sonnet-4-6", "openrouter", ["text", "vision"]),
+                ModelInfo("openai/gpt-4o", "openrouter", ["text", "vision"]),
+                ModelInfo("openai/gpt-4o-mini", "openrouter", ["text", "vision"]),
+                ModelInfo("google/gemini-2.0-flash-001", "openrouter", ["text", "vision"]),
+            ]
+
     def route(self, task_type: TaskType) -> Optional[ModelInfo]:
-        """Route to appropriate OpenRouter model."""
-        if not self.available or task_type != TaskType.TEXT:
+        """Route to appropriate OpenRouter model for task type."""
+        if not self.available:
             return None
-        
-        # Default to GPT-4
-        return ModelInfo("openai/gpt-4", "openrouter", ["text"])
+        if task_type not in (TaskType.TEXT, TaskType.VISION):
+            return None
+
+        if task_type == TaskType.VISION:
+            return ModelInfo("openai/gpt-4o", "openrouter", ["text", "vision"])
+        return ModelInfo("openai/gpt-4o-mini", "openrouter", ["text", "vision"])
     
     def chat(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
         """Send chat request to OpenRouter (OpenAI-compatible API)."""

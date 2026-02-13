@@ -30,14 +30,40 @@ class SnapshotManager:
             snapshot_id = str(uuid4())
             timestamp = datetime.utcnow().isoformat()
             
-            # Collect memory state
+            # Collect actual memory state from database
+            ledger_events = []
+            try:
+                with self.db.connection() as conn:
+                    rows = conn.execute(
+                        "SELECT id, type, content, created_at FROM ledger "
+                        "WHERE archived_at IS NULL ORDER BY created_at DESC LIMIT 1000"
+                    ).fetchall()
+                    ledger_events = [
+                        {"id": r["id"], "type": r["type"],
+                         "content": r["content"][:200], "created_at": r["created_at"]}
+                        for r in rows
+                    ]
+            except Exception as e:
+                logger.warning(f"Could not fetch ledger events for snapshot: {e}")
+
+            active_count = 0
+            try:
+                with self.db.connection() as conn:
+                    row = conn.execute(
+                        "SELECT COUNT(*) as cnt FROM ledger WHERE archived_at IS NULL"
+                    ).fetchone()
+                    active_count = row["cnt"] if row else 0
+            except Exception as e:
+                logger.warning(f"Could not count memories for snapshot: {e}")
+
             snapshot_data = {
                 "snapshot_id": snapshot_id,
                 "session_id": session_id,
                 "created_at": timestamp,
-                "ledger_events": [],  # Would fetch from ledger
-                "documents": [],      # Would fetch from workspace
-                "vector_count": 0,    # Would get from vector index
+                "ledger_events": ledger_events,
+                "active_memory_count": active_count,
+                "documents": [],
+                "vector_count": 0,
             }
             
             # Write to file
