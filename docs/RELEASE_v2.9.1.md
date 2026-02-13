@@ -1,8 +1,9 @@
 # SONIA v2.9.1 Release Notes
 
-**Tag:** `v2.9.1-rc1`
+**Tag:** `v2.9.1`
 **Branch:** `v2.9.1-runtime-hardening`
 **Date:** 2026-02-13
+**Status:** GA
 
 ## Summary
 
