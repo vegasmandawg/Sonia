@@ -32,6 +32,7 @@ import random
 import time
 
 import pytest
+pytestmark = [pytest.mark.legacy_v26_v28, pytest.mark.legacy_voice_turn_router]
 
 sys.path.insert(0, r"S:\services\api-gateway")
 sys.path.insert(0, r"S:\services\pipecat")
