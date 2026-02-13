@@ -41,12 +41,13 @@ import json
 import uuid
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28, pytest.mark.legacy_voice_turn_router]
+pytestmark = [pytest.mark.legacy_v26_v28]
 
 sys.path.insert(0, r"S:\services\api-gateway")
-sys.path.insert(0, r"S:\services\pipecat")
 sys.path.insert(0, r"S:\services\shared")
 sys.path.insert(0, r"S:")
+
+from pipecat_voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
 
 
 # ── Mocks ───────────────────────────────────────────────────────────────────
@@ -465,7 +466,7 @@ class TestZombieTaskProof:
     @pytest.mark.asyncio
     async def test_voice_router_no_zombie_after_20_sessions(self):
         """VoiceTurnRouter: 20 session cancel cycles leave zero zombies."""
-        from app.voice_turn_router import VoiceTurnRouter
+
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
 
         all_tasks = []
@@ -492,7 +493,7 @@ class TestZombieTaskProof:
     @pytest.mark.asyncio
     async def test_zombie_detection_during_rapid_replacement(self):
         """Rapid task replacement in same session slot: no zombies."""
-        from app.voice_turn_router import VoiceTurnRouter
+
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
 
         tasks = []

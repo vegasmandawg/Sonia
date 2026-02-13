@@ -10,7 +10,7 @@ import os
 import uuid
 
 # Root contract — all file I/O must stay within this boundary
-_ROOT_CONTRACT = os.environ.get("SONIA_ROOT", r"S:\\")
+_ROOT_CONTRACT = r"S:\\"
 
 
 def _validate_path(path: str) -> Optional[str]:

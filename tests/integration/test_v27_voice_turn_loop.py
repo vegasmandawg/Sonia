@@ -38,32 +38,15 @@ import time
 import importlib.util
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28, pytest.mark.legacy_voice_turn_router]
+pytestmark = [pytest.mark.legacy_v26_v28]
 
-sys.path.insert(0, r"S:\services\pipecat")
+# Canonical loaders from conftest.py (registered in sys.modules)
+from pipecat_voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
+import pipecat_gateway_stream_client as _gsc_mod_direct
 
 
-# ---------------------------------------------------------------------------
-# Direct module loader to avoid package-name collision with api-gateway/clients
-# ---------------------------------------------------------------------------
-
-def _load_gateway_stream_client():
-    """Load gateway_stream_client directly by file path to avoid clients/ collision."""
-    spec = importlib.util.spec_from_file_location(
-        "pipecat_gateway_stream_client",
-        r"S:\services\pipecat\clients\gateway_stream_client.py",
-    )
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules["pipecat_gateway_stream_client"] = mod
-    spec.loader.exec_module(mod)
-    return mod
-
-_gsc_mod = None
 def _get_gsc():
-    global _gsc_mod
-    if _gsc_mod is None:
-        _gsc_mod = _load_gateway_stream_client()
-    return _gsc_mod
+    return _gsc_mod_direct
 
 
 # ===========================================================================
@@ -136,13 +119,11 @@ class TestGatewayStreamClient:
 class TestVoiceTurnRouter:
 
     def test_router_starts_empty(self):
-        from app.voice_turn_router import VoiceTurnRouter
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
         assert router.active_sessions == 0
         assert router.total_turns == 0
 
     def test_voice_turn_record_fields(self):
-        from app.voice_turn_router import VoiceTurnRecord
         r = VoiceTurnRecord()
         assert r.turn_id == ""
         assert r.session_id == ""
@@ -158,7 +139,6 @@ class TestVoiceTurnRouter:
         assert r.timestamp == 0.0
 
     def test_router_stats_well_formed(self):
-        from app.voice_turn_router import VoiceTurnRouter
         router = VoiceTurnRouter()
         stats = router.get_stats()
         assert "active_sessions" in stats
@@ -170,7 +150,6 @@ class TestVoiceTurnRouter:
         assert stats["recent_success_rate"] == 0.0
 
     def test_router_history_max_size(self):
-        from app.voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
         router = VoiceTurnRouter()
         router._max_history = 5
         for i in range(10):
@@ -183,14 +162,12 @@ class TestVoiceTurnRouter:
 
     @pytest.mark.asyncio
     async def test_close_nonexistent_session(self):
-        from app.voice_turn_router import VoiceTurnRouter
         router = VoiceTurnRouter()
         result = await router.close_session("nonexistent")
         assert result is False
 
     @pytest.mark.asyncio
     async def test_close_all_empty(self):
-        from app.voice_turn_router import VoiceTurnRouter
         router = VoiceTurnRouter()
         count = await router.close_all()
         assert count == 0
@@ -260,7 +237,6 @@ class TestProtocolContract:
 
     def test_correlation_id_in_turn_record(self):
         """Correlation ID propagates through VoiceTurnRecord."""
-        from app.voice_turn_router import VoiceTurnRecord
         r = VoiceTurnRecord(
             turn_id="vturn_test",
             correlation_id="req_propagated123",

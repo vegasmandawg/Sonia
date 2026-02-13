@@ -42,12 +42,14 @@ import inspect
 from typing import get_type_hints
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28, pytest.mark.legacy_voice_turn_router]
+pytestmark = [pytest.mark.legacy_v26_v28]
 
 sys.path.insert(0, r"S:\services\api-gateway")
-sys.path.insert(0, r"S:\services\pipecat")
 sys.path.insert(0, r"S:\services\shared")
 sys.path.insert(0, r"S:")
+
+# Canonical loader (registered by conftest.py via importlib.util)
+from pipecat_voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
@@ -398,7 +400,6 @@ class TestGatewayStreamClientFreeze:
 class TestVoiceTurnRecordFreeze:
 
     def test_record_fields_frozen(self):
-        from app.voice_turn_router import VoiceTurnRecord
         fields = _fields_of(VoiceTurnRecord)
         required = {"turn_id", "session_id", "correlation_id", "user_text",
                      "assistant_text", "tool_calls", "partial_count",
@@ -407,7 +408,6 @@ class TestVoiceTurnRecordFreeze:
         assert required == fields
 
     def test_stats_dict_shape(self):
-        from app.voice_turn_router import VoiceTurnRouter
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
         stats = router.get_stats()
         required = {"active_sessions", "total_turns",
@@ -415,7 +415,6 @@ class TestVoiceTurnRecordFreeze:
         assert required == set(stats.keys())
 
     def test_history_is_list(self):
-        from app.voice_turn_router import VoiceTurnRouter
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
         assert isinstance(router._turn_history, list)
         assert len(router._turn_history) == 0

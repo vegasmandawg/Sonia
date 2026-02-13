@@ -42,12 +42,13 @@ import time
 from dataclasses import dataclass
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28, pytest.mark.legacy_voice_turn_router]
+pytestmark = [pytest.mark.legacy_v26_v28]
 
 sys.path.insert(0, r"S:\services\api-gateway")
-sys.path.insert(0, r"S:\services\pipecat")
 sys.path.insert(0, r"S:\services\shared")
 sys.path.insert(0, r"S:")
+
+from pipecat_voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
 
 
 # ── Mocks ───────────────────────────────────────────────────────────────────
@@ -247,7 +248,7 @@ class TestVoiceTurnRouterCancellation:
     @pytest.mark.asyncio
     async def test_cancel_turn_cancels_active(self):
         """cancel_turn aborts an in-flight turn."""
-        from app.voice_turn_router import VoiceTurnRouter
+
 
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
 
@@ -265,7 +266,7 @@ class TestVoiceTurnRouterCancellation:
     @pytest.mark.asyncio
     async def test_cancel_idle_session_returns_none(self):
         """cancel_turn on session with no active turn returns None."""
-        from app.voice_turn_router import VoiceTurnRouter
+
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
         result = await router.cancel_turn("nonexistent_sess")
         assert result is None
@@ -273,7 +274,7 @@ class TestVoiceTurnRouterCancellation:
     @pytest.mark.asyncio
     async def test_no_zombie_tasks_after_cancel(self):
         """After cancel_turn, no tasks remain in _active_tasks for that session."""
-        from app.voice_turn_router import VoiceTurnRouter
+
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
 
         async def slow_turn():
@@ -289,7 +290,7 @@ class TestVoiceTurnRouterCancellation:
     @pytest.mark.asyncio
     async def test_active_tasks_count(self):
         """active_tasks_count reflects number of in-flight turns."""
-        from app.voice_turn_router import VoiceTurnRouter
+
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
 
         tasks = []
@@ -318,7 +319,7 @@ class TestVoiceTurnRouterCancellation:
     @pytest.mark.asyncio
     async def test_cancelled_turn_recorded(self):
         """Cancelled turns get recorded in _cancelled_turns list."""
-        from app.voice_turn_router import VoiceTurnRouter
+
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
 
         async def slow_turn():
@@ -334,7 +335,6 @@ class TestVoiceTurnRouterCancellation:
     @pytest.mark.asyncio
     async def test_barge_in_detected(self):
         """Calling process_turn while previous turn active triggers barge-in."""
-        from app.voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
 
         # Simulate previous active turn
@@ -369,7 +369,7 @@ class TestCancellationDeterminism:
     @pytest.mark.asyncio
     async def test_rapid_barge_ins_no_zombies(self):
         """5 rapid barge-ins leave zero zombie tasks."""
-        from app.voice_turn_router import VoiceTurnRouter
+
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
 
         tasks = []

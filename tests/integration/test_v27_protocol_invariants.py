@@ -37,12 +37,13 @@ import time
 import dataclasses
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28, pytest.mark.legacy_voice_turn_router]
+pytestmark = [pytest.mark.legacy_v26_v28]
 
 sys.path.insert(0, r"S:\services\api-gateway")
-sys.path.insert(0, r"S:\services\pipecat")
 sys.path.insert(0, r"S:\services\shared")
 sys.path.insert(0, r"S:")
+
+from pipecat_voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
 
 # ── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -289,7 +290,6 @@ class TestConcurrency:
     @pytest.mark.asyncio
     async def test_parallel_voice_sessions_isolated(self):
         """5 concurrent voice turn records are fully isolated."""
-        from app.voice_turn_router import VoiceTurnRecord
         records = [
             VoiceTurnRecord(
                 turn_id=f"vturn_{i}", session_id=f"sess_{i}",
@@ -359,7 +359,6 @@ class TestConcurrency:
 class TestLatencyBudgets:
 
     def test_voice_turn_record_creation_under_10ms(self):
-        from app.voice_turn_router import VoiceTurnRecord
         t0 = time.monotonic()
         for _ in range(100):
             VoiceTurnRecord(

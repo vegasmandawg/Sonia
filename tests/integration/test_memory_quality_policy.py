@@ -13,12 +13,35 @@ import pytest, httpx, uuid, json, asyncio
 GW = "http://127.0.0.1:7000"
 TIMEOUT = 120.0
 
+_warmup_done = False
+
+async def _ensure_model_warm():
+    global _warmup_done
+    if _warmup_done:
+        return
+    for attempt in range(5):
+        try:
+            async with httpx.AsyncClient(timeout=TIMEOUT) as c:
+                r = await c.post(f"{GW}/v1/turn", json={
+                    "user_id": "warmup",
+                    "conversation_id": f"warmup-mem-{attempt}",
+                    "input_text": "ping",
+                })
+                if r.json().get("ok"):
+                    _warmup_done = True
+                    return
+        except Exception:
+            pass
+        await asyncio.sleep(3.0)
+    _warmup_done = True  # proceed even if warmup failed
+
 
 class TestMemoryQualityPolicy:
     """Memory write/retrieval policy behavior."""
 
     @pytest.mark.asyncio
     async def test_turn_writes_memory_with_ok_true(self):
+        await _ensure_model_warm()
         """Turn with ok=true should have memory.written=true."""
         marker = f"mempol_{uuid.uuid4().hex[:8]}"
         async with httpx.AsyncClient(timeout=TIMEOUT) as c:
@@ -34,6 +57,7 @@ class TestMemoryQualityPolicy:
     @pytest.mark.asyncio
     async def test_retrieval_returns_bounded_context(self):
         """Subsequent turn should retrieve bounded context."""
+        await _ensure_model_warm()
         conv_id = f"conv_{uuid.uuid4().hex[:8]}"
         marker = f"xyzzy_{uuid.uuid4().hex[:6]}"
         async with httpx.AsyncClient(timeout=TIMEOUT) as c:
@@ -60,6 +84,7 @@ class TestMemoryQualityPolicy:
         """Even if memory write fails, response should still have ok=true.
         We can't easily force a memory failure in integration, but we verify
         that the response envelope correctly reports memory state."""
+        await _ensure_model_warm()
         async with httpx.AsyncClient(timeout=TIMEOUT) as c:
             r = await c.post(f"{GW}/v1/turn", json={
                 "user_id": "memtest-nonfatal",

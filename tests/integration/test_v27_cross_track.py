@@ -44,12 +44,13 @@ import time
 from typing import Any, Dict, List, Optional
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28, pytest.mark.legacy_voice_turn_router]
+pytestmark = [pytest.mark.legacy_v26_v28]
 
 sys.path.insert(0, r"S:\services\api-gateway")
-sys.path.insert(0, r"S:\services\pipecat")
 sys.path.insert(0, r"S:\services\shared")
 sys.path.insert(0, r"S:")
+
+from pipecat_voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
 
 
 # ── Mocks ───────────────────────────────────────────────────────────────────
@@ -164,7 +165,6 @@ class TestVerticalSlice:
     @pytest.mark.asyncio
     async def test_voice_router_record_structure(self):
         """VoiceTurnRecord has all fields needed for pipeline integration."""
-        from app.voice_turn_router import VoiceTurnRecord
         rec = VoiceTurnRecord(
             turn_id="vturn_abc",
             session_id="sess-1",
@@ -232,7 +232,6 @@ class TestVerticalSlice:
     @pytest.mark.asyncio
     async def test_full_chain_voice_to_action(self):
         """Voice turn record -> tool call -> action bridge -> executed."""
-        from app.voice_turn_router import VoiceTurnRecord
         bridge, oc, dlq = _make_action_bridge()
 
         # Simulate a voice turn that produced a tool call
@@ -298,7 +297,6 @@ class TestCrossModuleContracts:
 
     def test_voice_record_superset_of_telemetry(self):
         """VoiceTurnRecord fields are superset of action telemetry needs."""
-        from app.voice_turn_router import VoiceTurnRecord
         import dataclasses
         fields = {f.name for f in dataclasses.fields(VoiceTurnRecord)}
         needed = {"turn_id", "session_id", "correlation_id", "latency_ms",
@@ -336,7 +334,6 @@ class TestConcurrencyIsolation:
     @pytest.mark.asyncio
     async def test_concurrent_voice_sessions(self):
         """Two concurrent voice sessions don't interfere."""
-        from app.voice_turn_router import VoiceTurnRouter
         router = VoiceTurnRouter(gateway_url="http://127.0.0.1:7000")
         # Just test the record isolation (no actual connections)
         rec1 = type("Rec", (), {
@@ -420,7 +417,6 @@ class TestSoakSimulation:
     @pytest.mark.asyncio
     async def test_50_sequential_voice_turns(self):
         """50 sequential voice turn records complete without leak."""
-        from app.voice_turn_router import VoiceTurnRouter
         router = VoiceTurnRouter(gateway_url="http://127.0.0.1:7000")
         # Just verify history tracking doesn't leak
         for i in range(50):

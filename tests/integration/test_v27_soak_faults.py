@@ -32,12 +32,13 @@ import random
 import time
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28, pytest.mark.legacy_voice_turn_router]
+pytestmark = [pytest.mark.legacy_v26_v28]
 
 sys.path.insert(0, r"S:\services\api-gateway")
-sys.path.insert(0, r"S:\services\pipecat")
 sys.path.insert(0, r"S:\services\shared")
 sys.path.insert(0, r"S:")
+
+from pipecat_voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
 
 
 # ── Mocks ───────────────────────────────────────────────────────────────────
@@ -131,7 +132,6 @@ class TestVoiceSoak:
 
     def test_500_sequential_records(self):
         """500 sequential voice turn records complete without leak."""
-        from app.voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
         for i in range(500):
             rec = VoiceTurnRecord(
@@ -147,7 +147,6 @@ class TestVoiceSoak:
 
     def test_200_with_20pct_failures(self):
         """200 records with 20% injected failures."""
-        from app.voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
         random.seed(42)
         for i in range(200):
@@ -166,7 +165,6 @@ class TestVoiceSoak:
 
     def test_history_bounded(self):
         """Turn history doesn't grow beyond MAX_HISTORY if enforced."""
-        from app.voice_turn_router import VoiceTurnRouter, VoiceTurnRecord
         router = VoiceTurnRouter(gateway_url="http://localhost:9999")
         max_hist = getattr(router, 'MAX_HISTORY', 10000)
         # Add records up to 2x the history limit or 1000 whichever smaller
