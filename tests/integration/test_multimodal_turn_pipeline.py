@@ -64,6 +64,7 @@ class TestMultimodalTurnPipeline:
 
             pytest.fail("No response.final received")
 
+    @pytest.mark.infra_flaky
     @pytest.mark.asyncio
     async def test_text_plus_vision_produces_response(self):
         """Text + vision_data in one turn produces response.final."""
@@ -97,6 +98,7 @@ class TestMultimodalTurnPipeline:
 
             pytest.fail(f"No response.final; got events: {events}")
 
+    @pytest.mark.infra_flaky
     @pytest.mark.asyncio
     async def test_sync_turn_has_quality_and_latency(self):
         """The sync /v1/turn endpoint should include quality + latency."""

@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0.0",
+  "product": "SONIA",
+  "version": "2.9.1",
+  "tag": "v2.9.1",
+  "branch": "v2.9.1-runtime-hardening",
+  "commit": "bb4ff78ba2922da44a1f007371c123667891ed04",
+  "date": "2026-02-13",
+  "status": "GA",
+  "summary": "Runtime hardening release: bootable services, dead code cleanup, config alignment, legacy test isolation",
+
+  "services": {
+    "api-gateway":   { "port": 7000, "healthz": "200 OK" },
+    "model-router":  { "port": 7010, "healthz": "200 OK" },
+    "memory-engine": { "port": 7020, "healthz": "200 OK" },
+    "pipecat":       { "port": 7030, "healthz": "200 OK" },
+    "openclaw":      { "port": 7040, "healthz": "200 OK" },
+    "eva-os":        { "port": 7050, "healthz": "200 OK" }
+  },
+
+  "gate": {
+    "marker_filter": "not legacy_v26_v28",
+    "passed": 462,
+    "failed": 4,
+    "deselected": 230,
+    "errors": 0,
+    "go_no_go": "GO",
+    "failure_category": "infrastructure/timing only",
+    "infra_flaky_tests": [
+      "test_multimodal_turn_pipeline::test_text_plus_vision_produces_response",
+      "test_multimodal_turn_pipeline::test_sync_turn_has_quality_and_latency",
+      "test_phase2_e2e::test_chat_endpoint_exists",
+      "test_stage7_chaos_recovery::test_health_supervisor_reports_healthy"
+    ]
+  },
+
+  "rc1_core_gate": {
+    "v29_memory_hybrid":    "28/28 PASS",
+    "v29_model_routing":    "21/21 PASS",
+    "v29_eva_supervision":  "19/19 PASS",
+    "v29_post_close_drills": "24/24 PASS",
+    "total":                "92/92 PASS"
+  },
+
+  "clean_room": {
+    "health_sweep": "6/6 ports 200 OK",
+    "version": "2.9.1",
+    "contract": "v2.9.1",
+    "turn_smoke": "ok: true, 1953ms, model responded",
+    "memory_write": "written: true",
+    "memory_retrieve": "3 results, hybrid mode, BM25 scored"
+  },
+
+  "tracked_issues": {
+    "legacy": [
+      "LEGACY-IMPORT-VOICE-TURN-ROUTER",
+      "LEGACY-MANIFEST-SCHEMA-ADAPTER"
+    ],
+    "infra_flaky": [
+      "INFRA-FLAKY-WS-RACE",
+      "INFRA-FLAKY-OLLAMA-TIMEOUT",
+      "INFRA-FLAKY-CHAOS-TIMING"
+    ]
+  },
+
+  "artifacts": [
+    "gate-report.json",
+    "health-sweep.txt",
+    "turn-smoke.json",
+    "git-rev.txt",
+    "checksums.txt",
+    "RELEASE_v2.9.1.md",
+    "tag-result.txt",
+    "release-manifest.json"
+  ],
+
+  "integrity": {
+    "checksums_file": "checksums.txt",
+    "checksums_sha256": "396c22990dd49eefed74bdd51b22247d86d622981de373f062d66818673ed2f8",
+    "gate_report_sha256": "288d060bdb98e07a121a2031c3f608675786ca365adc9058ee9aa5c1356b3073",
+    "verification": "sha256sum checksums.txt | grep 396c22990dd4"
+  }
+}

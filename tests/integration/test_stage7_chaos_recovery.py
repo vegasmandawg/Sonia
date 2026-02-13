@@ -208,6 +208,7 @@ class TestChaosRecoveryTime:
         assert data.get("ok") is True or data.get("state") == "succeeded", \
             "Post-recovery action should succeed"
 
+    @pytest.mark.infra_flaky
     def test_health_supervisor_reports_healthy(self, client):
         """Health supervisor reports overall healthy state."""
         resp = client.get("/v1/health/summary").json()

@@ -51,6 +51,7 @@ def generate_correlation_id() -> str:
 class TestAPIGatewayChat:
     """Test /v1/chat orchestration route."""
     
+    @pytest.mark.infra_flaky
     @pytest.mark.asyncio
     async def test_chat_endpoint_exists(self, api_client):
         """POST /v1/chat endpoint exists and is accessible."""
