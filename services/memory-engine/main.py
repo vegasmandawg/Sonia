@@ -128,6 +128,38 @@ class WriteTurnRequest(BaseModel):
     latency_ms: Optional[float] = None
     metadata: Optional[Dict] = None
 
+
+# ── V3 Memory Models ─────────────────────────────────────────────────────
+
+class StoreTypedRequest(BaseModel):
+    type: str
+    subtype: str  # FACT | PREFERENCE | PROJECT | SESSION_CONTEXT | SYSTEM_STATE
+    content: str  # JSON string
+    metadata: Optional[Dict] = None
+    valid_from: Optional[str] = None
+    valid_until: Optional[str] = None
+
+class QueryBudgetRequest(BaseModel):
+    query: str
+    limit: int = 10
+    max_chars: int = 7000
+    type_filters: Optional[List[str]] = None
+    include_redacted: bool = False
+
+class VersionCreateRequest(BaseModel):
+    original_id: str
+    new_content: str
+    metadata: Optional[Dict] = None
+    valid_from: Optional[str] = None
+
+class RedactRequest(BaseModel):
+    memory_id: str
+    reason: str
+    performed_by: str = "system"
+
+class ConflictResolveRequest(BaseModel):
+    resolution_note: str
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Health & Status Endpoints
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1165,6 +1197,252 @@ def get_user_history(user_id: str, limit: int = 50, offset: int = 0):
         "count": len(rows),
         "service": "memory-engine",
     }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# V3 Memory Endpoints
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.post("/v3/memory/store")
+def v3_store(request: StoreTypedRequest):
+    """Store a typed memory with validation + conflict detection."""
+    try:
+        result = db.store_typed(
+            memory_type=request.type,
+            subtype=request.subtype,
+            content=request.content,
+            metadata=request.metadata,
+            valid_from=request.valid_from,
+            valid_until=request.valid_until,
+        )
+
+        if not result["valid"]:
+            raise HTTPException(status_code=400, detail={
+                "code": "VALIDATION_FAILED",
+                "errors": result["validation_errors"],
+            })
+
+        return {
+            "status": "stored",
+            "id": result["memory_id"],
+            "type": request.type,
+            "subtype": request.subtype,
+            "conflicts": result["conflicts"],
+            "service": "memory-engine",
+            "contract": SONIA_CONTRACT,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"V3 store error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/v3/memory/query")
+def v3_query(request: QueryBudgetRequest):
+    """Search with DB-level budget enforcement."""
+    try:
+        result = db.query_with_budget(
+            query=request.query,
+            limit=request.limit,
+            max_chars=request.max_chars,
+            type_filters=request.type_filters,
+            include_redacted=request.include_redacted,
+        )
+
+        formatted_results = []
+        for r in result["results"]:
+            # Mask redacted content
+            entry = {
+                "id": r["id"],
+                "type": r["type"],
+                "memory_subtype": r.get("memory_subtype"),
+                "created_at": r["created_at"],
+                "recorded_at": r.get("recorded_at"),
+                "version_chain_head": r.get("version_chain_head"),
+            }
+            if r.get("redacted"):
+                entry["content"] = "[REDACTED]"
+                entry["metadata"] = None
+            else:
+                entry["content"] = r["content"]
+                metadata = {}
+                if r.get("metadata"):
+                    try:
+                        metadata = json.loads(r["metadata"])
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+                entry["metadata"] = metadata
+            formatted_results.append(entry)
+
+        return {
+            "query": request.query,
+            "results": formatted_results,
+            "count": result["count"],
+            "budget_used": result["budget_used"],
+            "budget_limit": result["budget_limit"],
+            "truncated": result["truncated"],
+            "service": "memory-engine",
+            "contract": SONIA_CONTRACT,
+        }
+    except Exception as e:
+        logger.error(f"V3 query error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/v3/memory/{memory_id}/versions")
+def v3_version_history(memory_id: str):
+    """Get version history for a memory."""
+    try:
+        history = db.get_version_history(memory_id)
+        if not history:
+            raise HTTPException(status_code=404, detail=f"No version history for: {memory_id}")
+
+        formatted = []
+        for r in history:
+            entry = {
+                "id": r["id"],
+                "type": r["type"],
+                "memory_subtype": r.get("memory_subtype"),
+                "recorded_at": r.get("recorded_at"),
+                "superseded_by": r.get("superseded_by"),
+                "version_chain_head": r.get("version_chain_head"),
+                "redacted": r.get("redacted", 0),
+            }
+            if r.get("redacted"):
+                entry["content"] = "[REDACTED]"
+            else:
+                entry["content"] = r["content"]
+            formatted.append(entry)
+
+        return {
+            "memory_id": memory_id,
+            "versions": formatted,
+            "count": len(formatted),
+            "service": "memory-engine",
+            "contract": SONIA_CONTRACT,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"V3 version history error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/v3/memory/version")
+def v3_create_version(request: VersionCreateRequest):
+    """Create a new version superseding an existing memory."""
+    try:
+        new_id = db.create_version(
+            original_id=request.original_id,
+            new_content=request.new_content,
+            metadata=request.metadata,
+            valid_from=request.valid_from,
+        )
+        return {
+            "status": "version_created",
+            "id": new_id,
+            "original_id": request.original_id,
+            "service": "memory-engine",
+            "contract": SONIA_CONTRACT,
+        }
+    except Exception as e:
+        error_str = str(e)
+        if "already superseded" in error_str:
+            raise HTTPException(status_code=409, detail={
+                "code": "CONCURRENT_SUPERSEDE",
+                "message": error_str,
+            })
+        logger.error(f"V3 create version error: {e}")
+        raise HTTPException(status_code=400, detail=error_str)
+
+
+@app.post("/v3/memory/redact")
+def v3_redact(request: RedactRequest):
+    """Redact a memory (governance operation)."""
+    try:
+        success = db.redact_memory(
+            memory_id=request.memory_id,
+            reason=request.reason,
+            performed_by=request.performed_by,
+        )
+        if not success:
+            raise HTTPException(status_code=404, detail=f"Memory not found or already redacted: {request.memory_id}")
+        return {
+            "status": "redacted",
+            "memory_id": request.memory_id,
+            "service": "memory-engine",
+            "contract": SONIA_CONTRACT,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"V3 redact error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/v3/memory/{memory_id}/redaction-audit")
+def v3_redaction_audit(memory_id: str):
+    """Get redaction audit trail."""
+    try:
+        audit = db.get_redaction_audit(memory_id)
+        return {
+            "memory_id": memory_id,
+            "audit_trail": audit,
+            "count": len(audit),
+            "service": "memory-engine",
+            "contract": SONIA_CONTRACT,
+        }
+    except Exception as e:
+        logger.error(f"V3 redaction audit error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/v3/memory/conflicts")
+def v3_list_conflicts(
+    memory_id: Optional[str] = None,
+    resolved: Optional[bool] = None,
+    limit: int = 50,
+):
+    """List conflicts with optional filters."""
+    try:
+        conflicts = db.get_conflicts(memory_id=memory_id, resolved=resolved, limit=limit)
+        # Parse metadata JSON
+        for c in conflicts:
+            if c.get("metadata"):
+                try:
+                    c["metadata"] = json.loads(c["metadata"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+        return {
+            "conflicts": conflicts,
+            "count": len(conflicts),
+            "service": "memory-engine",
+            "contract": SONIA_CONTRACT,
+        }
+    except Exception as e:
+        logger.error(f"V3 list conflicts error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/v3/memory/conflicts/{conflict_id}/resolve")
+def v3_resolve_conflict(conflict_id: str, request: ConflictResolveRequest):
+    """Resolve a conflict."""
+    try:
+        success = db.resolve_conflict(conflict_id, request.resolution_note)
+        if not success:
+            raise HTTPException(status_code=404, detail=f"Conflict not found or already resolved: {conflict_id}")
+        return {
+            "status": "resolved",
+            "conflict_id": conflict_id,
+            "service": "memory-engine",
+            "contract": SONIA_CONTRACT,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"V3 resolve conflict error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ─────────────────────────────────────────────────────────────────────────────

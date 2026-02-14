@@ -369,6 +369,131 @@ class MemoryClient:
         except MemoryClientError:
             return None
 
+    # ── V3 Memory Operations (M3) ──────────────────────────────────────────
+
+    async def store_typed(
+        self,
+        memory_type: str,
+        subtype: str,
+        content: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        valid_from: Optional[str] = None,
+        valid_until: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Store a typed memory via v3 endpoint."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v3/memory/store"
+        payload: Dict[str, Any] = {
+            "type": memory_type,
+            "subtype": subtype,
+            "content": content,
+        }
+        if metadata:
+            payload["metadata"] = metadata
+        if valid_from:
+            payload["valid_from"] = valid_from
+        if valid_until:
+            payload["valid_until"] = valid_until
+
+        response = await self._retry_request("POST", url, correlation_id, json=payload)
+        if response.status_code == 400:
+            raise MemoryClientError("VALIDATION_FAILED", response.text[:300])
+        if response.status_code != 200:
+            raise MemoryClientError("STORE_TYPED_FAILED", f"status={response.status_code}")
+        return response.json()
+
+    async def query_with_budget(
+        self,
+        query: str,
+        limit: int = 10,
+        max_chars: int = 7000,
+        type_filters: Optional[list] = None,
+        include_redacted: bool = False,
+        correlation_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Query memories with DB-level budget."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v3/memory/query"
+        payload: Dict[str, Any] = {"query": query, "limit": limit, "max_chars": max_chars}
+        if type_filters:
+            payload["type_filters"] = type_filters
+        if include_redacted:
+            payload["include_redacted"] = True
+
+        response = await self._retry_request("POST", url, correlation_id, json=payload)
+        if response.status_code != 200:
+            raise MemoryClientError("QUERY_FAILED", f"status={response.status_code}")
+        return response.json()
+
+    async def get_version_history(
+        self,
+        memory_id: str,
+        correlation_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Get version history for a memory."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v3/memory/{memory_id}/versions"
+        response = await self._retry_request("GET", url, correlation_id)
+        if response.status_code == 404:
+            return {"versions": [], "count": 0}
+        return response.json()
+
+    async def create_version(
+        self,
+        original_id: str,
+        new_content: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        valid_from: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Create a new version superseding an existing memory."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v3/memory/version"
+        payload: Dict[str, Any] = {"original_id": original_id, "new_content": new_content}
+        if metadata:
+            payload["metadata"] = metadata
+        if valid_from:
+            payload["valid_from"] = valid_from
+
+        response = await self._retry_request("POST", url, correlation_id, json=payload)
+        if response.status_code == 409:
+            raise MemoryClientError("CONCURRENT_SUPERSEDE", response.text[:200])
+        if response.status_code != 200:
+            raise MemoryClientError("VERSION_FAILED", f"status={response.status_code}")
+        return response.json()
+
+    async def redact_memory(
+        self,
+        memory_id: str,
+        reason: str,
+        performed_by: str = "system",
+        correlation_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Redact a memory."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v3/memory/redact"
+        payload = {"memory_id": memory_id, "reason": reason, "performed_by": performed_by}
+        response = await self._retry_request("POST", url, correlation_id, json=payload)
+        return response.json()
+
+    async def list_conflicts(
+        self,
+        memory_id: Optional[str] = None,
+        resolved: Optional[bool] = None,
+        correlation_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """List memory conflicts."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v3/memory/conflicts"
+        params: Dict[str, Any] = {}
+        if memory_id:
+            params["memory_id"] = memory_id
+        if resolved is not None:
+            params["resolved"] = str(resolved).lower()
+        response = await self._retry_request("GET", url, correlation_id, params=params)
+        return response.json()
+
     async def close(self):
         """Close HTTP client."""
         await self.client.aclose()
