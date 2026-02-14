@@ -34,18 +34,18 @@ $allFilesExist = $true
 foreach ($file in $requiredFiles) {
     $filePath = Join-Path $ScriptRoot $file
     if (Test-Path $filePath) {
-        Write-Host "  ✓ $file" -ForegroundColor Green
+        Write-Host "  [OK]$file" -ForegroundColor Green
         $fileSize = (Get-Item $filePath).Length
         Write-Host "    Size: $fileSize bytes"
     } else {
-        Write-Host "  ✗ $file (MISSING)" -ForegroundColor Red
+        Write-Host "  [FAIL]$file (MISSING)" -ForegroundColor Red
         $allFilesExist = $false
     }
 }
 
 if (-not $allFilesExist) {
     Write-Host ""
-    Write-Host "❌ VALIDATION FAILED: Missing required files" -ForegroundColor Red
+    Write-Host "[FAIL] VALIDATION FAILED: Missing required files" -ForegroundColor Red
     exit 1
 }
 
@@ -71,9 +71,9 @@ $mainChecks = @(
 
 foreach ($check in $mainChecks) {
     if ($mainContent -match $check.Pattern) {
-        Write-Host "  ✓ $($check.Name)" -ForegroundColor Green
+        Write-Host "  [OK]$($check.Name)" -ForegroundColor Green
     } else {
-        Write-Host "  ✗ $($check.Name) (MISSING)" -ForegroundColor Red
+        Write-Host "  [FAIL]$($check.Name) (MISSING)" -ForegroundColor Red
     }
 }
 
@@ -96,16 +96,16 @@ foreach ($executor in $executors) {
     $content = Get-Content $filePath -Raw
     
     if ($content -match "class $($executor.Class)") {
-        Write-Host "  ✓ $($executor.Name)" -ForegroundColor Green
+        Write-Host "  [OK]$($executor.Name)" -ForegroundColor Green
         
         # Check for execute method
         if ($content -match "def execute") {
-            Write-Host "    ✓ execute() method" -ForegroundColor Green
+            Write-Host "    [OK]execute() method" -ForegroundColor Green
         } else {
-            Write-Host "    ✗ execute() method (MISSING)" -ForegroundColor Red
+            Write-Host "    [FAIL]execute() method (MISSING)" -ForegroundColor Red
         }
     } else {
-        Write-Host "  ✗ $($executor.Name) (MISSING)" -ForegroundColor Red
+        Write-Host "  [FAIL]$($executor.Name) (MISSING)" -ForegroundColor Red
     }
 }
 
@@ -129,9 +129,9 @@ $policyChecks = @(
 
 foreach ($check in $policyChecks) {
     if ($policyContent -match $check.Pattern) {
-        Write-Host "  ✓ $($check.Name)" -ForegroundColor Green
+        Write-Host "  [OK]$($check.Name)" -ForegroundColor Green
     } else {
-        Write-Host "  ✗ $($check.Name) (MISSING)" -ForegroundColor Red
+        Write-Host "  [FAIL]$($check.Name) (MISSING)" -ForegroundColor Red
     }
 }
 
@@ -157,9 +157,9 @@ $registryChecks = @(
 
 foreach ($check in $registryChecks) {
     if ($registryContent -match $check.Pattern) {
-        Write-Host "  ✓ $($check.Name)" -ForegroundColor Green
+        Write-Host "  [OK]$($check.Name)" -ForegroundColor Green
     } else {
-        Write-Host "  ✗ $($check.Name) (MISSING)" -ForegroundColor Red
+        Write-Host "  [FAIL]$($check.Name) (MISSING)" -ForegroundColor Red
     }
 }
 
@@ -184,13 +184,13 @@ foreach ($testFile in $testFiles) {
     $foundClasses = 0
     foreach ($class in $testFile.Classes) {
         if ($content -match "class $class") {
-            Write-Host "    ✓ $class" -ForegroundColor Green
+            Write-Host "    [OK]$class" -ForegroundColor Green
             $foundClasses++
         }
     }
     
     if ($foundClasses -eq $testFile.Classes.Count) {
-        Write-Host "    ✓ All test classes found" -ForegroundColor Green
+        Write-Host "    [OK]All test classes found" -ForegroundColor Green
     }
 }
 
@@ -211,9 +211,9 @@ $tools = @(
 
 foreach ($tool in $tools) {
     if ($registryContent -match [regex]::Escape($tool)) {
-        Write-Host "  ✓ $tool" -ForegroundColor Green
+        Write-Host "  [OK]$tool" -ForegroundColor Green
     } else {
-        Write-Host "  ✗ $tool (NOT FOUND)" -ForegroundColor Red
+        Write-Host "  [FAIL]$tool (NOT FOUND)" -ForegroundColor Red
     }
 }
 
@@ -226,28 +226,28 @@ Write-Host ""
 Write-Host "=== Validation Summary ===" -ForegroundColor Green
 Write-Host ""
 Write-Host "OpenClaw Phase 1 Implementation:" -ForegroundColor Cyan
-Write-Host "  ✓ File structure complete"
-Write-Host "  ✓ Main service (main.py) with FastAPI"
-Write-Host "  ✓ Schema definitions (schemas.py)"
-Write-Host "  ✓ Policy engine (policy.py)"
-Write-Host "  ✓ Tool registry (registry.py)"
-Write-Host "  ✓ 4 real executors (shell, file.read, file.write, browser)"
-Write-Host "  ✓ Contract test suite (test_contract.py)"
-Write-Host "  ✓ Executor unit tests (test_executors.py)"
+Write-Host "  [OK]File structure complete"
+Write-Host "  [OK]Main service (main.py) with FastAPI"
+Write-Host "  [OK]Schema definitions (schemas.py)"
+Write-Host "  [OK]Policy engine (policy.py)"
+Write-Host "  [OK]Tool registry (registry.py)"
+Write-Host "  [OK]4 real executors (shell, file.read, file.write, browser)"
+Write-Host "  [OK]Contract test suite (test_contract.py)"
+Write-Host "  [OK]Executor unit tests (test_executors.py)"
 Write-Host ""
 Write-Host "Tools Implemented:" -ForegroundColor Cyan
-Write-Host "  ✓ shell.run - Execute PowerShell commands with allowlist"
-Write-Host "  ✓ file.read - Read files from S:\ sandbox"
-Write-Host "  ✓ file.write - Write files to S:\ sandbox"
-Write-Host "  ✓ browser.open - Open URLs with domain whitelist"
+Write-Host "  [OK]shell.run - Execute PowerShell commands with allowlist"
+Write-Host "  [OK]file.read - Read files from S:\ sandbox"
+Write-Host "  [OK]file.write - Write files to S:\ sandbox"
+Write-Host "  [OK]browser.open - Open URLs with domain whitelist"
 Write-Host ""
 Write-Host "Safety Features:" -ForegroundColor Cyan
-Write-Host "  ✓ Command allowlist (Get-ChildItem, Get-Content, Test-Path, etc.)"
-Write-Host "  ✓ Filesystem sandbox (S:\ root only, blocked paths)"
-Write-Host "  ✓ Timeout enforcement (5s default, 15s max)"
-Write-Host "  ✓ URL validation (https only, no localhost)"
-Write-Host "  ✓ Execution logging with correlation IDs"
-Write-Host "  ✓ Policy denial logging"
+Write-Host "  [OK]Command allowlist (Get-ChildItem, Get-Content, Test-Path, etc.)"
+Write-Host "  [OK]Filesystem sandbox (S:\ root only, blocked paths)"
+Write-Host "  [OK]Timeout enforcement (5s default, 15s max)"
+Write-Host "  [OK]URL validation (https only, no localhost)"
+Write-Host "  [OK]Execution logging with correlation IDs"
+Write-Host "  [OK]Policy denial logging"
 Write-Host ""
-Write-Host "✅ OpenClaw Phase 1 VALIDATION COMPLETE" -ForegroundColor Green
+Write-Host "[OK] OpenClaw Phase 1 VALIDATION COMPLETE" -ForegroundColor Green
 Write-Host ""

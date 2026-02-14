@@ -30,12 +30,12 @@ $script:skipped = @()
 function Write-TestResult {
     param([string]$Name, [bool]$Pass, [string]$Detail = "")
     if ($Pass) {
-        Write-Host "  ✓ $Name" -ForegroundColor Green
+        Write-Host "  [OK] $Name" -ForegroundColor Green
         $script:passed += $Name
     } else {
-        Write-Host "  ✗ $Name" -ForegroundColor Red
+        Write-Host "  [FAIL] $Name" -ForegroundColor Red
         if ($Detail) {
-            Write-Host "    └─ $Detail" -ForegroundColor DarkRed
+            Write-Host "    --$Detail" -ForegroundColor DarkRed
         }
         $script:failed += $Name
     }
@@ -43,9 +43,9 @@ function Write-TestResult {
 
 function Write-TestSkipped {
     param([string]$Name, [string]$Reason = "")
-    Write-Host "  ⊘ $Name" -ForegroundColor Yellow
+    Write-Host "  [SKIP] $Name" -ForegroundColor Yellow
     if ($Reason) {
-        Write-Host "    └─ $Reason" -ForegroundColor DarkYellow
+        Write-Host "    --$Reason" -ForegroundColor DarkYellow
     }
     $script:skipped += $Name
 }
@@ -235,9 +235,9 @@ Write-Host "$($script:skipped.Count) checks" -ForegroundColor Yellow
 Write-Host ""
 
 if ($script:failed.Count -eq 0) {
-    Write-Host "✓ All tests passed! Memory Engine is operational." -ForegroundColor Green
+    Write-Host "[OK] All tests passed! Memory Engine is operational." -ForegroundColor Green
     exit 0
 } else {
-    Write-Host "✗ Some tests failed. Review output above for details." -ForegroundColor Red
+    Write-Host "[FAIL] Some tests failed. Review output above for details." -ForegroundColor Red
     exit 1
 }
