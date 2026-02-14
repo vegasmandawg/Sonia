@@ -121,6 +121,12 @@ if (Test-Path -LiteralPath $perceptionDir) {
     $services += @{ Name = "Perception"; Script = "run-perception.ps1"; Port = 7070 }
 }
 
+# Check if MCP Server exists
+$mcpDir = Join-Path $root "services\mcp-server"
+if (Test-Path -LiteralPath $mcpDir) {
+    $services += @{ Name = "MCP Server"; Script = "run-mcp-server.ps1"; Port = 8080 }
+}
+
 # --------------------------------------------------------------───────────────────
 # Validation Phase
 # --------------------------------------------------------------───────────────────
