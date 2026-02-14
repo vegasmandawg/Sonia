@@ -1,0 +1,77 @@
+---
+# Sonia Application Configuration
+# Single source of truth for all services
+
+app_name: Sonia
+version: 1.0.0
+canonical_root: S:\
+
+services:
+  api_gateway:
+    name: API Gateway
+    port: 7000
+    host: 127.0.0.1
+    description: Stable front door, UI transport, input normalization
+    health_endpoint: /healthz
+    log_file: S:\logs\services\api-gateway.out.log
+    error_log: S:\logs\services\api-gateway.err.log
+    pid_file: S:\state\pids\api-gateway.pid
+
+  model_router:
+    name: Model Router
+    port: 7010
+    host: 127.0.0.1
+    description: Provider/model selection, routing policy
+    health_endpoint: /healthz
+    log_file: S:\logs\services\model-router.out.log
+    error_log: S:\logs\services\model-router.err.log
+    pid_file: S:\state\pids\model-router.pid
+
+  memory_engine:
+    name: Memory Engine
+    port: 7020
+    host: 127.0.0.1
+    description: Persistence, ledger, retrieval, knowledge workspace
+    health_endpoint: /healthz
+    log_file: S:\logs\services\memory-engine.out.log
+    error_log: S:\logs\services\memory-engine.err.log
+    pid_file: S:\state\pids\memory-engine.pid
+
+  pipecat:
+    name: Pipecat
+    port: 7030
+    host: 127.0.0.1
+    description: Real-time modality gateway, voice I/O, events
+    health_endpoint: /healthz
+    log_file: S:\logs\services\pipecat.out.log
+    error_log: S:\logs\services\pipecat.err.log
+    pid_file: S:\state\pids\pipecat.pid
+
+  openclaw:
+    name: OpenClaw
+    port: 7040
+    host: 127.0.0.1
+    description: Action execution and governance
+    health_endpoint: /healthz
+    log_file: S:\logs\services\openclaw.out.log
+    error_log: S:\logs\services\openclaw.err.log
+    pid_file: S:\state\pids\openclaw.pid
+
+directories:
+  logs: S:\logs
+  state: S:\state
+  data: S:\data
+  artifacts: S:\artifacts
+  shared: S:\shared
+  config: S:\config
+  docs: S:\docs
+
+logging:
+  level: INFO
+  format: json
+  retention_days: 90
+
+operational:
+  health_check_interval: 30
+  request_timeout: 30
+  max_retries: 3
