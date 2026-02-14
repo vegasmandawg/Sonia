@@ -11,6 +11,9 @@ Write-Host "Stopping Sonia Stack..." -ForegroundColor Cyan
 
 # Stop in reverse order (name -> port)
 $services = @(
+    @{ Name="mcp-server";    Port=8080 },
+    @{ Name="perception";    Port=7070 },
+    @{ Name="vision-capture"; Port=7060 },
     @{ Name="eva-os";        Port=7050 },
     @{ Name="openclaw";      Port=7040 },
     @{ Name="pipecat";       Port=7030 },

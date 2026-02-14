@@ -43,10 +43,10 @@ class WorkspaceStore:
                 (doc_id, doc_type, content, json.dumps(metadata))
             )
             
-            # Chunk document for indexing
+            # Chunk document for indexing (sentence-aware boundaries)
             from core.chunker import Chunker
             chunker = Chunker(chunk_size=800, overlap=100)
-            chunks = chunker.chunk_text(content)
+            chunks = chunker.chunk_text(content)  # now sentence-aware
             logger.info(
                 f"Document {doc_id} chunked into {len(chunks)} chunks"
             )
