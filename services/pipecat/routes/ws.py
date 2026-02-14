@@ -181,7 +181,7 @@ async def websocket_handler(
                 correlation_id=correlation_id
             )
             await websocket.send_text(error_event.to_json())
-        except:
+        except (ConnectionError, RuntimeError, OSError):
             pass
-        
+
         session_manager.close(session_id)

@@ -1,0 +1,107 @@
+﻿{
+    "files":  [
+                  {
+                      "path":  "services\\shared\\version.py",
+                      "sha256":  "644EF043E82B1BC52A4807F541120D2CB3AD870BFF53930882DB0904AF61B936",
+                      "size_bytes":  281
+                  },
+                  {
+                      "path":  "services\\shared\\events.py",
+                      "sha256":  "6A51884BA9BBC0BAB93D4FBFE665BF7D11A2631FDDCAA32364DEDC97625A1F53",
+                      "size_bytes":  4633
+                  },
+                  {
+                      "path":  "services\\model-router\\providers.py",
+                      "sha256":  "1FA5F499926E58E0DAD1459F76FE9336EEC3802D771FD06C27E76BAC0C3646A4",
+                      "size_bytes":  19909
+                  },
+                  {
+                      "path":  "services\\model-router\\main.py",
+                      "sha256":  "95A0395F31A91E7FD29F25D0E6017F67A270B5251220719766A4B675CDBD771C",
+                      "size_bytes":  19625
+                  },
+                  {
+                      "path":  "services\\eva-os\\main.py",
+                      "sha256":  "7D6A90A29782438566DA4A39CED01850AA44CE5501C612D11E8F34DFCAE04C23",
+                      "size_bytes":  14266
+                  },
+                  {
+                      "path":  "services\\eva-os\\service_supervisor.py",
+                      "sha256":  "9219ED8FC825FDFC31BDFE0F0EC42CCE33E72346091509DFEDB7770601F01237",
+                      "size_bytes":  10540
+                  },
+                  {
+                      "path":  "services\\memory-engine\\main.py",
+                      "sha256":  "D6482299DE15EF7560B021EEB7AA38CD363D7C0E874B8EC270E2E0DE96108DEB",
+                      "size_bytes":  16283
+                  },
+                  {
+                      "path":  "services\\memory-engine\\hybrid_search.py",
+                      "sha256":  "BB04FD7D5894C68BA91262F048963831E8DD9AF85E54B42CC9006BBBC77CB658",
+                      "size_bytes":  6132
+                  },
+                  {
+                      "path":  "services\\memory-engine\\core\\provenance.py",
+                      "sha256":  "AB1E5A68585F5473CD7247692420B330C660E84D0B579A1B7888C5C658761BB7",
+                      "size_bytes":  4478
+                  },
+                  {
+                      "path":  "services\\memory-engine\\core\\bm25.py",
+                      "sha256":  "F53878417225AEF9E802462DBE9CC5BF2AB12730AEC4001DA59259017673A2BE",
+                      "size_bytes":  5815
+                  },
+                  {
+                      "path":  "services\\api-gateway\\main.py",
+                      "sha256":  "2366D9D74DA5D7F4C9B9E064448DEE09BC93F63D2F08280378C71697354F565B",
+                      "size_bytes":  33209
+                  },
+                  {
+                      "path":  "services\\openclaw\\main.py",
+                      "sha256":  "015AFC40B99C6AB33FD59AB62A83174511F7798F31F3BDC9CD6049AE14746948",
+                      "size_bytes":  9173
+                  },
+                  {
+                      "path":  "services\\pipecat\\main.py",
+                      "sha256":  "623E2DC08EB824938FFB856CB623612D4B5A781B165F676B57B0BB895966072D",
+                      "size_bytes":  18689
+                  },
+                  {
+                      "path":  ".gitignore",
+                      "sha256":  "E98EBEFE27DD80ADDB84E33767ED2A2469E3A5D58FDEAEA7AF54EF90B7866DAC",
+                      "size_bytes":  388
+                  },
+                  {
+                      "path":  "requirements-frozen.txt",
+                      "sha256":  "BF9A9270C6080EDC17B15E1B804B8F9B973A3312BDE707EDED73F0479BB98FC5",
+                      "size_bytes":  1550
+                  },
+                  {
+                      "path":  "tests\\integration\\test_v29_model_routing.py",
+                      "sha256":  "09BF7CE5E42BB6D86F78EDBE02F0D0186BA333B16CF2057A03EEB51741967458",
+                      "size_bytes":  19999
+                  },
+                  {
+                      "path":  "tests\\integration\\test_v29_eva_supervision.py",
+                      "sha256":  "E9AC464F1B42EFED99A2A0A0E449903DFE0B774CF71423814371DAF802E53DFF",
+                      "size_bytes":  12896
+                  },
+                  {
+                      "path":  "tests\\integration\\test_v29_memory_hybrid.py",
+                      "sha256":  "37CA12F9D062B6A871E1B79BF9851EAC0240E9A980CDAD23866C93EC661FE1C9",
+                      "size_bytes":  21998
+                  },
+                  {
+                      "path":  "scripts\\promotion-gate-v29.ps1",
+                      "sha256":  "F1B4F70A5E14C362BC04C858EF282372E6BC79766500E27CBD5490EBC05A74A5",
+                      "size_bytes":  5660
+                  },
+                  {
+                      "path":  "docs\\STAGE9_SYSTEM_CLOSURE.md",
+                      "sha256":  "4D500ABED5E47E6676F975371E1CEE33B7C58441EAB708832D254E651F7F446B",
+                      "size_bytes":  5275
+                  }
+              ],
+    "timestamp":  "2026-02-09T19:43:24.8137022-06:00",
+    "contract":  "v2.9.0",
+    "version":  "2.9.0"
+}

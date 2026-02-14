@@ -8,6 +8,9 @@ ports:
   memory_engine: 7020
   pipecat: 7030
   openclaw: 7040
+  eva_os: 7050
+  vision_capture: 7060
+  perception: 7070
 
 # Port availability check on startup
 check_available_on_start: true
@@ -15,6 +18,6 @@ conflict_handling: fail_fast  # Never use dynamic ports
 
 # Port allocation notes
 reserved_ports:
-  - 7000-7040  # Sonia services
+  - 7000-7070  # Sonia services
   - 3000-3100  # Reserved for local development
   - 5000-5100  # Reserved for databases/caches

@@ -6,10 +6,15 @@ FastAPI application that orchestrates requests to Memory Engine, Model Router, O
 import json
 import sys
 import uuid
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from typing import Optional
+
+# Canonical version
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent.parent / "shared"))
+from version import SONIA_VERSION
 
 from clients.memory_client import MemoryClient, MemoryClientError
 from clients.router_client import RouterClient, RouterClientError
@@ -19,7 +24,7 @@ from routes.action import handle_action
 from routes.turn import handle_turn
 from routes.sessions import handle_create_session, handle_get_session, handle_delete_session
 from routes.stream import handle_stream
-from routes.ui_stream import handle_ui_stream, ui_stream_manager
+from routes.ui_stream import handle_ui_stream, ui_stream_manager, inject_clients as inject_ui_clients
 from schemas.turn import TurnRequest
 from schemas.session import SessionCreateRequest, ConfirmationDecisionRequest
 from schemas.action import ActionPlanRequest, ActionPlanResponse, ActionStatusResponse, ActionQueueResponse
@@ -38,14 +43,7 @@ from jsonl_logger import session_log, error_log
 # FastAPI Application Setup
 # ============================================================================
 
-BASELINE_VERSION = "2.5.0"
-BASELINE_CONTRACT = "v2.5.0"
-
-app = FastAPI(
-    title="API Gateway",
-    description="Request orchestration to Memory Engine, Model Router, OpenClaw, and Pipecat",
-    version=BASELINE_VERSION,
-)
+SONIA_CONTRACT = f"v{SONIA_VERSION}"
 
 # Global clients (initialized on startup)
 memory_client: Optional[MemoryClient] = None
@@ -74,14 +72,17 @@ def log_event(event_dict: dict):
     print(json.dumps(event_dict))
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize clients and log startup."""
+@asynccontextmanager
+async def lifespan(a):
+    """Startup and shutdown lifecycle for API Gateway."""
     global memory_client, router_client, openclaw_client, action_pipeline, health_supervisor
 
     memory_client = MemoryClient(base_url="http://127.0.0.1:7020")
     router_client = RouterClient(base_url="http://127.0.0.1:7010")
     openclaw_client = OpenclawClient(base_url="http://127.0.0.1:7040")
+
+    # v3.0: inject clients into UI stream handler for conversation bridge
+    inject_ui_clients(memory_client, router_client, openclaw_client)
 
     # Stage 5 M2: initialize recovery subsystems
     breaker_registry = get_breaker_registry()
@@ -99,11 +100,7 @@ async def startup_event():
         "message": "API Gateway initialized with downstream clients and recovery subsystems"
     })
 
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Close clients and log shutdown."""
-    global memory_client, router_client, openclaw_client, health_supervisor
+    yield  # ── app is running ──
 
     # Stop health supervisor
     if health_supervisor:
@@ -124,6 +121,14 @@ async def shutdown_event():
     })
 
 
+app = FastAPI(
+    title="API Gateway",
+    description="Request orchestration to Memory Engine, Model Router, OpenClaw, and Pipecat",
+    version=SONIA_VERSION,
+    lifespan=lifespan,
+)
+
+
 # ============================================================================
 # Universal Endpoints (Contract Required)
 # ============================================================================
@@ -134,8 +139,8 @@ async def healthz():
     return {
         "ok": True,
         "service": "api-gateway",
-        "version": BASELINE_VERSION,
-        "baseline_contract": BASELINE_CONTRACT,
+        "version": SONIA_VERSION,
+        "baseline_contract": SONIA_CONTRACT,
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
 
@@ -146,7 +151,7 @@ async def root():
     return {
         "service": "api-gateway",
         "status": "online",
-        "version": "1.0.0"
+        "version": SONIA_VERSION
     }
 
 
@@ -157,7 +162,7 @@ async def status():
         "service": "api-gateway",
         "status": "online",
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "version": "1.0.0"
+        "version": SONIA_VERSION
     }
 
 
@@ -387,13 +392,24 @@ async def deps_endpoint(request: Request):
             "error": e.code
         }
 
-    # Note: Pipecat check would go here (7030)
-    # For now, marked as pending implementation
-    deps["pipecat"] = {
-        "status": "pending",
-        "port": 7030,
-        "message": "Pipecat Phase 2 - coming soon"
-    }
+    # Check Pipecat via health endpoint
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            resp = await client.get("http://127.0.0.1:7030/healthz")
+            resp.raise_for_status()
+            pipecat_data = resp.json()
+            deps["pipecat"] = {
+                "status": "ok",
+                "port": 7030,
+                "service": pipecat_data.get("service")
+            }
+    except Exception:
+        deps["pipecat"] = {
+            "status": "unavailable",
+            "port": 7030,
+            "error": "HEALTH_CHECK_FAILED"
+        }
 
     return {
         "ok": all(d.get("status") == "ok" for d in deps.values() if d.get("status") != "pending"),
@@ -652,6 +668,8 @@ async def list_actions_endpoint(
     offset: int = 0,
 ):
     """List actions with optional filters."""
+    limit = max(1, min(limit, 1000))
+    offset = max(0, offset)
     actions = await action_pipeline.store.list_actions(
         state=state, session_id=session_id, limit=limit, offset=offset
     )
@@ -750,6 +768,8 @@ async def list_dead_letters_endpoint(
     include_replayed: bool = False,
 ):
     """List dead letters with optional filters."""
+    limit = max(1, min(limit, 1000))
+    offset = max(0, offset)
     dlq = get_dead_letter_queue()
     letters = await dlq.list_letters(limit=limit, offset=offset,
                                       include_replayed=include_replayed)
@@ -805,6 +825,8 @@ async def replay_dead_letter_endpoint(
 @app.get("/v1/audit-trails")
 async def list_audit_trails_endpoint(limit: int = 50, offset: int = 0):
     """List recent action audit trails."""
+    limit = max(1, min(limit, 1000))
+    offset = max(0, offset)
     audit = get_audit_logger()
     trails = audit.list_trails(limit=limit, offset=offset)
     return {

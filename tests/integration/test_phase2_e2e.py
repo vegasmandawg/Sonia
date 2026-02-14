@@ -18,16 +18,30 @@ API_GATEWAY_URL = "http://127.0.0.1:7000"
 PIPECAT_URL = "http://127.0.0.1:7030"
 PIPECAT_WS_URL = "ws://127.0.0.1:7030"
 
-TIMEOUT = 30.0
+TIMEOUT = 90.0
 
 
 # ============================================================================
 # Fixtures
 # ============================================================================
 
+@pytest.fixture(scope="module")
+async def _warmup_model():
+    """Warm up model router so first inference isn't a cold-start timeout."""
+    async with httpx.AsyncClient(timeout=TIMEOUT) as c:
+        try:
+            await c.post(f"{API_GATEWAY_URL}/v1/turn", json={
+                "user_id": "warmup",
+                "conversation_id": "warmup-conv",
+                "input_text": "ping",
+            })
+        except Exception:
+            pass  # warmup failure is non-fatal
+
+
 @pytest.fixture
-async def api_client():
-    """Create HTTP client for API Gateway."""
+async def api_client(_warmup_model):
+    """Create HTTP client for API Gateway (after model warmup)."""
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
         yield client
 

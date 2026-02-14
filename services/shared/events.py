@@ -65,6 +65,13 @@ class EventType(str, Enum):
     ACK_INTERRUPT = "ack.interrupt"
     ACK_REPLAY = "ack.replay"
 
+    # Supervision (EVA-OS)
+    SERVICE_HEALTHY = "supervision.service.healthy"
+    SERVICE_DEGRADED = "supervision.service.degraded"
+    SERVICE_UNREACHABLE = "supervision.service.unreachable"
+    SERVICE_RECOVERED = "supervision.service.recovered"
+    MAINTENANCE_TOGGLED = "supervision.maintenance.toggled"
+
     # Diagnostics
     DIAGNOSTICS_SNAPSHOT = "diagnostics.snapshot"
 

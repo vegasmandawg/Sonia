@@ -1,12 +1,15 @@
 """
-API Gateway — UI Stream Route (v2.7-m3)
+API Gateway — UI Stream Route (v3.0)
 
 WS /v1/ui/stream
 
 Bidirectional WebSocket for the Electron UI client. Implements the
-control ACK protocol that connection.ts (v2.6-c1) expects:
+control ACK protocol that connection.ts (v2.6-c1) expects, plus the
+text conversation bridge (v3.0) that routes input.text through the
+full turn pipeline (memory recall -> model chat -> tool exec -> memory write).
 
 Inbound (UI -> gateway):
+  { type: "input.text", text: str }           ** v3.0: conversation bridge **
   { type: "control.toggle", field: str, value: bool }
   { type: "control.interrupt" }
   { type: "control.replay" }
@@ -39,7 +42,39 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional, Set
 
+from routes.turn import handle_turn
+from schemas.turn import TurnRequest
+
 logger = logging.getLogger("api-gateway.routes.ui_stream")
+
+
+# ---------------------------------------------------------------------------
+# Client holder — injected by main.py at startup so the WS handler
+# can call handle_turn() without circular imports.
+# ---------------------------------------------------------------------------
+
+class _ClientHolder:
+    """Holds references to the downstream clients for the turn pipeline."""
+    __slots__ = ("memory_client", "router_client", "openclaw_client")
+
+    def __init__(self):
+        self.memory_client = None
+        self.router_client = None
+        self.openclaw_client = None
+
+    @property
+    def ready(self) -> bool:
+        return all([self.memory_client, self.router_client, self.openclaw_client])
+
+
+_clients = _ClientHolder()
+
+
+def inject_clients(memory_client, router_client, openclaw_client):
+    """Called from main.py lifespan to wire up downstream clients."""
+    _clients.memory_client = memory_client
+    _clients.router_client = router_client
+    _clients.openclaw_client = openclaw_client
 
 
 # ---------------------------------------------------------------------------
@@ -67,6 +102,9 @@ class UISessionState:
         self.turn_count = 0
         self.last_activity = time.time()
         self.diagnostics_interval_s = 5.0
+        # v3.0: real latency tracking
+        self._last_latency: Dict[str, Any] = {}
+        self._last_turn_id: Optional[str] = None
 
     def toggle_control(self, field: str, value: bool) -> tuple[bool, str]:
         """
@@ -81,24 +119,26 @@ class UISessionState:
         return True, ""
 
     def to_diagnostics(self) -> Dict[str, Any]:
-        """Build diagnostics snapshot for the UI."""
+        """Build diagnostics snapshot for the UI — wired to real data (v3.0)."""
+        lat = self._last_latency or {}
         return {
             "session_id": self.session_id,
             "uptime_seconds": round(time.time() - self.created_at, 1),
             "turn_count": self.turn_count,
             "latency": {
-                "asr_ms": 0,
-                "model_ms": 0,
-                "tool_ms": 0,
-                "memory_ms": 0,
-                "total_ms": 0,
-                "last_updated": 0,
+                "asr_ms": lat.get("asr_ms", 0),
+                "model_ms": lat.get("model_ms", 0),
+                "tool_ms": lat.get("tool_ms", 0),
+                "memory_ms": lat.get("memory_read_ms", 0) + lat.get("memory_write_ms", 0),
+                "total_ms": lat.get("total_ms", 0),
+                "last_updated": round(self.last_activity, 1),
             },
             "breaker_states": {},
             "dlq_depth": 0,
             "privacy_status": "enabled" if self.controls["privacyEnabled"] else "disabled",
             "vision_buffer_frames": 0,
             "last_error": None,
+            "last_turn_id": self._last_turn_id,
         }
 
 
@@ -286,11 +326,109 @@ async def _dispatch_ui_message(
         state.controls["holdActive"] = bool(active)
         await ws.send_json({"type": "ack.control", "field": "holdActive"})
 
+    elif msg_type == "input.text":
+        text = (msg.get("text") or "").strip()
+        if not text:
+            await ws.send_json({"type": "error", "message": "empty_input_text"})
+            return
+
+        # Guard against concurrent turns
+        if state.conversation_state != "idle":
+            await ws.send_json({"type": "error", "message": "turn_in_progress"})
+            return
+
+        # Fire-and-forget in background so WS recv loop stays alive
+        asyncio.create_task(
+            _handle_text_turn(ws, state, text)
+        )
+
     else:
         await ws.send_json({
             "type": "error",
             "message": f"unknown_message_type:{msg_type}",
         })
+
+
+async def _handle_text_turn(ws: Any, state: UISessionState, text: str) -> None:
+    """
+    v3.0: Bridge a user text message through the full turn pipeline.
+
+    Flow:
+      1. Echo turn.user back to UI
+      2. Transition conversation state: idle -> thinking
+      3. Call handle_turn() (memory recall -> model chat -> tools -> memory write)
+      4. Send turn.assistant with response
+      5. Update latency diagnostics
+      6. Transition back to idle
+    """
+    correlation_id = f"req_{uuid.uuid4().hex[:12]}"
+    try:
+        # 1. Echo user message
+        await ws.send_json({"type": "turn.user", "text": text})
+
+        # 2. Transition to thinking
+        state.conversation_state = "thinking"
+        await ws.send_json({"type": "state.conversation", "state": "thinking"})
+
+        # 3. Check clients are wired up
+        if not _clients.ready:
+            await ws.send_json({"type": "error", "message": "backend_not_ready"})
+            state.conversation_state = "idle"
+            await ws.send_json({"type": "state.conversation", "state": "idle"})
+            return
+
+        # 4. Build TurnRequest and call the pipeline
+        turn_req = TurnRequest(
+            user_id="ui-user",
+            conversation_id=state.session_id,
+            input_text=text,
+            profile="chat_low_latency",
+        )
+
+        turn_resp = await handle_turn(
+            request=turn_req,
+            memory_client=_clients.memory_client,
+            router_client=_clients.router_client,
+            openclaw_client=_clients.openclaw_client,
+            correlation_id=correlation_id,
+        )
+
+        # 5. Send assistant response
+        assistant_text = turn_resp.assistant_text or ""
+        if turn_resp.ok and assistant_text:
+            state.conversation_state = "speaking"
+            await ws.send_json({"type": "state.conversation", "state": "speaking"})
+            await ws.send_json({"type": "turn.assistant", "text": assistant_text})
+        elif not turn_resp.ok:
+            err = turn_resp.error or {}
+            await ws.send_json({
+                "type": "error",
+                "message": err.get("message", "turn_failed"),
+            })
+            # Still send whatever text we got (may be partial)
+            if assistant_text:
+                await ws.send_json({"type": "turn.assistant", "text": assistant_text})
+
+        # 6. Update diagnostics with real latency
+        extra = getattr(turn_resp, "_extra_fields", None)
+        latency_data = extra.get("latency", {}) if extra else {}
+        state._last_latency = latency_data
+        state._last_turn_id = turn_resp.turn_id
+        state.turn_count += 1
+        state.last_activity = time.time()
+
+    except Exception as exc:
+        logger.error("text turn failed: %s", exc, exc_info=True)
+        try:
+            await ws.send_json({"type": "error", "message": f"turn_error:{exc}"})
+        except Exception:
+            pass
+    finally:
+        state.conversation_state = "idle"
+        try:
+            await ws.send_json({"type": "state.conversation", "state": "idle"})
+        except Exception:
+            pass
 
 
 async def _diagnostics_loop(ws: Any, state: UISessionState) -> None:

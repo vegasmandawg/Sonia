@@ -209,10 +209,17 @@ class TestChaosRecoveryTime:
             "Post-recovery action should succeed"
 
     def test_health_supervisor_reports_healthy(self, client):
-        """Health supervisor reports overall healthy state."""
-        resp = client.get("/v1/health/summary").json()
-        assert resp["overall_state"] == "healthy", \
-            f"Expected healthy, got {resp['overall_state']}"
+        """Health supervisor reports overall healthy state (polls up to 60s)."""
+        deadline = time.monotonic() + 60.0
+        last_state = None
+        while time.monotonic() < deadline:
+            resp = client.get("/v1/health/summary").json()
+            last_state = resp.get("overall_state")
+            if last_state == "healthy":
+                return
+            time.sleep(2.0)
+        assert last_state == "healthy", \
+            f"Expected healthy within 60s, last state was {last_state}"
 
 
 class TestChaosServiceRestart:

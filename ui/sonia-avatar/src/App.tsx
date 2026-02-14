@@ -13,8 +13,10 @@ import React, { useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import AvatarScene from "./three/AvatarScene";
 import ControlBar from "./components/ControlBar";
+import ChatPanel from "./components/ChatPanel";
 import StatusIndicator from "./components/StatusIndicator";
 import DiagnosticsPanel from "./components/DiagnosticsPanel";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { useSoniaStore } from "./state/store";
 import { connectionManager } from "./state/connection";
 
@@ -29,7 +31,7 @@ declare global {
   }
 }
 
-const FALLBACK_WS = "ws://127.0.0.1:7000/v1/stream";
+const FALLBACK_WS = "ws://127.0.0.1:7000/v1/ui/stream";
 
 export default function App() {
   const connectionStatus = useSoniaStore((s) => s.connectionStatus);
@@ -59,30 +61,35 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ width: "100%", height: "100%", position: "relative" }}>
-      {/* 3D Avatar */}
-      <Canvas
-        style={{ width: "100%", height: "100%" }}
-        camera={{ position: [0, 0, 3], fov: 35 }}
-        gl={{ antialias: true, alpha: true }}
-      >
-        <AvatarScene />
-      </Canvas>
+    <ErrorBoundary>
+      <div style={{ width: "100%", height: "100%", position: "relative" }}>
+        {/* 3D Avatar */}
+        <Canvas
+          style={{ width: "100%", height: "100%" }}
+          camera={{ position: [0, 0, 3], fov: 35 }}
+          gl={{ antialias: true, alpha: true }}
+        >
+          <AvatarScene />
+        </Canvas>
 
-      {/* Status overlay */}
-      <StatusIndicator
-        connectionStatus={connectionStatus}
-        emotion={emotion}
-        conversationState={conversationState}
-        reconnectAttempts={reconnectAttempts}
-        holdActive={holdActive}
-      />
+        {/* Status overlay */}
+        <StatusIndicator
+          connectionStatus={connectionStatus}
+          emotion={emotion}
+          conversationState={conversationState}
+          reconnectAttempts={reconnectAttempts}
+          holdActive={holdActive}
+        />
 
-      {/* Diagnostics panel (slide-out) */}
-      <DiagnosticsPanel data={diagnostics} />
+        {/* Chat conversation panel */}
+        <ChatPanel />
 
-      {/* Bottom control bar */}
-      <ControlBar />
-    </div>
+        {/* Diagnostics panel (slide-out) */}
+        <DiagnosticsPanel data={diagnostics} />
+
+        {/* Bottom control bar */}
+        <ControlBar />
+      </div>
+    </ErrorBoundary>
   );
 }

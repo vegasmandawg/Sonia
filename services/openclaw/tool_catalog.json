@@ -377,6 +377,76 @@
         "type": "command_execution",
         "check_exit_code": true
       }
+    },
+    "web.search": {
+      "tier": "TIER_0_READONLY",
+      "description": "Search the web using DuckDuckGo (no API key needed)",
+      "schema": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query text"
+          },
+          "max_results": {
+            "type": "integer",
+            "default": 5,
+            "description": "Maximum number of results"
+          }
+        }
+      },
+      "verification_spec": {
+        "type": "web_search",
+        "check_results_returned": true
+      }
+    },
+    "web.fetch": {
+      "tier": "TIER_0_READONLY",
+      "description": "Fetch and extract text content from a URL",
+      "schema": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL to fetch"
+          },
+          "max_chars": {
+            "type": "integer",
+            "default": 5000,
+            "description": "Maximum characters to return"
+          }
+        }
+      },
+      "verification_spec": {
+        "type": "web_fetch",
+        "check_status_code": true
+      }
+    },
+    "notification.send": {
+      "tier": "TIER_1_LOW_RISK",
+      "description": "Send a Windows toast notification",
+      "schema": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Notification title text"
+          },
+          "body": {
+            "type": "string",
+            "default": "",
+            "description": "Notification body text"
+          }
+        }
+      },
+      "side_effects": ["sends_notification"],
+      "verification_spec": {
+        "type": "notification",
+        "check_sent": true
+      }
     }
   },
   "enforcement_rules": {

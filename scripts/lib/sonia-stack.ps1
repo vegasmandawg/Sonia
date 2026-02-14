@@ -164,6 +164,12 @@ function Stop-SoniaService {
         try {
             $procId = [int](Get-Content $pidFile | Select-Object -First 1)
             Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
+            # Wait up to 3s for process to exit
+            for ($i = 0; $i -lt 12; $i++) {
+                $still = Get-Process -Id $procId -ErrorAction SilentlyContinue
+                if (-not $still) { break }
+                Start-Sleep -Milliseconds 250
+            }
         } finally {
             Remove-Item $pidFile -Force -ErrorAction SilentlyContinue
         }

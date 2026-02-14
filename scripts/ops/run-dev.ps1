@@ -56,11 +56,12 @@ if (-not $NoInstall) {
 }
 
 $services = @(
-    @{ Name = "api-gateway";  Port = 7000; AppDir = (Join-Path $Root "apps\api\src") },
+    @{ Name = "api-gateway";  Port = 7000; AppDir = (Join-Path $Root "services\api-gateway") },
     @{ Name = "model-router"; Port = 7010; AppDir = (Join-Path $Root "services\model-router") },
     @{ Name = "memory-engine";Port = 7020; AppDir = (Join-Path $Root "services\memory-engine") },
     @{ Name = "pipecat";      Port = 7030; AppDir = (Join-Path $Root "services\pipecat") },
-    @{ Name = "openclaw";     Port = 7040; AppDir = (Join-Path $Root "services\openclaw") }
+    @{ Name = "openclaw";     Port = 7040; AppDir = (Join-Path $Root "services\openclaw") },
+    @{ Name = "eva-os";      Port = 7050; AppDir = (Join-Path $Root "services\eva-os") }
 )
 
 # Stop existing processes from previous run (if PID files exist)
@@ -110,7 +111,7 @@ Write-Host ""
 Write-Host "Health checks:"
 foreach ($svc in $services) {
     $ok = $false
-    $url = "http://127.0.0.1:$($svc.Port)/health"
+    $url = "http://127.0.0.1:$($svc.Port)/healthz"
     for ($i=0; $i -lt 20; $i++) {
         try {
             $resp = Invoke-RestMethod -Uri $url -Method Get -TimeoutSec 2

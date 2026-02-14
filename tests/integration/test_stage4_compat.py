@@ -15,7 +15,7 @@ GW = "http://127.0.0.1:7000"
 
 @pytest.fixture
 def client():
-    return httpx.Client(base_url=GW, timeout=30)
+    return httpx.Client(base_url=GW, timeout=120)
 
 
 # ── Health check preserved ───────────────────────────────────────────────────

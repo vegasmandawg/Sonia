@@ -1,0 +1,9 @@
+# Test and development dependencies (not needed in production)
+# Install with: pip install -r requirements-dev.txt
+
+-r requirements-frozen.txt
+
+# Testing
+pytest==8.4.2
+pytest-asyncio==0.25.3
+typeguard==4.4.4

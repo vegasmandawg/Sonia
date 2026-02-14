@@ -1,0 +1,7 @@
+bb4ff78ba2922da44a1f007371c123667891ed04
+bb4ff78b (HEAD -> v2.9.1-runtime-hardening) chore(release): promote rc1 to v2.9.1 GA metadata
+214e9761 (tag: v2.9.1-rc1) chore(rc1): legacy test isolation, shims, release note
+0b5d9b66 fix(runtime): hardening -- dead code removal, config alignment, test fixes, UI wiring
+d9194f5c fix: audit remediation -- memory engine, model router, pipecat import ordering
+17d9f7bd (tag: v2.9.0, fix/sonia-system-audit-20260209) v2.9.0 GA: System Closure ΓÇö provider parity, EVA supervision, hybrid memory, hygiene sweep
+b0d1e056 fix(audit): system-wide forensic audit -- 10 fixes across 8 files

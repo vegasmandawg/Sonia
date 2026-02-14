@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "turn_id": "turn_62ee1279097a43de",
+  "assistant_text": "Sure thing! I\u2019m happy to help you run a verification turn for **SONIA\u202fv2.9.1\u202fGA**, but I\u2019ll need a bit more detail about what you\u2019re looking for.\n\n**What would you like me to provide?**\n\n| Option | What I can give you |\n|--------|---------------------|\n| **A checklist** of the typical verification steps (version, unit/integration tests, logs, performance, security, etc.) | Ready\u2011to\u2011copy checklist you can tick off in your CI pipeline or test run. |\n| **A sample script** (e.g., Bash, PowerShell, Python) that runs those checks automatically | A script you can drop into your CI/CD workflow (GitHub Actions, Jenkins, GitLab CI, etc.). |\n| **Guidance on specific commands** you might need for your environment (e.g., `curl` health\u2011check, `docker` image verification, `kubectl` rollout status) | Tailored to the stack you\u2019re using (Docker, Kubernetes, on\u2011prem, cloud). |\n| **A high\u2011level description** of the verification process (what each step does, why it matters) | Useful if you need to document the turn for a team or compliance audit. |\n\n**If you already have a particular workflow or toolchain in mind (e.g., GitHub Actions, Jenkins, CircleCI, Azure DevOps, or a simple local run), let me know and I can tailor the script/checklist accordingly.**  \n\nFeel free to paste any existing verification code you have, or just tell me which of the options above best matches what you need, and I\u2019ll get the material ready for you right away!",
+  "memory": {
+    "written": true,
+    "retrieved_count": 0
+  },
+  "duration_ms": 8046.0,
+  "quality": {
+    "generation_profile_used": "chat_low_latency",
+    "fallback_used": false,
+    "tool_calls_attempted": 0,
+    "tool_calls_executed": 0,
+    "completion_reason": "ok"
+  },
+  "latency": {
+    "asr_ms": 0.0,
+    "vision_ms": 0.0,
+    "memory_read_ms": 15.0,
+    "model_ms": 8000.0,
+    "tool_ms": 0.0,
+    "memory_write_ms": 31.0,
+    "total_ms": 8046.0
+  }
+}

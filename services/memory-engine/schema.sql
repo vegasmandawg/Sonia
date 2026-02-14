@@ -63,3 +63,40 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE INDEX IF NOT EXISTS idx_audit_ledger_id ON audit_log(ledger_id);
 CREATE INDEX IF NOT EXISTS idx_audit_operation ON audit_log(operation);
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_log(performed_at);
+
+-- Workspace documents table
+CREATE TABLE IF NOT EXISTS workspace_documents (
+    doc_id TEXT PRIMARY KEY,
+    doc_type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    metadata TEXT,
+    ingested_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_workspace_doc_type ON workspace_documents(doc_type);
+
+-- Workspace chunks (for chunked document indexing)
+CREATE TABLE IF NOT EXISTS workspace_chunks (
+    chunk_id TEXT PRIMARY KEY,
+    doc_id TEXT NOT NULL,
+    chunk_index INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    start_offset INTEGER,
+    end_offset INTEGER,
+    FOREIGN KEY (doc_id) REFERENCES workspace_documents(doc_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_chunks_doc_id ON workspace_chunks(doc_id);
+
+-- Provenance tracking
+CREATE TABLE IF NOT EXISTS provenance (
+    id TEXT PRIMARY KEY,
+    memory_id TEXT NOT NULL,
+    source_type TEXT NOT NULL,
+    source_id TEXT,
+    performed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (memory_id) REFERENCES ledger(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_provenance_memory_id ON provenance(memory_id);
+CREATE INDEX IF NOT EXISTS idx_provenance_source ON provenance(source_type);

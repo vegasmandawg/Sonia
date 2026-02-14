@@ -72,10 +72,10 @@ def _get_perc_mod():
 
 class TestEventEnvelopeContract:
 
-    def test_all_20_event_types_are_strings(self):
+    def test_all_event_types_are_strings(self):
         from services.shared.events import EventType
         members = list(EventType)
-        assert len(members) == 19
+        assert len(members) == 24  # 19 original + 5 supervisory (v2.9)
         for m in members:
             assert isinstance(m.value, str)
 
@@ -147,9 +147,9 @@ class TestEventEnvelopeContract:
         ids = {generate_correlation_id() for _ in range(100)}
         assert len(ids) == 100
 
-    def test_event_type_count_exactly_20(self):
+    def test_event_type_count_matches_contract(self):
         from services.shared.events import EventType
-        assert len(EventType) == 19
+        assert len(EventType) == 24  # 19 original + 5 supervisory (v2.9)
 
 
 # ===========================================================================

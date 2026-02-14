@@ -43,11 +43,31 @@ class WorkspaceStore:
                 (doc_id, doc_type, content, json.dumps(metadata))
             )
             
-            # TODO: Chunk and embed document
-            # - Split by semantic boundaries
-            # - Generate embeddings
-            # - Store in vector index
-            
+            # Chunk document for indexing
+            from core.chunker import Chunker
+            chunker = Chunker(chunk_size=800, overlap=100)
+            chunks = chunker.chunk_text(content)
+            logger.info(
+                f"Document {doc_id} chunked into {len(chunks)} chunks"
+            )
+
+            # Store chunks as separate indexed records
+            for i, (chunk_text, start, end) in enumerate(chunks):
+                chunk_id = f"{doc_id}_chunk_{i}"
+                chunk_query = """
+                    INSERT OR IGNORE INTO workspace_chunks
+                    (chunk_id, doc_id, chunk_index, content, start_offset, end_offset)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """
+                try:
+                    await self.db.execute(
+                        chunk_query,
+                        (chunk_id, doc_id, i, chunk_text, start, end)
+                    )
+                except Exception as chunk_err:
+                    logger.warning(f"Chunk {chunk_id} insert failed (table may not exist): {chunk_err}")
+                    break  # Table doesn't exist yet; skip chunking
+
             logger.info(f"Document {doc_id} ingested")
             return doc_id
             

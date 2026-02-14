@@ -1,0 +1,115 @@
+﻿{
+    "promotion_ready":  true,
+    "total":  14,
+    "environment":  {
+                        "platform":  "Microsoft Windows NT 10.0.26200.0",
+                        "hostname":  "SYLENCESPC",
+                        "python":  "Python 3.11.14"
+                    },
+    "version":  "v2.8.0-rc1",
+    "passed":  12,
+    "skipped":  2,
+    "timestamp":  "20260209-142818",
+    "gates":  [
+                  {
+                      "gate":  1,
+                      "name":  "rc1-hardening",
+                      "status":  "passed",
+                      "detail":  "RC1 hardening: 52 tests passed",
+                      "duration_ms":  820.2
+                  },
+                  {
+                      "gate":  2,
+                      "name":  "v28-milestones",
+                      "status":  "passed",
+                      "detail":  "v2.8 milestones: 104 tests passed",
+                      "duration_ms":  798.5
+                  },
+                  {
+                      "gate":  3,
+                      "name":  "v28-full-regression",
+                      "status":  "passed",
+                      "detail":  "v2.8 full regression: 156 tests passed",
+                      "duration_ms":  1219.9
+                  },
+                  {
+                      "gate":  4,
+                      "name":  "v27-compat",
+                      "status":  "passed",
+                      "detail":  "v2.7 compat: 163 tests passed",
+                      "duration_ms":  4199.9
+                  },
+                  {
+                      "gate":  5,
+                      "name":  "v26-compat",
+                      "status":  "passed",
+                      "detail":  "v2.6 compat: 82 tests passed",
+                      "duration_ms":  13710.2
+                  },
+                  {
+                      "gate":  6,
+                      "name":  "full-integration",
+                      "status":  "passed",
+                      "detail":  "Full integration suite: 565 tests passed",
+                      "duration_ms":  70448.8
+                  },
+                  {
+                      "gate":  7,
+                      "name":  "service-health",
+                      "status":  "skipped",
+                      "detail":  "Skipped by flag",
+                      "duration_ms":  3.1
+                  },
+                  {
+                      "gate":  8,
+                      "name":  "breaker-states",
+                      "status":  "skipped",
+                      "detail":  "Skipped by flag",
+                      "duration_ms":  0
+                  },
+                  {
+                      "gate":  9,
+                      "name":  "deps-frozen",
+                      "status":  "passed",
+                      "detail":  "Dependency artifacts present (schema 1.0)",
+                      "duration_ms":  29.7
+                  },
+                  {
+                      "gate":  10,
+                      "name":  "release-manifest",
+                      "status":  "passed",
+                      "detail":  "RC1 tag v2.8.0-rc1 present",
+                      "duration_ms":  34.6
+                  },
+                  {
+                      "gate":  11,
+                      "name":  "soak-pass",
+                      "status":  "passed",
+                      "detail":  "Soak pass completed",
+                      "duration_ms":  1798.6
+                  },
+                  {
+                      "gate":  12,
+                      "name":  "incident-bundle",
+                      "status":  "passed",
+                      "detail":  "Incident bundle script present",
+                      "duration_ms":  2
+                  },
+                  {
+                      "gate":  13,
+                      "name":  "changelog-delta",
+                      "status":  "passed",
+                      "detail":  "Changelog: 1 commits since v2.7.0",
+                      "duration_ms":  37.8
+                  },
+                  {
+                      "gate":  14,
+                      "name":  "git-clean",
+                      "status":  "passed",
+                      "detail":  "No uncommitted tracked changes",
+                      "duration_ms":  35.1
+                  }
+              ],
+    "schema":  "2.0",
+    "failed":  0
+}
