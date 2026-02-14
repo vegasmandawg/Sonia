@@ -9,13 +9,13 @@ from typing import Any, Dict, Optional, Tuple
 from datetime import datetime
 from pathlib import Path
 
-from policy import get_policy, FilesystemSandbox
+from openclaw.policy import get_policy, FilesystemSandbox
 
 
 class FileExecutor:
     """
     Executes file operations with strict sandbox enforcement.
-    Operations are limited to S:\ root directory.
+    Operations are limited to S:\\ root directory.
     """
     
     DEFAULT_TIMEOUT_MS = 5000

@@ -11,10 +11,11 @@ from pathlib import Path
 import sys
 
 OPENCLAW_DIR = Path(__file__).resolve().parent
-if str(OPENCLAW_DIR) not in sys.path:
-    sys.path.insert(0, str(OPENCLAW_DIR))
+SERVICES_DIR = OPENCLAW_DIR.parent
+if str(SERVICES_DIR) not in sys.path:
+    sys.path.insert(0, str(SERVICES_DIR))
 
-from main import app
+from openclaw.main import app
 
 
 @pytest.fixture

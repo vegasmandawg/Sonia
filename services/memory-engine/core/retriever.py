@@ -1,6 +1,7 @@
 """Hybrid retrieval engine (semantic + BM25)."""
 
 import logging
+import inspect
 from typing import Any, Dict, List, Optional
 import numpy as np
 
@@ -164,7 +165,9 @@ class Retriever:
             status_fn = getattr(self.embeddings, "status", None)
             if callable(status_fn):
                 embedding_status = status_fn()
-                if embedding_status.get("degraded"):
+                if inspect.isawaitable(embedding_status):
+                    embedding_status = await embedding_status
+                if isinstance(embedding_status, dict) and embedding_status.get("degraded"):
                     logger.warning(
                         "Semantic search running with degraded embeddings: %s",
                         embedding_status.get("degraded_reason"),

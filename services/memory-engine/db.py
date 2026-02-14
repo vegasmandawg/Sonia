@@ -9,6 +9,7 @@ import sqlite3
 import json
 import uuid
 import logging
+import importlib.util
 from datetime import datetime, timezone
 from pathlib import Path
 from contextlib import contextmanager
@@ -19,6 +20,7 @@ logger = logging.getLogger('memory-engine.db')
 # Default database path
 DB_PATH = Path(__file__).parent.parent.parent / "data" / "memory.db"
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
+MIGRATION_RUNNER_PATH = Path(__file__).parent / "db" / "migrations" / "run_migrations.py"
 
 
 class MemoryDatabase:
@@ -38,7 +40,7 @@ class MemoryDatabase:
         
         # Load and execute schema
         if SCHEMA_PATH.exists():
-            with open(SCHEMA_PATH, 'r') as f:
+            with open(SCHEMA_PATH, 'r', encoding='utf-8') as f:
                 schema = f.read()
             
             with self.connection() as conn:
@@ -48,6 +50,36 @@ class MemoryDatabase:
             logger.info("Database schema initialized")
         else:
             logger.warning(f"Schema file not found: {SCHEMA_PATH}")
+
+        # Apply incremental SQL migrations (idempotent, tracked).
+        self._apply_migrations()
+
+    def _apply_migrations(self):
+        """Apply SQL migrations via local migration runner."""
+        if not MIGRATION_RUNNER_PATH.exists():
+            logger.warning(f"Migration runner not found: {MIGRATION_RUNNER_PATH}")
+            return
+
+        try:
+            spec = importlib.util.spec_from_file_location(
+                "_memory_migration_runner",
+                MIGRATION_RUNNER_PATH,
+            )
+            if spec is None or spec.loader is None:
+                raise RuntimeError("Failed to load migration runner module spec")
+
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            run_sync = getattr(module, "run_migrations_sync", None)
+            if not callable(run_sync):
+                raise RuntimeError("Migration runner missing run_migrations_sync")
+
+            run_sync(self.db_path)
+            logger.info("Database migrations applied")
+        except Exception as e:
+            logger.error(f"Database migration failed: {e}")
+            raise
     
     @contextmanager
     def connection(self):

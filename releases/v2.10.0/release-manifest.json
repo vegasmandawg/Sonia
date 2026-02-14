@@ -1,0 +1,27 @@
+﻿{
+    "generated_at":  "2026-02-14T13:02:27.9518519-06:00",
+    "artifacts":  [
+                      {
+                          "sha256":  "728510736AE6D2B51759FEC543E019318565DEE756148265BAD5C235B2F54FB3",
+                          "file":  "S:\\config\\sonia-config.json"
+                      },
+                      {
+                          "sha256":  "131D1F244B85D215FB90E8601E644E75CDAAE953FC188D11738E66B7A87AA60D",
+                          "file":  "S:\\config\\app.yaml"
+                      },
+                      {
+                          "sha256":  "24330BEAB15A8ACD931D8A1CBDD11B7AB196927C383732B8FCE316F90EEE3D1A",
+                          "file":  "S:\\requirements-frozen.txt"
+                      },
+                      {
+                          "sha256":  "C2D6C9EF062286BFD9E3ECF3C2E23D100879C36C163CA85E664EB95A68A7A5E4",
+                          "file":  "S:\\start-sonia-stack.ps1"
+                      },
+                      {
+                          "sha256":  "580DDA40728DC6218E5C42D13D1D15E48D1AB77978C30F0CDBA13FF7C8EE96DB",
+                          "file":  "S:\\stop-sonia-stack.ps1"
+                      }
+                  ],
+    "version":  "2.10.0",
+    "artifact_count":  5
+}

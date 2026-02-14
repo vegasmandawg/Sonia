@@ -31,7 +31,7 @@ class MemoryEngine:
 
     def __init__(
         self,
-        db_path: str = "S:\\data\\memory\\ledger.db",
+        db_path: str = "S:\\data\\memory.db",
         vector_path: str = "S:\\data\\vector\\sonia.hnsw",
         snapshot_dir: str = "S:\\data\\memory\\snapshots",
         config: Optional[Dict[str, Any]] = None,

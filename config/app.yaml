@@ -12,7 +12,7 @@ services:
     port: 7000
     host: 127.0.0.1
     description: Stable front door, UI transport, input normalization
-    health_endpoint: /health
+    health_endpoint: /healthz
     log_file: S:\logs\services\api-gateway.out.log
     error_log: S:\logs\services\api-gateway.err.log
     pid_file: S:\state\pids\api-gateway.pid
@@ -22,7 +22,7 @@ services:
     port: 7010
     host: 127.0.0.1
     description: Provider/model selection, routing policy
-    health_endpoint: /health
+    health_endpoint: /healthz
     log_file: S:\logs\services\model-router.out.log
     error_log: S:\logs\services\model-router.err.log
     pid_file: S:\state\pids\model-router.pid
@@ -32,7 +32,7 @@ services:
     port: 7020
     host: 127.0.0.1
     description: Persistence, ledger, retrieval, knowledge workspace
-    health_endpoint: /health
+    health_endpoint: /healthz
     log_file: S:\logs\services\memory-engine.out.log
     error_log: S:\logs\services\memory-engine.err.log
     pid_file: S:\state\pids\memory-engine.pid
@@ -42,7 +42,7 @@ services:
     port: 7030
     host: 127.0.0.1
     description: Real-time modality gateway, voice I/O, events
-    health_endpoint: /health
+    health_endpoint: /healthz
     log_file: S:\logs\services\pipecat.out.log
     error_log: S:\logs\services\pipecat.err.log
     pid_file: S:\state\pids\pipecat.pid
@@ -52,7 +52,7 @@ services:
     port: 7040
     host: 127.0.0.1
     description: Action execution and governance
-    health_endpoint: /health
+    health_endpoint: /healthz
     log_file: S:\logs\services\openclaw.out.log
     error_log: S:\logs\services\openclaw.err.log
     pid_file: S:\state\pids\openclaw.pid
@@ -63,7 +63,7 @@ directories:
   data: S:\data
   artifacts: S:\artifacts
   shared: S:\shared
-  configs: S:\configs
+  config: S:\config
   docs: S:\docs
 
 logging:

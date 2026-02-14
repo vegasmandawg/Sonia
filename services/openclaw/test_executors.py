@@ -10,13 +10,14 @@ import os
 import sys
 
 OPENCLAW_DIR = Path(__file__).resolve().parent
-if str(OPENCLAW_DIR) not in sys.path:
-    sys.path.insert(0, str(OPENCLAW_DIR))
+SERVICES_DIR = OPENCLAW_DIR.parent
+if str(SERVICES_DIR) not in sys.path:
+    sys.path.insert(0, str(SERVICES_DIR))
 
-from executors.shell_exec import ShellExecutor
-from executors.file_exec import FileExecutor
-from executors.browser_exec import BrowserExecutor
-from policy import ExecutionPolicy, FilesystemSandbox, ShellCommandAllowlist
+from openclaw.executors.shell_exec import ShellExecutor
+from openclaw.executors.file_exec import FileExecutor
+from openclaw.executors.browser_exec import BrowserExecutor
+from openclaw.policy import ExecutionPolicy, FilesystemSandbox, ShellCommandAllowlist
 
 
 # ============================================================================

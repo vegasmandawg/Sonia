@@ -1,0 +1,7 @@
+﻿python.exe : S:\envs\sonia-core\python.exe: No module named conda
+At S:\scripts\promotion-gate-v210.ps1:612 char:9
++         & S:\envs\sonia-core\python.exe -m conda list 2>&1 | Out-File ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (S:\envs\sonia-c...ule named conda:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
