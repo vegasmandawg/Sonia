@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 import sys
 
-from policy import get_policy, ShellCommandAllowlist
+from openclaw.policy import get_policy, ShellCommandAllowlist
 
 
 class ShellExecutor:

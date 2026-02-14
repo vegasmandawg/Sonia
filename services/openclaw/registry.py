@@ -8,6 +8,12 @@ from datetime import datetime
 from pathlib import Path
 import os
 import uuid
+import sys
+
+OPENCLAW_DIR = Path(__file__).resolve().parent
+SERVICES_DIR = OPENCLAW_DIR.parent
+if str(SERVICES_DIR) not in sys.path:
+    sys.path.insert(0, str(SERVICES_DIR))
 
 # Root contract — all file I/O must stay within this boundary
 _ROOT_CONTRACT = r"S:\\"
@@ -32,14 +38,14 @@ def _validate_path(path: str) -> Optional[str]:
         return f"invalid path: {e}"
     return None
 
-from schemas import ExecuteResponse, ExecuteRequest, ToolMetadata, RegistryStats
-from policy import get_policy, SecurityTier
-from executors.shell_exec import ShellExecutor
-from executors.file_exec import FileExecutor
-from executors.browser_exec import BrowserExecutor
-from executors.desktop_exec import DesktopExecutor
-from executors.web_exec import WebExecutor
-from executors.notification_exec import NotificationExecutor
+from openclaw.schemas import ExecuteResponse, ExecuteRequest, ToolMetadata, RegistryStats
+from openclaw.policy import get_policy, SecurityTier
+from openclaw.executors.shell_exec import ShellExecutor
+from openclaw.executors.file_exec import FileExecutor
+from openclaw.executors.browser_exec import BrowserExecutor
+from openclaw.executors.desktop_exec import DesktopExecutor
+from openclaw.executors.web_exec import WebExecutor
+from openclaw.executors.notification_exec import NotificationExecutor
 
 
 # ============================================================================

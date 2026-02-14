@@ -11,15 +11,20 @@ from datetime import datetime
 import json
 import sys
 
+OPENCLAW_DIR = Path(__file__).resolve().parent
+SERVICES_DIR = OPENCLAW_DIR.parent
+if str(SERVICES_DIR) not in sys.path:
+    sys.path.insert(0, str(SERVICES_DIR))
+
 # Canonical version
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
+sys.path.insert(0, str(SERVICES_DIR / "shared"))
 from version import SONIA_VERSION
 
-from schemas import (
+from openclaw.schemas import (
     ExecuteRequest, ExecuteResponse, HealthzResponse, StatusResponse,
     RegistryStats
 )
-from registry import get_registry
+from openclaw.registry import get_registry
 
 # ============================================================================
 # FastAPI Application Setup
