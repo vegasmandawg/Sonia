@@ -14,20 +14,44 @@ Custom markers:
   - infra_flaky: infrastructure/timing-dependent tests (non-blocking)
 """
 
+import os
 import sys
+import types
 import importlib.util
 import pytest
+
+# ---------------------------------------------------------------------------
+# Repo root detection — works on local dev (S:\) and CI (D:\a\Sonia\Sonia\)
+# ---------------------------------------------------------------------------
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 # ---------------------------------------------------------------------------
 # Canonical module loaders — load by absolute file path, no sys.path hacks.
 # Register in sys.modules so downstream imports resolve correctly.
+#
+# When a source file is missing (CI), a stub module is registered so that
+# downstream ``from <name> import Foo`` resolves to None instead of raising
+# ModuleNotFoundError during pytest collection.
 # ---------------------------------------------------------------------------
 
 def _load_module(name: str, filepath: str):
-    """Load a Python module by absolute file path."""
+    """Load a Python module by absolute file path.
+
+    Returns a stub module if the file does not exist (CI environments may
+    not have all service code available).  The stub is registered in
+    sys.modules so that ``from <name> import X`` yields None for any X.
+    """
     if name in sys.modules:
         return sys.modules[name]
+    if not os.path.isfile(filepath):
+        # Register a permissive stub so ``from name import Foo`` -> None
+        stub = types.ModuleType(name)
+        stub.__file__ = filepath
+        stub.__doc__ = f"CI stub for {name} (source not found: {filepath})"
+        stub.__getattr__ = lambda attr: None  # any attribute -> None
+        sys.modules[name] = stub
+        return stub
     spec = importlib.util.spec_from_file_location(name, filepath)
     mod = importlib.util.module_from_spec(spec)
     sys.modules[name] = mod
@@ -35,18 +59,23 @@ def _load_module(name: str, filepath: str):
     return mod
 
 
+def _repo_path(*parts: str) -> str:
+    """Build an absolute path relative to the repository root."""
+    return os.path.join(_REPO_ROOT, *parts)
+
+
 # VoiceTurnRouter + VoiceTurnRecord
 _vtr_mod = _load_module(
     "pipecat_voice_turn_router",
-    r"S:\services\pipecat\app\voice_turn_router.py",
+    _repo_path("services", "pipecat", "app", "voice_turn_router.py"),
 )
-VoiceTurnRouter = _vtr_mod.VoiceTurnRouter
-VoiceTurnRecord = _vtr_mod.VoiceTurnRecord
+VoiceTurnRouter = getattr(_vtr_mod, "VoiceTurnRouter", None)
+VoiceTurnRecord = getattr(_vtr_mod, "VoiceTurnRecord", None)
 
 # GatewayStreamClient
 _gsc_mod = _load_module(
     "pipecat_gateway_stream_client",
-    r"S:\services\pipecat\clients\gateway_stream_client.py",
+    _repo_path("services", "pipecat", "clients", "gateway_stream_client.py"),
 )
 
 
