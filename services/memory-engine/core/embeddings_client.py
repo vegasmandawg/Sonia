@@ -3,6 +3,8 @@
 import asyncio
 import json
 import logging
+import hashlib
+import math
 from typing import List, Optional
 import httpx
 
@@ -37,6 +39,8 @@ class EmbeddingsClient:
         self.timeout = timeout
         self.client = None
         self._initialized = False
+        self._degraded = False
+        self._degraded_reason = ""
 
     async def initialize(self) -> None:
         """Initialize HTTP client and verify connectivity."""
@@ -74,7 +78,7 @@ class EmbeddingsClient:
         """
         if not text or not isinstance(text, str):
             logger.warning("Invalid text input for embedding")
-            return self._fallback_embedding()
+            return self._fallback_embedding(text="", reason="invalid_input")
 
         try:
             if self.provider == "ollama":
@@ -83,11 +87,14 @@ class EmbeddingsClient:
                 return await self._embed_openai(text)
             else:
                 logger.error(f"Unknown provider: {self.provider}")
-                return self._fallback_embedding()
+                return self._fallback_embedding(
+                    text=text,
+                    reason=f"unknown_provider:{self.provider}",
+                )
 
         except Exception as e:
             logger.error(f"Embedding generation failed: {e}")
-            return self._fallback_embedding()
+            return self._fallback_embedding(text=text, reason=str(e))
 
     async def _embed_ollama(self, text: str) -> List[float]:
         """Generate embedding via Ollama API."""
@@ -114,21 +121,25 @@ class EmbeddingsClient:
                         f"Expected {self.embedding_dim} dims, "
                         f"got {len(embedding)}"
                     )
-                
+                self._degraded = False
+                self._degraded_reason = ""
                 return embedding
             else:
                 logger.error(
                     f"Ollama embed failed: {response.status_code} "
                     f"{response.text}"
                 )
-                return self._fallback_embedding()
+                return self._fallback_embedding(
+                    text=text,
+                    reason=f"ollama_status_{response.status_code}",
+                )
 
         except asyncio.TimeoutError:
             logger.error("Ollama embedding request timeout")
-            return self._fallback_embedding()
+            return self._fallback_embedding(text=text, reason="ollama_timeout")
         except Exception as e:
             logger.error(f"Ollama embedding error: {e}")
-            return self._fallback_embedding()
+            return self._fallback_embedding(text=text, reason=str(e))
 
     async def _embed_openai(self, text: str) -> List[float]:
         """Generate embedding via OpenAI-compatible API."""
@@ -151,20 +162,28 @@ class EmbeddingsClient:
                 data = response.json()
                 if "data" in data and len(data["data"]) > 0:
                     embedding = data["data"][0].get("embedding", [])
+                    self._degraded = False
+                    self._degraded_reason = ""
                     return embedding
                 else:
                     logger.error("No embedding in OpenAI response")
-                    return self._fallback_embedding()
+                    return self._fallback_embedding(
+                        text=text,
+                        reason="openai_empty_payload",
+                    )
             else:
                 logger.error(
                     f"OpenAI embed failed: {response.status_code} "
                     f"{response.text}"
                 )
-                return self._fallback_embedding()
+                return self._fallback_embedding(
+                    text=text,
+                    reason=f"openai_status_{response.status_code}",
+                )
 
         except Exception as e:
             logger.error(f"OpenAI embedding error: {e}")
-            return self._fallback_embedding()
+            return self._fallback_embedding(text=text, reason=str(e))
 
     async def embed_batch(
         self, texts: List[str], batch_size: int = 32
@@ -197,16 +216,34 @@ class EmbeddingsClient:
         logger.info(f"Generated embeddings for {len(embeddings)} texts")
         return embeddings
 
-    def _fallback_embedding(self) -> List[float]:
+    def _fallback_embedding(self, text: str, reason: str) -> List[float]:
         """
-        Return fallback embedding when Ollama is unavailable.
+        Return deterministic hash embedding when remote provider is unavailable.
 
-        This is a deterministic hash-based embedding that preserves
-        some semantic information through character frequency analysis.
+        The fallback status is recorded so retrieval callers can surface
+        degraded quality through logs/response metadata.
         """
-        # Use zero vector as fallback (all queries will have low similarity)
-        # In production, would use a pre-computed embedding or cache
-        return [0.0] * self.embedding_dim
+        self._degraded = True
+        self._degraded_reason = reason
+        logger.warning(
+            "Embedding fallback active (reason=%s). Returning deterministic hash vector.",
+            reason,
+        )
+
+        seed = text if text else "_empty_"
+        digest = hashlib.sha256(seed.encode("utf-8", errors="ignore")).digest()
+        values: List[float] = []
+        while len(values) < self.embedding_dim:
+            for b in digest:
+                # Map byte to [-1.0, 1.0]
+                values.append((b / 127.5) - 1.0)
+                if len(values) >= self.embedding_dim:
+                    break
+            digest = hashlib.sha256(digest + seed.encode("utf-8", errors="ignore")).digest()
+
+        # Normalize so distance behavior is stable.
+        norm = math.sqrt(sum(v * v for v in values)) or 1.0
+        return [v / norm for v in values]
 
     async def shutdown(self) -> None:
         """Shutdown HTTP client."""
@@ -229,3 +266,12 @@ class EmbeddingsClient:
         except Exception as e:
             logger.debug(f"Embeddings health check failed: {e}")
             return False
+
+    def status(self) -> dict:
+        """Expose current embedding quality state for diagnostics."""
+        return {
+            "provider": self.provider,
+            "model": self.model,
+            "degraded": self._degraded,
+            "degraded_reason": self._degraded_reason or None,
+        }

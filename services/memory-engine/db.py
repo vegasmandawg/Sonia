@@ -198,10 +198,13 @@ class MemoryDatabase:
             now = datetime.now(timezone.utc).isoformat()
             
             with self.connection() as conn:
-                conn.execute(
+                cursor = conn.execute(
                     "UPDATE ledger SET archived_at = ? WHERE id = ? AND archived_at IS NULL",
                     (now, memory_id)
                 )
+                if cursor.rowcount == 0:
+                    logger.warning(f"Memory not found for delete: {memory_id}")
+                    return False
                 
                 # Log to audit trail
                 conn.execute(

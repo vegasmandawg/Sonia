@@ -16,8 +16,12 @@ from .core.workspace_store import WorkspaceStore
 from .core.retriever import Retriever
 from .core.snapshot_manager import SnapshotManager
 from .core.provenance import ProvenanceTracker
-from .db.sqlite import SqliteDB
 from .vector.hnsw_index import HNSWIndex
+
+try:
+    from .db.sqlite import SqliteDB  # type: ignore[attr-defined]
+except ImportError:
+    SqliteDB = None
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +37,12 @@ class MemoryEngine:
         config: Optional[Dict[str, Any]] = None,
     ):
         """Initialize Memory Engine with all subcomponents."""
+        if SqliteDB is None:
+            raise RuntimeError(
+                "services/memory-engine/memory_engine.py is a legacy module and "
+                "requires db.sqlite, which is not present. "
+                "Use services/memory-engine/main.py as the active runtime surface."
+            )
         self.config = config or {}
         self.db = SqliteDB(db_path)
         self.ledger = LedgerStore(self.db)

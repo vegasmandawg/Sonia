@@ -161,6 +161,14 @@ class Retriever:
         try:
             # Generate query embedding
             query_embedding = await self.embeddings.embed(query)
+            status_fn = getattr(self.embeddings, "status", None)
+            if callable(status_fn):
+                embedding_status = status_fn()
+                if embedding_status.get("degraded"):
+                    logger.warning(
+                        "Semantic search running with degraded embeddings: %s",
+                        embedding_status.get("degraded_reason"),
+                    )
             
             # Search vector index
             results = await self.vector.search(

@@ -1,4 +1,4 @@
-<#---------------------------------------------------------------------------
+﻿<#---------------------------------------------------------------------------
 setup-upstream-dependencies.ps1
 
 Extract and organize upstream tools into Sonia structure.
@@ -283,6 +283,6 @@ Write-Status "     → During install, add to PATH: Yes"
 Write-Status "     → Register as default Python: Yes"
 Write-Status "  3. Verify Python: python --version"
 Write-Status "  4. Verify Conda: conda --version"
-Write-Status "  5. Start Sonia stack: .\scripts\ops\start-sonia-stack.ps1"
+Write-Status "  5. Start Sonia stack: .\start-sonia-stack.ps1"
 Write-Status ""
 Write-Success "All upstream dependencies prepared!"

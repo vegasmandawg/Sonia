@@ -10,7 +10,8 @@ OpenClaw is a deterministic executor registry with strict safety boundaries. It 
 
 ### Quick Facts
 - **Service Port**: 7040
-- **Tools Implemented**: 4 (shell.run, file.read, file.write, browser.open)
+- **Canonical Runtime Namespace**: `file.*`, `shell.*`, `browser.*`, `app.*`, `window.*`, `keyboard.*`, `mouse.*`, `clipboard.*`, `web.*`, `notification.*`
+- **Catalog Alias Compatibility**: `filesystem.read_file -> file.read`, `filesystem.write_file -> file.write`, `shell.run_command -> shell.run`
 - **Security Layers**: 3 (allowlist + sandbox + timeout)
 - **Test Count**: 80+ (40 contract + 40 executor)
 - **Files**: 9 (main service + 3 executors + tests + policy)

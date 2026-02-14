@@ -3,13 +3,19 @@
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, MagicMock
+from pathlib import Path
+import sys
+
+MEMORY_ENGINE_DIR = Path(__file__).resolve().parents[1]
+if str(MEMORY_ENGINE_DIR) not in sys.path:
+    sys.path.insert(0, str(MEMORY_ENGINE_DIR))
 
 
 @pytest.fixture
 async def retriever():
     """Create retriever with mock components."""
-    from ..core.retriever import Retriever
-    from ..core.bm25 import BM25
+    from core.retriever import Retriever
+    from core.bm25 import BM25
     
     # Mock components
     ledger = AsyncMock()

@@ -1,4 +1,4 @@
-Set-StrictMode -Version Latest
+﻿Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $rcDir = "S:\artifacts\phase3\rc-1"
@@ -72,7 +72,8 @@ $manifestJson | Out-File -FilePath (Join-Path $rcDir "MANIFEST.json") -Encoding 
 
 # Also generate a simple text manifest
 $allFiles | Get-FileHash -Algorithm SHA256 | Sort-Object Path | ForEach-Object {
-    "$($_.Hash)  $($_.Path.Replace("$rcDir\", ""))"
+    $relativePath = $_.Path.Replace("${rcDir}\", "")
+    "$($_.Hash)  $relativePath"
 } | Out-File -FilePath (Join-Path $rcDir "SHA256SUMS.txt") -Encoding UTF8
 
 Write-Host "[OK] MANIFEST.json ($($allFiles.Count) files hashed)" -ForegroundColor Green

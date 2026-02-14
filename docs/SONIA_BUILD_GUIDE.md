@@ -162,7 +162,7 @@ S:\
 
 **Command:**
 ```powershell
-.\scripts\ops\start-sonia-stack.ps1
+.\start-sonia-stack.ps1
 ```
 
 **What it does:**
@@ -187,8 +187,8 @@ S:\
 Get-Content -Wait -Tail 50 S:\logs\services\api-gateway.out.log
 
 # Check health
-Invoke-WebRequest http://127.0.0.1:7000/health
-Invoke-WebRequest http://127.0.0.1:7010/health
+Invoke-WebRequest http://127.0.0.1:7000/healthz
+Invoke-WebRequest http://127.0.0.1:7010/healthz
 # ... etc for all 5 services
 ```
 
@@ -359,8 +359,8 @@ Key sections:
 
 ### Immediate
 1. ✅ Run diagnostic: `.\scripts\diagnostics\doctor-sonia.ps1`
-2. ✅ Start stack: `.\scripts\ops\start-sonia-stack.ps1`
-3. ✅ Verify services healthy: All /health endpoints return 200
+2. ✅ Start stack: `.\start-sonia-stack.ps1`
+3. ✅ Verify services healthy: All `/healthz` endpoints return 200
 
 ### Short Term (Phase D-F)
 - **Phase D:** Memory Engine minimal ledger + retrieval endpoint
@@ -392,7 +392,7 @@ taskkill /PID <PID> /F
 Get-Content S:\logs\services\api-gateway.out.log
 Get-Content S:\logs\services\api-gateway.err.log
 # Increase health check timeout
-.\scripts\ops\start-sonia-stack.ps1 -HealthCheckTimeoutSeconds 60
+.\start-sonia-stack.ps1 -HealthCheckTimeoutSeconds 60
 ```
 
 ### "Python/Node.js not found"

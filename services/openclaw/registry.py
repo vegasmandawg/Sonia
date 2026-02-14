@@ -12,6 +12,14 @@ import uuid
 # Root contract — all file I/O must stay within this boundary
 _ROOT_CONTRACT = r"S:\\"
 
+# Backward-compatible aliases (catalog/API -> canonical runtime name)
+_TOOL_ALIASES: Dict[str, str] = {
+    "filesystem.read_file": "file.read",
+    "filesystem.write_file": "file.write",
+    "shell.run_command": "shell.run",
+    "shell.run_powershell_script": "shell.run",
+}
+
 
 def _validate_path(path: str) -> Optional[str]:
     """Validate path is within the root contract. Returns error string or None."""
@@ -562,66 +570,78 @@ class ToolRegistry:
         """
         start_time = datetime.utcnow()
         correlation_id = request.correlation_id or f"req_{uuid.uuid4().hex[:12]}"
+        requested_tool = request.tool_name
+        tool_name = _TOOL_ALIASES.get(requested_tool, requested_tool)
+        args = dict(request.args)
+
+        # Alias argument normalization
+        if requested_tool == "shell.run_powershell_script" and "script" in args and "command" not in args:
+            args["command"] = args["script"]
         
         # Check if tool is registered
-        if request.tool_name not in self.tools:
+        if tool_name not in self.tools:
             response = ExecuteResponse(
                 status="not_implemented",
-                tool_name=request.tool_name,
+                tool_name=tool_name,
                 message="Tool not yet implemented",
                 correlation_id=correlation_id
             )
-            self._log_execution(request.tool_name, "not_implemented", correlation_id)
+            self._log_execution(tool_name, "not_implemented", correlation_id)
             return response
         
         # Get executor
-        executor = self.executors[request.tool_name]
+        executor = self.executors[tool_name]
         
         # Execute tool
         try:
             result = executor.execute(
-                request.tool_name,
-                request.args,
+                tool_name,
+                args,
                 timeout_ms=request.timeout_ms,
                 correlation_id=correlation_id
             )
+            if requested_tool != tool_name:
+                result["_alias"] = {
+                    "requested_tool": requested_tool,
+                    "canonical_tool": tool_name,
+                }
             
             # Check for errors
             if result.get("error"):
                 response = ExecuteResponse(
                     status="error",
-                    tool_name=request.tool_name,
+                    tool_name=tool_name,
                     error=result["error"],
                     message=f"Execution failed: {result['error']}",
                     correlation_id=correlation_id
                 )
-                self._log_execution(request.tool_name, "error", correlation_id, result["error"])
+                self._log_execution(tool_name, "error", correlation_id, result["error"])
                 return response
             
             # Success
             elapsed = (datetime.utcnow() - start_time).total_seconds() * 1000
             response = ExecuteResponse(
                 status="executed",
-                tool_name=request.tool_name,
+                tool_name=tool_name,
                 result=result.get("result", {}),
                 side_effects=result.get("side_effects", []),
                 correlation_id=correlation_id,
                 duration_ms=elapsed
             )
-            self._log_execution(request.tool_name, "executed", correlation_id)
+            self._log_execution(tool_name, "executed", correlation_id)
             return response
         
         except Exception as e:
             elapsed = (datetime.utcnow() - start_time).total_seconds() * 1000
             response = ExecuteResponse(
                 status="error",
-                tool_name=request.tool_name,
+                tool_name=tool_name,
                 error=str(e),
                 message=f"Execution failed: {str(e)}",
                 correlation_id=correlation_id,
                 duration_ms=elapsed
             )
-            self._log_execution(request.tool_name, "error", correlation_id, str(e))
+            self._log_execution(tool_name, "error", correlation_id, str(e))
             return response
     
     def get_tools(self) -> Dict[str, ToolMetadata]:

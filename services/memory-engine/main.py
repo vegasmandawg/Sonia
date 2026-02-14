@@ -15,6 +15,7 @@ import json
 from datetime import datetime
 from typing import Optional, Dict, List
 from pydantic import BaseModel
+from uuid import uuid4
 
 # Canonical version
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
@@ -60,6 +61,7 @@ class StoreRequest(BaseModel):
 class RecallRequest(BaseModel):
     query: str
     limit: int = 10
+    max_tokens: Optional[int] = None
 
 class HybridSearchRequest(BaseModel):
     query: str
@@ -68,6 +70,19 @@ class HybridSearchRequest(BaseModel):
 
 class UpdateRequest(BaseModel):
     content: Optional[str] = None
+    metadata: Optional[Dict] = None
+
+
+class WorkspaceIngestRequest(BaseModel):
+    content: str
+    doc_type: str
+    metadata: Optional[Dict] = None
+    chunk_size: int = 800
+    overlap: int = 100
+
+
+class SnapshotCreateRequest(BaseModel):
+    session_id: Optional[str] = None
     metadata: Optional[Dict] = None
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -86,6 +101,12 @@ def healthz():
         "memories": stats.get("active_memories", 0),
         "hybrid_search": hybrid_stats,
     }
+
+
+@app.get("/health")
+def health():
+    """Compatibility health alias for legacy tooling."""
+    return healthz()
 
 @app.get("/")
 def root():
@@ -209,10 +230,14 @@ async def search(request: RecallRequest):
                 "created_at": result['created_at']
             })
 
+        formatted_results = _apply_token_budget(formatted_results, request.max_tokens)
+
         return {
             "query": request.query,
             "results": formatted_results,
             "count": len(formatted_results),
+            "max_tokens": request.max_tokens,
+            "budget_applied": request.max_tokens is not None,
             "service": "memory-engine"
         }
     except Exception as e:
@@ -372,6 +397,316 @@ def stats():
         }
     except Exception as e:
         logger.error(f"Stats error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Workspace & Snapshot Endpoints (canonical active surface)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.post("/v1/workspace/ingest")
+@app.post("/api/v1/workspace/ingest")
+async def workspace_ingest(request: WorkspaceIngestRequest):
+    """Ingest document content and persist chunks."""
+    try:
+        from core.chunker import Chunker
+
+        doc_id = f"doc_{uuid4().hex[:12]}"
+        chunk_size = max(200, min(request.chunk_size, 4000))
+        overlap = max(0, min(request.overlap, chunk_size // 2))
+        metadata = request.metadata or {}
+
+        chunker = Chunker(chunk_size=chunk_size, overlap=overlap)
+        chunks = chunker.chunk_text(request.content or "")
+
+        with db.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO workspace_documents
+                (doc_id, doc_type, content, metadata, ingested_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    doc_id,
+                    request.doc_type,
+                    request.content,
+                    json.dumps(metadata),
+                    datetime.utcnow().isoformat(),
+                ),
+            )
+
+            for i, (chunk_text, start, end) in enumerate(chunks):
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO workspace_chunks
+                    (chunk_id, doc_id, chunk_index, content, start_offset, end_offset)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        f"{doc_id}_chunk_{i}",
+                        doc_id,
+                        i,
+                        chunk_text,
+                        start,
+                        end,
+                    ),
+                )
+            conn.commit()
+
+        return {
+            "status": "ingested",
+            "doc_id": doc_id,
+            "doc_type": request.doc_type,
+            "chunk_count": len(chunks),
+            "service": "memory-engine",
+        }
+    except Exception as e:
+        logger.error(f"Workspace ingest error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/v1/workspace/documents")
+@app.get("/api/v1/workspace/documents")
+def workspace_documents(doc_type: Optional[str] = None, limit: int = 100):
+    """List workspace documents with optional type filter."""
+    limit = max(1, min(limit, 1000))
+    try:
+        with db.connection() as conn:
+            if doc_type:
+                rows = conn.execute(
+                    """
+                    SELECT doc_id, doc_type, content, metadata, ingested_at
+                    FROM workspace_documents
+                    WHERE doc_type = ?
+                    ORDER BY ingested_at DESC
+                    LIMIT ?
+                    """,
+                    (doc_type, limit),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    """
+                    SELECT doc_id, doc_type, content, metadata, ingested_at
+                    FROM workspace_documents
+                    ORDER BY ingested_at DESC
+                    LIMIT ?
+                    """,
+                    (limit,),
+                ).fetchall()
+
+        documents = []
+        for row in rows:
+            parsed_metadata = {}
+            if row["metadata"]:
+                try:
+                    parsed_metadata = json.loads(row["metadata"])
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    parsed_metadata = {}
+            documents.append(
+                {
+                    "doc_id": row["doc_id"],
+                    "doc_type": row["doc_type"],
+                    "content_preview": row["content"][:200],
+                    "metadata": parsed_metadata,
+                    "ingested_at": row["ingested_at"],
+                }
+            )
+
+        return {
+            "documents": documents,
+            "count": len(documents),
+            "service": "memory-engine",
+        }
+    except Exception as e:
+        logger.error(f"Workspace list error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/v1/workspace/chunks/{doc_id}")
+def workspace_chunks(doc_id: str, limit: int = 200):
+    """List persisted chunks for a workspace document."""
+    limit = max(1, min(limit, 2000))
+    try:
+        with db.connection() as conn:
+            try:
+                rows = conn.execute(
+                    """
+                    SELECT chunk_id, chunk_index, content, start_offset, end_offset, created_at
+                    FROM workspace_chunks
+                    WHERE doc_id = ?
+                    ORDER BY chunk_index ASC
+                    LIMIT ?
+                    """,
+                    (doc_id, limit),
+                ).fetchall()
+            except Exception:
+                # Backward compatibility for legacy table layouts without created_at.
+                rows = conn.execute(
+                    """
+                    SELECT chunk_id, chunk_index, content, start_offset, end_offset
+                    FROM workspace_chunks
+                    WHERE doc_id = ?
+                    ORDER BY chunk_index ASC
+                    LIMIT ?
+                    """,
+                    (doc_id, limit),
+                ).fetchall()
+
+        chunks = [
+            {
+                "chunk_id": row["chunk_id"],
+                "chunk_index": row["chunk_index"],
+                "content": row["content"],
+                "start_offset": row["start_offset"],
+                "end_offset": row["end_offset"],
+                "created_at": row["created_at"] if "created_at" in row.keys() else None,
+            }
+            for row in rows
+        ]
+
+        return {
+            "doc_id": doc_id,
+            "chunks": chunks,
+            "count": len(chunks),
+            "service": "memory-engine",
+        }
+    except Exception as e:
+        logger.error(f"Workspace chunk list error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/v1/snapshots/create")
+@app.post("/api/v1/snapshots/create")
+def create_snapshot(request: SnapshotCreateRequest):
+    """Create metadata snapshot of current memory state."""
+    try:
+        snapshot_id = f"snap_{uuid4().hex[:12]}"
+        now = datetime.utcnow().isoformat()
+        snapshot_metadata = request.metadata or {}
+        if request.session_id:
+            snapshot_metadata["session_id"] = request.session_id
+
+        with db.connection() as conn:
+            ledger_count_row = conn.execute(
+                "SELECT COUNT(*) as cnt FROM ledger WHERE archived_at IS NULL"
+            ).fetchone()
+            ledger_count = ledger_count_row["cnt"] if ledger_count_row else 0
+
+            document_count_row = conn.execute(
+                "SELECT COUNT(*) as cnt FROM workspace_documents"
+            ).fetchone()
+            document_count = document_count_row["cnt"] if document_count_row else 0
+            snapshot_metadata["document_count"] = document_count
+
+            conn.execute(
+                """
+                INSERT INTO snapshots (id, timestamp, ledger_count, metadata, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    snapshot_id,
+                    now,
+                    ledger_count,
+                    json.dumps(snapshot_metadata),
+                    now,
+                ),
+            )
+            conn.commit()
+
+        return {
+            "snapshot_id": snapshot_id,
+            "ledger_count": ledger_count,
+            "metadata": snapshot_metadata,
+            "service": "memory-engine",
+        }
+    except Exception as e:
+        logger.error(f"Snapshot create error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/v1/snapshots")
+def list_snapshots(limit: int = 100):
+    """List latest snapshots."""
+    limit = max(1, min(limit, 1000))
+    try:
+        with db.connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT id, timestamp, ledger_count, metadata, created_at
+                FROM snapshots
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+
+        snapshots = []
+        for row in rows:
+            parsed_metadata = {}
+            if row["metadata"]:
+                try:
+                    parsed_metadata = json.loads(row["metadata"])
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    parsed_metadata = {}
+            snapshots.append(
+                {
+                    "snapshot_id": row["id"],
+                    "timestamp": row["timestamp"],
+                    "ledger_count": row["ledger_count"],
+                    "metadata": parsed_metadata,
+                    "created_at": row["created_at"],
+                }
+            )
+
+        return {
+            "snapshots": snapshots,
+            "count": len(snapshots),
+            "service": "memory-engine",
+        }
+    except Exception as e:
+        logger.error(f"Snapshot list error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/v1/snapshots/restore/{snapshot_id}")
+@app.post("/api/v1/snapshots/restore/{snapshot_id}")
+def restore_snapshot(snapshot_id: str):
+    """Load snapshot metadata for restore workflows."""
+    try:
+        with db.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT id, timestamp, ledger_count, metadata, created_at
+                FROM snapshots
+                WHERE id = ?
+                """,
+                (snapshot_id,),
+            ).fetchone()
+
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Snapshot not found: {snapshot_id}")
+
+        metadata = {}
+        if row["metadata"]:
+            try:
+                metadata = json.loads(row["metadata"])
+            except (TypeError, ValueError, json.JSONDecodeError):
+                metadata = {}
+
+        return {
+            "snapshot_id": row["id"],
+            "restored": {
+                "timestamp": row["timestamp"],
+                "ledger_count": row["ledger_count"],
+                "metadata": metadata,
+                "created_at": row["created_at"],
+            },
+            "service": "memory-engine",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Snapshot restore error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 # ─────────────────────────────────────────────────────────────────────────────
