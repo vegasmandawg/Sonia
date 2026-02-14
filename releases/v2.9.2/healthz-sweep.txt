@@ -1,0 +1,6 @@
+﻿7000 api-gateway ok=True version=2.9.1
+7010 model-router ok=True version=
+7020 memory-engine ok=True version=
+7030 pipecat ok=True version=
+7040 openclaw ok=True version=
+7050 eva-os ok=True version=

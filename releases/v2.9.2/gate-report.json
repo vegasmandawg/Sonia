@@ -1,0 +1,66 @@
+{
+  "version": "2.9.2",
+  "tag": "v2.9.2",
+  "tag_sha": "bdfaa5aa0897d96a3e5bcbbb78063ce1f178b64e",
+  "merge_sha": "dc6c7b362b1d1d7be792176d3ed575e218ef1de3",
+  "branch": "v2.9.2-dev",
+  "base": "v2.9.1",
+  "timestamp": "2026-02-13T00:00:00Z",
+  "gates": {
+    "test_suite": {
+      "passed": true,
+      "total_tests": 714,
+      "failed": 0,
+      "warnings": 13,
+      "duration_s": 180.54,
+      "command": "pytest tests/integration/ -q --tb=line"
+    },
+    "legacy_markers_removed": {
+      "passed": true,
+      "files_cleaned": 10,
+      "markers_removed": ["legacy_v26_v28"]
+    },
+    "infra_flaky_resolved": {
+      "passed": true,
+      "issues_closed": [
+        "INFRA-FLAKY-WS-RACE",
+        "INFRA-FLAKY-OLLAMA-TIMEOUT",
+        "INFRA-FLAKY-CHAOS-TIMING"
+      ]
+    },
+    "schema_invariants": {
+      "passed": true,
+      "tests_added": 18,
+      "schemas_frozen": [
+        "TurnRequest",
+        "TurnResponse",
+        "SessionCreateRequest",
+        "SessionCreateResponse",
+        "ActionPlanRequest",
+        "ActionPlanResponse",
+        "/healthz"
+      ]
+    },
+    "merge_clean": {
+      "passed": true,
+      "strategy": "ort",
+      "conflicts": 0
+    }
+  },
+  "scope": {
+    "included": [
+      "Schema invariant tests (18)",
+      "Flaky test retry/backoff fix",
+      "WS-RACE / OLLAMA-TIMEOUT / CHAOS-TIMING closure",
+      "Legacy marker purge (10 files)"
+    ],
+    "excluded": [
+      "Perception real VLM path",
+      "Chunker upgrade",
+      "OpenClaw executor completion",
+      "MCP boot wiring",
+      "Policy-engine dedicated tests",
+      "UI live smoke"
+    ]
+  }
+}
