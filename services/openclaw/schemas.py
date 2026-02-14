@@ -122,6 +122,7 @@ class HealthzResponse(BaseModel):
     
     ok: bool = Field(True, description="Service health status")
     service: str = Field("openclaw", description="Service name")
+    contract_version: str = Field("", description="API contract version")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Response timestamp")
     tools_registered: int = Field(0, description="Number of registered tools")
     tools_implemented: int = Field(0, description="Number of implemented tools")

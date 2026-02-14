@@ -1,0 +1,217 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sonia.local/schemas/sonia-config.schema.json",
+  "title": "SONIA Configuration Schema v3.0.0",
+  "description": "Canonical configuration for the SONIA runtime. All services validate against this schema on startup.",
+  "type": "object",
+  "required": ["config_schema", "sonia_version", "canonical_root", "services"],
+  "properties": {
+    "config_schema": {
+      "type": "string",
+      "pattern": "^3\\.\\d+\\.\\d+$",
+      "description": "Config schema version (must be 3.x.x for v3 runtime)"
+    },
+    "sonia_version": {
+      "type": "string",
+      "description": "SONIA release version"
+    },
+    "canonical_root": {
+      "type": "string",
+      "pattern": "^[A-Z]:\\\\",
+      "description": "Canonical root directory (absolute Windows path)"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Optional session identifier for this config instance"
+    },
+    "services": {
+      "type": "object",
+      "description": "Service definitions for the 8 core services",
+      "required": ["api_gateway", "model_router", "memory_engine", "pipecat", "openclaw", "eva_os"],
+      "additionalProperties": {
+        "$ref": "#/definitions/service_def"
+      },
+      "properties": {
+        "api_gateway":    { "$ref": "#/definitions/service_def" },
+        "model_router":   { "$ref": "#/definitions/service_def" },
+        "memory_engine":  { "$ref": "#/definitions/service_def" },
+        "pipecat":        { "$ref": "#/definitions/service_def" },
+        "openclaw":       { "$ref": "#/definitions/service_def" },
+        "eva_os":         { "$ref": "#/definitions/service_def" },
+        "vision_capture": { "$ref": "#/definitions/service_def" },
+        "perception":     { "$ref": "#/definitions/service_def" }
+      }
+    },
+    "directories": {
+      "type": "object",
+      "description": "Standard directory paths",
+      "additionalProperties": { "type": "string" }
+    },
+    "eva_os": {
+      "type": "object",
+      "properties": {
+        "default_mode":                    { "type": "string" },
+        "root_contract":                   { "type": "string" },
+        "approval_timeout_seconds":        { "type": "integer", "minimum": 1 },
+        "auto_degrade_on_service_failure": { "type": "boolean" },
+        "log_all_tool_calls":              { "type": "boolean" },
+        "require_verification":            { "type": "boolean" },
+        "memory_discipline":               { "type": "string", "enum": ["strict", "relaxed"] }
+      },
+      "additionalProperties": true
+    },
+    "pipecat": {
+      "type": "object",
+      "properties": {
+        "audio_sample_rate_hz":       { "type": "integer", "minimum": 8000 },
+        "vad_enabled":                { "type": "boolean" },
+        "vad_hangover_ms":            { "type": "integer", "minimum": 0 },
+        "turn_finalization_silence_ms": { "type": "integer", "minimum": 0 },
+        "streaming_asr_enabled":      { "type": "boolean" },
+        "barge_in_enabled":           { "type": "boolean" },
+        "save_audio_artifacts":       { "type": "boolean" },
+        "audio_artifact_path":        { "type": "string" },
+        "voice_loop":                 { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": true
+    },
+    "memory_engine": {
+      "type": "object",
+      "properties": {
+        "memory_discipline":     { "type": "string", "enum": ["strict", "relaxed"] },
+        "ledger_path":           { "type": "string" },
+        "knowledge_workspace":   { "type": "string" },
+        "auto_archive_days":     { "type": "integer", "minimum": 1 },
+        "durable_memory_types":  { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "model_router": {
+      "type": "object",
+      "properties": {
+        "default_model":          { "type": "string" },
+        "fallback_model":         { "type": "string" },
+        "local_endpoint":         { "type": "string", "format": "uri" },
+        "offline_preferred":      { "type": "boolean" },
+        "context_length_default": { "type": "integer", "minimum": 1 },
+        "audit_log_path":         { "type": "string" },
+        "health":                 { "type": "object", "additionalProperties": true },
+        "profiles":               { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": true
+    },
+    "openclaw": {
+      "type": "object",
+      "properties": {
+        "tool_catalog":            { "type": "string" },
+        "root_contract":           { "type": "string" },
+        "deny_escaping_root":      { "type": "boolean" },
+        "require_approval_for_tier": { "type": "string" },
+        "verify_all_executions":   { "type": "boolean" },
+        "logs_tool_calls":         { "type": "string" },
+        "audit_log":               { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "action_safety": {
+      "type": "object",
+      "properties": {
+        "confirmation_ttl_seconds":     { "type": "integer", "minimum": 1 },
+        "max_pending_confirmations":    { "type": "integer", "minimum": 1 },
+        "default_verdict":              { "type": "string", "enum": ["confirm", "deny", "auto_approve"] },
+        "custom_rules":                 { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "api_gateway": {
+      "type": "object",
+      "properties": {
+        "max_request_size_mb":       { "type": "integer", "minimum": 1 },
+        "streaming_enabled":         { "type": "boolean" },
+        "cors_enabled":              { "type": "boolean" },
+        "request_timeout_seconds":   { "type": "integer", "minimum": 1 },
+        "internal_endpoints": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Inter-service endpoints (healthz, status, deps)"
+        },
+        "public_endpoints": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Client-facing endpoints exposed under /v3/*"
+        }
+      },
+      "additionalProperties": true
+    },
+    "vision_capture": {
+      "type": "object",
+      "properties": {
+        "ring_buffer_max_frames": { "type": "integer", "minimum": 1 },
+        "ambient_fps":            { "type": "number", "minimum": 0 },
+        "active_fps":             { "type": "number", "minimum": 0 },
+        "ambient_resolution":     { "type": "array", "items": { "type": "integer" }, "minItems": 2, "maxItems": 2 },
+        "active_resolution":      { "type": "array", "items": { "type": "integer" }, "minItems": 2, "maxItems": 2 },
+        "max_frame_bytes":        { "type": "integer", "minimum": 1 },
+        "default_privacy":        { "type": "string" },
+        "default_mode":           { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "perception": {
+      "type": "object",
+      "properties": {
+        "max_gpu_budget_ms":     { "type": "integer", "minimum": 0 },
+        "inference_timeout_s":   { "type": "number", "minimum": 0 },
+        "trigger_types":         { "type": "array", "items": { "type": "string" } },
+        "auto_execute_actions":  { "type": "boolean" },
+        "default_frame_count":   { "type": "integer", "minimum": 1 },
+        "max_frame_count":       { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": true
+    },
+    "companion_ui": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "enabled":                 { "type": "boolean" },
+        "exempt_paths":            { "type": "array", "items": { "type": "string" } },
+        "service_token":           { "type": "string" },
+        "key_cache_ttl_seconds":   { "type": "integer", "minimum": 1 },
+        "key_cache_max_entries":   { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": true
+    },
+    "operational": {
+      "type": "object",
+      "properties": {
+        "health_check_interval_seconds":  { "type": "integer", "minimum": 1 },
+        "stale_pid_cleanup_seconds":      { "type": "integer", "minimum": 1 },
+        "log_rotation_days":              { "type": "integer", "minimum": 1 },
+        "log_max_size_mb":                { "type": "integer", "minimum": 1 },
+        "safe_shutdown_timeout_seconds":  { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true,
+  "definitions": {
+    "service_def": {
+      "type": "object",
+      "required": ["name", "port", "host", "health_endpoint"],
+      "properties": {
+        "name":             { "type": "string" },
+        "port":             { "type": "integer", "minimum": 1024, "maximum": 65535 },
+        "host":             { "type": "string" },
+        "description":      { "type": "string" },
+        "health_endpoint":  { "type": "string" },
+        "status_endpoint":  { "type": "string" },
+        "log_file":         { "type": "string" },
+        "pid_file":         { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

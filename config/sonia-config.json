@@ -1,8 +1,8 @@
 {
-  "sonia_version": "2.10.0",
-  "final_iteration": true,
+  "config_schema": "3.0.0",
+  "sonia_version": "3.0.0",
   "canonical_root": "S:\\",
-  "session_id": "sonia-final-iteration-2026-02",
+  "session_id": "sonia-v3-productization-2026-02",
   
   "services": {
     "api_gateway": {
@@ -185,7 +185,12 @@
     "max_request_size_mb": 100,
     "streaming_enabled": true,
     "cors_enabled": true,
-    "request_timeout_seconds": 300
+    "request_timeout_seconds": 300,
+    "internal_endpoints": ["healthz", "status", "deps"],
+    "public_endpoints": [
+      "turn", "chat", "sessions", "stream", "actions", "confirmations",
+      "diagnostics", "backups", "capabilities", "ui/stream"
+    ]
   },
 
   "vision_capture": {
@@ -215,6 +220,14 @@
     "avatar_placeholder": true,
     "websocket_reconnect_ms": 3000,
     "max_reconnect_attempts": 10
+  },
+
+  "auth": {
+    "enabled": false,
+    "exempt_paths": ["/healthz", "/status", "/docs", "/openapi.json"],
+    "service_token": "",
+    "key_cache_ttl_seconds": 300,
+    "key_cache_max_entries": 100
   },
 
   "operational": {

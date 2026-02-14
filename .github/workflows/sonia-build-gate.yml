@@ -6,6 +6,7 @@ on:
       - main
       - "v*-dev"
       - "v*-runtime-hardening"
+      - "v*-m*"
       - "fix/**"
   pull_request:
   workflow_dispatch:
@@ -50,7 +51,8 @@ jobs:
             python-dateutil `
             pyyaml `
             numpy `
-            pillow
+            pillow `
+            jsonschema
 
       - name: Python Compile Check
         shell: powershell
@@ -131,6 +133,28 @@ jobs:
       - name: TypeScript Check
         shell: powershell
         run: npx --prefix ui/sonia-avatar tsc -p ui/sonia-avatar/tsconfig.json --noEmit
+
+      - name: Config Schema Validation
+        shell: powershell
+        run: |
+          $script = @'
+          import sys
+          sys.path.insert(0, 'services/shared')
+          from config_validator import SoniaConfig, ConfigValidationError
+          try:
+              cfg = SoniaConfig(
+                  config_path='config/sonia-config.json',
+                  schema_path='config/schemas/sonia-config.schema.json',
+              )
+              print(f"OK: version={cfg.version}, schema={cfg.schema_version}")
+          except ConfigValidationError as e:
+              print(f"FAIL: {e}")
+              sys.exit(1)
+          except Exception as e:
+              print(f"ERROR: {e}")
+              sys.exit(1)
+          '@
+          $script | python -
 
       - name: Pytest Collect Integration
         shell: powershell

@@ -295,6 +295,80 @@ class MemoryClient:
         
         return response.json()
     
+    # ── Identity / Session / History (M2) ──────────────────────────────────
+
+    async def lookup_user_by_key(
+        self,
+        api_key_hash: str,
+        correlation_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Look up active user by API key hash. Returns None if not found."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v1/users/by-key"
+        try:
+            response = await self._retry_request("GET", url, correlation_id, params={"api_key_hash": api_key_hash})
+            if response.status_code == 404:
+                return None
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except MemoryClientError:
+            return None
+
+    async def persist_session(
+        self,
+        session_data: Dict[str, Any],
+        correlation_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Persist a session record to memory-engine."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v1/sessions/persist"
+        response = await self._retry_request("POST", url, correlation_id, json=session_data)
+        return response.json()
+
+    async def update_session(
+        self,
+        session_id: str,
+        updates: Dict[str, Any],
+        correlation_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Update fields on a persisted session."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v1/sessions/update/{session_id}"
+        response = await self._retry_request("PUT", url, correlation_id, json=updates)
+        return response.json()
+
+    async def load_active_sessions(
+        self,
+        correlation_id: Optional[str] = None,
+    ) -> list:
+        """Load all active sessions from durable storage."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v1/sessions/active"
+        try:
+            response = await self._retry_request("GET", url, correlation_id)
+            if response.status_code == 200:
+                return response.json().get("sessions", [])
+            return []
+        except MemoryClientError:
+            return []
+
+    async def write_turn(
+        self,
+        turn_data: Dict[str, Any],
+        correlation_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Write a conversation turn to history. Fire-and-forget safe."""
+        correlation_id = correlation_id or str(uuid.uuid4())
+        url = f"{self.base_url}/v1/history/turns"
+        try:
+            response = await self._retry_request("POST", url, correlation_id, json=turn_data)
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except MemoryClientError:
+            return None
+
     async def close(self):
         """Close HTTP client."""
         await self.client.aclose()

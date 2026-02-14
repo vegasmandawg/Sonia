@@ -23,7 +23,7 @@ if _shared_dir not in sys.path:
     sys.path.insert(1, _shared_dir)
 
 # Canonical version
-from version import SONIA_VERSION
+from version import SONIA_VERSION, SONIA_CONTRACT
 
 from sessions import SessionManager, SessionState
 from routes.ws import websocket_handler
@@ -136,6 +136,7 @@ async def healthz():
     health = {
         "ok": True,
         "service": "pipecat",
+        "contract_version": SONIA_CONTRACT,
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
 
