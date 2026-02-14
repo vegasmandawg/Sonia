@@ -1,0 +1,8 @@
+v2.8.0 GA Changelog (v2.7.0..v2.8.0)
+==========================================
+
+fbf869a2 chore(v2.8-ga): promotion artifacts -- 52 hardening tests, gate, soak, cleanroom
+f39689a3 feat(v2.8): 4 milestones -- model routing, memory integration, perception gate, operator UX (104 tests)
+
+RC1 tag: v2.8.0-rc1 at f39689a3 (feature freeze)
+GA tag:  v2.8.0 at fbf869a2 (promotion artifacts only, zero behavior changes)

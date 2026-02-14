@@ -1,0 +1,59 @@
+{
+  "release": "v2.8.0-rc1",
+  "codename": "Deterministic Operations -- Cancellation, Memory, Perception, Operator UX",
+  "created_at": "2026-02-09T14:35:04Z",
+  "commit": "f39689a3",
+  "tag": "v2.8.0-rc1",
+  "promotion_gate": true,
+  "promotion_gate_detail": "PASSED (12/14 non-skipped)",
+  "test_counts": {
+    "rc1_hardening": 52,
+    "v28_model_routing": 22,
+    "v28_memory_integration": 20,
+    "v28_perception_gate": 22,
+    "v28_operator_ux": 40,
+    "v28_full_regression": 156,
+    "v27_backward_compat": 163,
+    "v26_backward_compat": 82,
+    "full_integration_suite": 565,
+    "total": 565
+  },
+  "soak": {
+    "verdict": "PASS",
+    "total_operations": 700,
+    "invariant_violations": 0,
+    "stuck_sessions": 0,
+    "queue_overflows": 0
+  },
+  "artifacts": {
+    "requirements-frozen.txt": {
+      "sha256": "a8a6af7f3dba7bd721144a39c1fe76fccd0726203784caddee0ddb6a96ee6277",
+      "size_bytes": 3102
+    },
+    "dependency-lock.json": {
+      "sha256": "5cc5b026f35590761b4ef580360d7227931f3992d4a271fbbcbf887d418a4509",
+      "size_bytes": 3402
+    },
+    "reports/promotion-gate-report.json": {
+      "sha256": "53c4d741d633460b508d32a634aa6d6939f7d975e36ba622a5af152131df4178",
+      "size_bytes": 4436
+    },
+    "reports/soak-report.json": {
+      "sha256": "355f984722ceaae6640fad1c33fc74421749ccfb191688a8e90fac84a515db65",
+      "size_bytes": 1426
+    },
+    "env/pip-freeze.txt": {
+      "sha256": "7555eea8cc5cf050ad1bac3079d99eba528dfcf271b00704e007cff7a7ae698d",
+      "size_bytes": 1553
+    },
+    "env/conda-list.txt": {
+      "sha256": "74910bdca28caacaca2de27ba4548a299bec0f376e6791409f6a27c19e30fa40",
+      "size_bytes": 6775
+    },
+    "CHANGELOG.txt": {
+      "sha256": "658cef6c740fa2659e9ea012e713024b5c67596ea48bbd997a4a30860b136984",
+      "size_bytes": 117
+    }
+  },
+  "changelog_delta": "v2.7.0..v2.8.0-rc1"
+}
