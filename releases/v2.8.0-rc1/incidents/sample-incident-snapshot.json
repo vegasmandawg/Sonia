@@ -1,0 +1,173 @@
+{
+  "snapshot_id": "snap_cec79b900002",
+  "timestamp": 1770671407.548509,
+  "session_id": "incident_sample",
+  "talk_state": "idle",
+  "input_mode": "push_to_talk",
+  "uptime_seconds": 0.0,
+  "indicators": {
+    "session_id": "incident_sample",
+    "talk_state": "idle",
+    "input_mode": "push_to_talk",
+    "current_turn_id": null,
+    "uptime_seconds": 0.0,
+    "subsystems": {
+      "model": {
+        "name": "model",
+        "health": "healthy",
+        "latency_ms": 42,
+        "last_check": 1770671407.548509,
+        "detail": "",
+        "error_count": 0
+      },
+      "memory": {
+        "name": "memory",
+        "health": "degraded",
+        "latency_ms": 890,
+        "last_check": 1770671407.548509,
+        "detail": "high latency during soak",
+        "error_count": 0
+      },
+      "perception": {
+        "name": "perception",
+        "health": "healthy",
+        "latency_ms": 15,
+        "last_check": 1770671407.548509,
+        "detail": "",
+        "error_count": 0
+      },
+      "action": {
+        "name": "action",
+        "health": "healthy",
+        "latency_ms": 8,
+        "last_check": 1770671407.548509,
+        "detail": "",
+        "error_count": 0
+      },
+      "gateway": {
+        "name": "gateway",
+        "health": "healthy",
+        "latency_ms": 3,
+        "last_check": 1770671407.548509,
+        "detail": "",
+        "error_count": 0
+      }
+    },
+    "metrics": {
+      "total_turns": 3,
+      "total_cancels": 1,
+      "total_errors": 0,
+      "avg_latency_ms": 0.0
+    }
+  },
+  "recent_activity": [
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "state.listening",
+      "detail": "Transition idle -> listening",
+      "turn_id": "",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "state.processing",
+      "detail": "Transition listening -> processing",
+      "turn_id": "turn_b26f3929",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "state.responding",
+      "detail": "Transition processing -> responding",
+      "turn_id": "turn_b26f3929",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "turn.completed",
+      "detail": "Turn completed in 0ms",
+      "turn_id": "turn_b26f3929",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "state.listening",
+      "detail": "Transition idle -> listening",
+      "turn_id": "",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "state.processing",
+      "detail": "Transition listening -> processing",
+      "turn_id": "turn_54b1d2ba",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "state.responding",
+      "detail": "Transition processing -> responding",
+      "turn_id": "turn_54b1d2ba",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "turn.completed",
+      "detail": "Turn completed in 0ms",
+      "turn_id": "turn_54b1d2ba",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "state.listening",
+      "detail": "Transition idle -> listening",
+      "turn_id": "",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "state.processing",
+      "detail": "Transition listening -> processing",
+      "turn_id": "turn_62e7033d",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "state.responding",
+      "detail": "Transition processing -> responding",
+      "turn_id": "turn_62e7033d",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "turn.completed",
+      "detail": "Turn completed in 0ms",
+      "turn_id": "turn_62e7033d",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "state.listening",
+      "detail": "Transition idle -> listening",
+      "turn_id": "",
+      "duration_ms": 0.0
+    },
+    {
+      "timestamp": 1770671407.548509,
+      "event_type": "turn.cancelled",
+      "detail": "Cancelled: user_interrupt",
+      "turn_id": "turn_10ce6f85",
+      "duration_ms": 0.0
+    }
+  ],
+  "metrics": {
+    "total_turns": 3,
+    "total_cancels": 1,
+    "total_errors": 0,
+    "turn_latencies_last_20": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  }
+}

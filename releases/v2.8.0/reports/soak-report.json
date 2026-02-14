@@ -1,0 +1,60 @@
+﻿{
+  "version": "v2.8.0-rc1",
+  "timestamp": "20260209-143427",
+  "cycles": 100,
+  "total_operations": 700,
+  "total_elapsed_ms": 31.0,
+  "invariant_violations": 0,
+  "stuck_sessions": 0,
+  "queue_overflows": 0,
+  "verdict": "PASS",
+  "phases": {
+    "cancellation": {
+      "cycles": 100,
+      "violations": 0,
+      "active_count_final": 0,
+      "total_cancellations": 100,
+      "elapsed_ms": 16.0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0
+    },
+    "memory": {
+      "cycles": 100,
+      "budget_violations": 0,
+      "error_leaks": 0,
+      "truncation_count": 92,
+      "elapsed_ms": 0.0,
+      "avg_latency_ms": 0.0
+    },
+    "perception": {
+      "cycles": 300,
+      "bypass_leaks": 0,
+      "queue_overflow": 0,
+      "pending_final": 23,
+      "total_approved": 152,
+      "total_denied": 125,
+      "bypass_attempts": 144,
+      "elapsed_ms": 0.0
+    },
+    "operator": {
+      "cycles": 200,
+      "stuck_sessions": 0,
+      "invalid_transitions": 0,
+      "final_state": "idle",
+      "total_turns": 143,
+      "total_cancels": 57,
+      "total_errors": 0,
+      "activity_count": 50,
+      "snapshot_valid": true,
+      "elapsed_ms": 0.0
+    },
+    "incident": {
+      "valid": true,
+      "missing_keys": [],
+      "json_roundtrip_ok": true,
+      "snapshot_size_bytes": 4352,
+      "activity_count": 20,
+      "subsystem_count": 5
+    }
+  }
+}
