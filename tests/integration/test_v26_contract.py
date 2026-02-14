@@ -41,7 +41,6 @@ import time
 import importlib.util
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28]
 
 # ---------------------------------------------------------------------------
 # Path setup

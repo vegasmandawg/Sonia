@@ -1,6 +1,6 @@
 # INFRA-FLAKY-OLLAMA-TIMEOUT
 
-**Status:** Open
+**Status:** Closed (v2.9.2 -- retry loop with backoff added)
 **Priority:** P2
 **Owner:** infra
 **SLA:** Fix or suppress by v2.9.2

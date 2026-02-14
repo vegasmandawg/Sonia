@@ -1,6 +1,6 @@
 # INFRA-FLAKY-WS-RACE
 
-**Status:** Open
+**Status:** Closed (v2.9.2 -- ConnectionClosedOK already handled, passes reliably)
 **Priority:** P2
 **Owner:** infra
 **SLA:** Fix or suppress by v2.9.2

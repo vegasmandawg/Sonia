@@ -34,7 +34,6 @@ import time
 from pathlib import Path
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28]
 
 # ---------------------------------------------------------------------------
 # Path setup

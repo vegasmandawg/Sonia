@@ -29,7 +29,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28]
 
 sys.path.insert(0, r"S:")
 sys.path.insert(0, r"S:\services\shared")

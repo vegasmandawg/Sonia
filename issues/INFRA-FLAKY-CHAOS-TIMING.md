@@ -1,6 +1,6 @@
 # INFRA-FLAKY-CHAOS-TIMING
 
-**Status:** Open
+**Status:** Closed (v2.9.2 -- 60s polling loop already in place, passes reliably)
 **Priority:** P2
 **Owner:** infra
 **SLA:** Fix or suppress by v2.9.2

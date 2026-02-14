@@ -32,7 +32,6 @@ import random
 import time
 
 import pytest
-pytestmark = [pytest.mark.legacy_v26_v28]
 
 sys.path.insert(0, r"S:\services\api-gateway")
 sys.path.insert(0, r"S:\services\shared")

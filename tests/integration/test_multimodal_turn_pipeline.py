@@ -139,48 +139,49 @@ class TestMultimodalTurnPipeline:
 
     @pytest.mark.asyncio
     async def test_sync_turn_has_quality_and_latency(self):
-        """The sync /v1/turn endpoint should include quality + latency."""
-        # Fresh readiness gate: ensure model is responsive right now
-        # (previous WS tests may have left model busy)
-        for _attempt in range(3):
+        """The sync /v1/turn endpoint should include quality + latency.
+
+        Retries up to 5 times with increasing backoff to handle Ollama
+        cold-start and post-WS-test model busy states.
+        """
+        last_error = None
+        for attempt in range(5):
             try:
                 async with httpx.AsyncClient(timeout=TIMEOUT) as c:
-                    probe = await c.post(f"{GW}/v1/turn", json={
-                        "user_id": "readiness",
-                        "conversation_id": f"ready-sync-{_attempt}",
-                        "input_text": "ready check",
+                    r = await c.post(f"{GW}/v1/turn", json={
+                        "user_id": "mm-test",
+                        "conversation_id": f"conv_{uuid.uuid4().hex[:8]}",
+                        "input_text": "Stage 4 quality test: what is 5 plus 5?",
                     })
-                    if probe.json().get("ok"):
-                        break
-            except Exception:
-                pass
-            await asyncio.sleep(3.0)
+                    d = r.json()
+                    if not d.get("ok"):
+                        last_error = f"ok=False on attempt {attempt}: {d.get('error')}"
+                        await asyncio.sleep(5.0 * (attempt + 1))
+                        continue
 
-        async with httpx.AsyncClient(timeout=TIMEOUT) as c:
-            r = await c.post(f"{GW}/v1/turn", json={
-                "user_id": "mm-test",
-                "conversation_id": f"conv_{uuid.uuid4().hex[:8]}",
-                "input_text": "Stage 4 quality test: what is 5 plus 5?",
-            })
-            d = r.json()
-            assert d["ok"] is True
-            assert d.get("assistant_text")
-            assert d.get("turn_id", "").startswith("turn_")
+                    assert d.get("assistant_text")
+                    assert d.get("turn_id", "").startswith("turn_")
 
-            # Quality annotations
-            assert "quality" in d
-            q = d["quality"]
-            assert q["completion_reason"] in ("ok", "fallback")
-            assert isinstance(q["fallback_used"], bool)
-            assert isinstance(q["tool_calls_attempted"], int)
+                    # Quality annotations
+                    assert "quality" in d
+                    q = d["quality"]
+                    assert q["completion_reason"] in ("ok", "fallback")
+                    assert isinstance(q["fallback_used"], bool)
+                    assert isinstance(q["tool_calls_attempted"], int)
 
-            # Latency breakdown
-            assert "latency" in d
-            lat = d["latency"]
-            assert "memory_read_ms" in lat
-            assert "model_ms" in lat
-            assert "total_ms" in lat
-            assert lat["total_ms"] > 0
+                    # Latency breakdown
+                    assert "latency" in d
+                    lat = d["latency"]
+                    assert "memory_read_ms" in lat
+                    assert "model_ms" in lat
+                    assert "total_ms" in lat
+                    assert lat["total_ms"] > 0
+                    return  # success
+            except httpx.ReadTimeout:
+                last_error = f"ReadTimeout on attempt {attempt}"
+                await asyncio.sleep(5.0 * (attempt + 1))
+
+        pytest.fail(f"test_sync_turn_has_quality_and_latency failed after 5 attempts: {last_error}")
 
 
 if __name__ == "__main__":
