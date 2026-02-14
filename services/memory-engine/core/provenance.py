@@ -129,6 +129,45 @@ class ProvenanceTracker:
 
         return chain
 
+    def track_perception(
+        self,
+        memory_id: str,
+        scene_id: str,
+        correlation_id: str,
+        trigger: str,
+        model_used: str,
+        metadata: Optional[Dict] = None,
+    ) -> None:
+        """Track provenance for a perception-derived memory.
+
+        Validates that all 4 required perception fields are non-empty.
+        Calls track() with source_type="perception", source_id=scene_id.
+
+        Raises:
+            ValueError: if any required field is empty
+        """
+        for name, val in [("scene_id", scene_id), ("correlation_id", correlation_id),
+                          ("trigger", trigger), ("model_used", model_used)]:
+            if not val or not isinstance(val, str) or not val.strip():
+                raise ValueError(
+                    f"Perception provenance requires non-empty '{name}', got: {val!r}"
+                )
+
+        extra = metadata or {}
+        extra.update({
+            "scene_id": scene_id,
+            "correlation_id": correlation_id,
+            "trigger": trigger,
+            "model_used": model_used,
+        })
+
+        self.track(
+            memory_id=memory_id,
+            source_type="perception",
+            source_id=scene_id,
+            metadata=extra,
+        )
+
     def get_stats(self) -> Dict[str, Any]:
         """Return provenance tracking statistics."""
         return {

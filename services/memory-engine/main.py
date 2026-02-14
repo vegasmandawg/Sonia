@@ -800,6 +800,34 @@ def get_provenance(memory_id: str):
         "service": "memory-engine",
     }
 
+class TrackProvenanceRequest(BaseModel):
+    memory_id: str
+    source_type: str = "direct"
+    source_id: Optional[str] = None
+    metadata: Optional[Dict] = None
+
+
+@app.post("/v1/provenance/track")
+def track_provenance(request: TrackProvenanceRequest):
+    """Track provenance for a memory item (M4: perception bridge uses this)."""
+    try:
+        _provenance.track(
+            memory_id=request.memory_id,
+            source_type=request.source_type,
+            source_id=request.source_id,
+            metadata=request.metadata,
+        )
+        return {
+            "status": "tracked",
+            "memory_id": request.memory_id,
+            "source_type": request.source_type,
+            "service": "memory-engine",
+        }
+    except Exception as e:
+        logger.error(f"Provenance track error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.get("/v1/provenance/{memory_id}/chain")
 def get_provenance_chain(memory_id: str, max_depth: int = 10):
     """Get the full provenance chain for a memory item."""
