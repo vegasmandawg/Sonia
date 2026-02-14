@@ -44,6 +44,7 @@ from health_supervisor import get_health_supervisor
 from action_audit import get_audit_logger
 from state_backup import get_backup_manager
 from jsonl_logger import session_log, error_log
+from auth import AuthMiddleware
 
 logger = logging.getLogger("api-gateway")
 
@@ -127,6 +128,41 @@ async def lifespan(a):
     # v3.0: inject clients into UI stream handler for conversation bridge
     inject_ui_clients(memory_client, router_client, openclaw_client)
 
+    # M2: wire session manager to memory client for persistence
+    session_mgr.set_memory_client(memory_client)
+
+    # M2: restore persisted sessions from memory-engine
+    try:
+        restored = await session_mgr.restore_sessions()
+        log_event({"level": "INFO", "service": "api-gateway", "event": "sessions_restored", "count": restored})
+    except Exception as e:
+        log_event({"level": "WARN", "service": "api-gateway", "event": "session_restore_failed", "reason": str(e)})
+
+    # M2: configure auth middleware
+    auth_cfg = {}
+    try:
+        from config_validator import SoniaConfig as _SC
+        _c = _SC()
+        auth_cfg = _c.get("auth")
+    except Exception:
+        pass
+    auth_enabled = auth_cfg.get("enabled", False)
+    if auth_enabled:
+        exempt = set(auth_cfg.get("exempt_paths", []))
+        exempt.update({"/healthz", "/health", "/status", "/", "/docs", "/openapi.json", "/redoc"})
+        app.add_middleware(
+            AuthMiddleware,
+            enabled=True,
+            exempt_paths=exempt,
+            service_token=auth_cfg.get("service_token", ""),
+            memory_client=memory_client,
+            cache_ttl=auth_cfg.get("key_cache_ttl_seconds", 300),
+            cache_max=auth_cfg.get("key_cache_max_entries", 100),
+        )
+        log_event({"level": "INFO", "service": "api-gateway", "event": "auth_enabled", "exempt_paths": len(exempt)})
+    else:
+        log_event({"level": "INFO", "service": "api-gateway", "event": "auth_disabled"})
+
     # Stage 5 M2: initialize recovery subsystems
     breaker_registry = get_breaker_registry()
     dead_letter_queue = get_dead_letter_queue()
@@ -142,7 +178,7 @@ async def lifespan(a):
         "event": "startup",
         "version": SONIA_VERSION,
         "contract": SONIA_CONTRACT,
-        "message": "API Gateway v3.0.0 initialized with downstream clients and recovery subsystems"
+        "message": "API Gateway v3.0.0 initialized with downstream clients, auth, and recovery subsystems"
     })
 
     yield  # -- app is running --
@@ -297,6 +333,7 @@ async def v1_chat_endpoint(request: Request, message: str, session_id: Optional[
 
 async def _do_turn(request: Request, body: TurnRequest):
     """Shared turn pipeline logic."""
+    import asyncio as _aio
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
 
     response = await handle_turn(
@@ -321,7 +358,36 @@ async def _do_turn(request: Request, body: TurnRequest):
     extra = getattr(response, "_extra_fields", None)
     if extra:
         result.update(extra)
+
+    # M2: fire-and-forget conversation history write
+    if memory_client and response.ok:
+        user_id = getattr(request.state, "user_id", None) or body.session_id or "anonymous"
+        turn_data = {
+            "turn_id": response.turn_id,
+            "session_id": body.session_id or "",
+            "user_id": user_id,
+            "sequence_num": result.get("turn_count", 0),
+            "user_input": body.user_input,
+            "assistant_response": result.get("response", ""),
+            "model_used": result.get("model", ""),
+            "tool_calls": result.get("tool_calls"),
+            "latency_ms": response.duration_ms,
+            "metadata": {
+                "correlation_id": correlation_id,
+                "profile": result.get("generation_profile_used"),
+            },
+        }
+        _aio.create_task(_write_turn_history(turn_data, correlation_id))
+
     return result
+
+
+async def _write_turn_history(turn_data: dict, correlation_id: str):
+    """Best-effort conversation history persistence."""
+    try:
+        await memory_client.write_turn(turn_data, correlation_id=correlation_id)
+    except Exception as e:
+        logger.warning("History write failed for turn %s: %s", turn_data.get("turn_id"), e)
 
 
 @app.post("/v3/turn")

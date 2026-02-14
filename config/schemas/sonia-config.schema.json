@@ -173,6 +173,17 @@
       "type": "object",
       "additionalProperties": true
     },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "enabled":                 { "type": "boolean" },
+        "exempt_paths":            { "type": "array", "items": { "type": "string" } },
+        "service_token":           { "type": "string" },
+        "key_cache_ttl_seconds":   { "type": "integer", "minimum": 1 },
+        "key_cache_max_entries":   { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": true
+    },
     "operational": {
       "type": "object",
       "properties": {

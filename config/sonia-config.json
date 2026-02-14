@@ -222,6 +222,14 @@
     "max_reconnect_attempts": 10
   },
 
+  "auth": {
+    "enabled": false,
+    "exempt_paths": ["/healthz", "/status", "/docs", "/openapi.json"],
+    "service_token": "",
+    "key_cache_ttl_seconds": 300,
+    "key_cache_max_entries": 100
+  },
+
   "operational": {
     "health_check_interval_seconds": 10,
     "stale_pid_cleanup_seconds": 60,
