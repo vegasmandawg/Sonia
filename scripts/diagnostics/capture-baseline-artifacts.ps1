@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Capture baseline artifacts for bootable-1.0.0 snapshot
 
@@ -38,18 +38,18 @@ $root = $Root
 if (-not $root.EndsWith("\")) { $root = "$root\" }
 
 Write-Host ""
-Write-Host "╔═════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║    BASELINE ARTIFACT CAPTURE (bootable-1.0.0)           ║" -ForegroundColor Cyan
-Write-Host "╚═════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "+-------------------------------------------------------+" -ForegroundColor Cyan
+Write-Host "|    BASELINE ARTIFACT CAPTURE (bootable-1.0.0)        |" -ForegroundColor Cyan
+Write-Host "+-------------------------------------------------------+" -ForegroundColor Cyan
 Write-Host ""
 
 # Create output directory
 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
-Write-Host "[✓] Output directory: $OutputDir" -ForegroundColor Green
+Write-Host "[OK] Output directory: $OutputDir" -ForegroundColor Green
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 1. PID List
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 Write-Host ""
 Write-Host "Capturing PID list..." -ForegroundColor Cyan
@@ -73,11 +73,11 @@ if (Test-Path -LiteralPath $pidDir) {
 }
 
 $pidList | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $OutputDir "pids.json") -Encoding UTF8
-Write-Host "[✓] PID list saved" -ForegroundColor Green
+Write-Host "[OK] PID list saved" -ForegroundColor Green
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 2. Health Responses
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 Write-Host ""
 Write-Host "Capturing health responses..." -ForegroundColor Cyan
@@ -101,7 +101,7 @@ for ($i = 0; $i -lt $ports.Count; $i++) {
                 response = $body
                 timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ"
             }
-            Write-Host "  [$serviceName:$port] ✓ Healthy" -ForegroundColor Green
+            Write-Host "  [${serviceName}:${port}] [OK] Healthy" -ForegroundColor Green
         }
     } catch {
         $healthResponses[$serviceName] = @{
@@ -110,16 +110,16 @@ for ($i = 0; $i -lt $ports.Count; $i++) {
             error = $_.Exception.Message
             timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffZ"
         }
-        Write-Host "  [$serviceName:$port] ✗ Failed" -ForegroundColor Red
+        Write-Host "  [${serviceName}:${port}] [FAIL] Failed" -ForegroundColor Red
     }
 }
 
 $healthResponses | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $OutputDir "health-responses.json") -Encoding UTF8
-Write-Host "[✓] Health responses saved" -ForegroundColor Green
+Write-Host "[OK] Health responses saved" -ForegroundColor Green
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 3. Service Logs (200-line tail)
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 Write-Host ""
 Write-Host "Capturing service logs..." -ForegroundColor Cyan
@@ -139,11 +139,11 @@ if (Test-Path -LiteralPath $logsDir) {
     }
 }
 
-Write-Host "[✓] Service logs saved" -ForegroundColor Green
+Write-Host "[OK] Service logs saved" -ForegroundColor Green
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 4. Metadata
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 Write-Host ""
 Write-Host "Capturing metadata..." -ForegroundColor Cyan
@@ -164,16 +164,16 @@ $metadata = @{
 }
 
 $metadata | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $OutputDir "metadata.json") -Encoding UTF8
-Write-Host "[✓] Metadata saved" -ForegroundColor Green
+Write-Host "[OK] Metadata saved" -ForegroundColor Green
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 5. Summary
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 Write-Host ""
-Write-Host "╔═════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║           ARTIFACTS CAPTURED                            ║" -ForegroundColor Cyan
-Write-Host "╚═════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "+-------------------------------------------------------+" -ForegroundColor Cyan
+Write-Host "|                    ARTIFACTS CAPTURED                 |" -ForegroundColor Cyan
+Write-Host "+-------------------------------------------------------+" -ForegroundColor Cyan
 Write-Host ""
 
 $artifacts = Get-ChildItem -Path $OutputDir

@@ -2,7 +2,14 @@
 
 import pytest
 from datetime import datetime, timedelta
-from ..core.decay import MemoryDecay, DecayStrategy, MemoryConsolidation
+from pathlib import Path
+import sys
+
+MEMORY_ENGINE_DIR = Path(__file__).resolve().parents[1]
+if str(MEMORY_ENGINE_DIR) not in sys.path:
+    sys.path.insert(0, str(MEMORY_ENGINE_DIR))
+
+from core.decay import MemoryDecay, DecayStrategy, MemoryConsolidation
 
 
 class TestMemoryDecay:

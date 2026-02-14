@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 import json
 import logging
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -44,6 +45,7 @@ _routing_engine = None
 _health_registry = None
 _budget_guard = None
 _audit_logger = None
+_legacy_chat_fallback = os.getenv("SONIA_MODEL_ROUTER_LEGACY_CHAT_FALLBACK", "1").lower() not in ("0", "false", "no")
 
 # Create FastAPI app (lifespan defined below, assigned after)
 app = FastAPI(
@@ -73,6 +75,79 @@ class ProfileRouteRequest(BaseModel):
     trace_id: str = ""
     turn_id: str = ""
     context_tokens: int = 0
+
+
+def _estimate_context_tokens(messages: List[Dict]) -> int:
+    """Estimate prompt size for budget checks."""
+    char_count = 0
+    for msg in messages:
+        content = msg.get("content", "")
+        if isinstance(content, str):
+            char_count += len(content)
+        elif isinstance(content, list):
+            for part in content:
+                if isinstance(part, dict) and part.get("type") == "text":
+                    char_count += len(part.get("text", ""))
+    return max(1, char_count // 4)
+
+
+def _infer_hint(task_type: str, messages: List[Dict]) -> str:
+    """Build a routing hint from the latest user content."""
+    user_text_parts: List[str] = []
+    for msg in reversed(messages):
+        if msg.get("role") != "user":
+            continue
+        content = msg.get("content", "")
+        if isinstance(content, str):
+            user_text_parts.append(content)
+            break
+        if isinstance(content, list):
+            for part in content:
+                if isinstance(part, dict) and part.get("type") == "text":
+                    user_text_parts.append(part.get("text", ""))
+            break
+    hint = " ".join(user_text_parts).strip()
+    return f"{task_type} {hint}".strip()
+
+
+def _split_backend_key(backend_key: str) -> tuple[str, str]:
+    """Split canonical backend key into provider and model string."""
+    if "/" not in backend_key:
+        return ("ollama", backend_key)
+    provider, model = backend_key.split("/", 1)
+    return (provider, model)
+
+
+def _dispatch_selected_backend(backend_key: str, messages: List[Dict], kwargs: Dict) -> Dict:
+    """Dispatch a chat request to an explicit backend key."""
+    provider_name, model_name = _split_backend_key(backend_key)
+    provider = router.providers.get(provider_name)
+    if not provider:
+        if _health_registry is not None:
+            _health_registry.record_failure(backend_key, f"unknown_provider:{provider_name}")
+        return {"status": "error", "error": f"Unknown provider in backend key: {backend_key}"}
+    if not provider.available:
+        if _health_registry is not None:
+            _health_registry.record_failure(backend_key, "provider_unavailable")
+        return {"status": "error", "error": f"Provider unavailable: {provider_name}"}
+
+    result = provider.chat(model_name, messages, **kwargs)
+
+    if result.get("status") == "success":
+        if _health_registry is not None:
+            _health_registry.record_success(backend_key)
+        if _budget_guard is not None:
+            duration_ns = result.get("metadata", {}).get("total_duration")
+            if isinstance(duration_ns, (int, float)) and duration_ns > 0:
+                _budget_guard.update_latency(backend_key, float(duration_ns) / 1_000_000.0)
+    else:
+        if _health_registry is not None:
+            _health_registry.record_failure(backend_key, result.get("error", "dispatch_failed"))
+
+    result.setdefault("provider", provider_name)
+    result.setdefault("model", model_name)
+    result["selected_backend"] = backend_key
+    return result
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Health & Status Endpoints
@@ -141,6 +216,31 @@ def status():
 def route(task_type: str = "text"):
     """Route request to appropriate model."""
     try:
+        if _routing_engine is not None:
+            trace_id = f"route-{int(datetime.utcnow().timestamp() * 1000)}"
+            decision = _routing_engine.route_request(
+                task_type=task_type,
+                hint=task_type,
+                trace_id=trace_id,
+                context_tokens=0,
+            )
+            if _audit_logger is not None:
+                _audit_logger.log_decision(decision)
+
+            provider = None
+            model = None
+            if decision.selected_backend:
+                provider, model = _split_backend_key(decision.selected_backend)
+            return {
+                "task_type": task_type,
+                "model": model,
+                "provider": provider,
+                "selected_backend": decision.selected_backend,
+                "profile": decision.profile_name,
+                "reason_code": decision.reason_code,
+                "skipped": decision.skipped,
+            }
+
         # Validate task type
         try:
             task = TaskType[task_type.upper()]
@@ -243,8 +343,39 @@ async def chat(request: ChatRequest):
             result = provider.chat(model_info.name, request.messages, **extra_kwargs)
 
         else:
-            # cloud_allowed (default): try local first, fall back to cloud
-            result = router.chat(task, request.messages, **extra_kwargs)
+            # cloud_allowed (default): route through deterministic profile engine.
+            route_decision = None
+            result = None
+            if _routing_engine is not None:
+                trace_id = f"chat-{int(datetime.utcnow().timestamp() * 1000)}"
+                route_decision = _routing_engine.route_request(
+                    task_type=request.task_type,
+                    hint=_infer_hint(request.task_type, request.messages),
+                    trace_id=trace_id,
+                    context_tokens=_estimate_context_tokens(request.messages),
+                )
+                if _audit_logger is not None:
+                    _audit_logger.log_decision(route_decision)
+
+                if route_decision.selected_backend:
+                    result = _dispatch_selected_backend(
+                        route_decision.selected_backend,
+                        request.messages,
+                        extra_kwargs,
+                    )
+
+            # Feature-flagged fallback to legacy provider router.
+            if (result is None or result.get("status") != "success") and _legacy_chat_fallback:
+                legacy_result = router.chat(task, request.messages, **extra_kwargs)
+                legacy_result["routing_mode"] = "legacy_provider_router"
+                if route_decision is not None:
+                    legacy_result["route_decision"] = route_decision.to_dict()
+                result = legacy_result
+
+            if result is None:
+                raise HTTPException(status_code=503, detail="No backend selected by routing engine")
+            if route_decision is not None and "route_decision" not in result:
+                result["route_decision"] = route_decision.to_dict()
 
         if result.get("status") == "error":
             raise HTTPException(status_code=503, detail=result.get("error"))
@@ -463,6 +594,20 @@ async def _lifespan(a):
 
         # Profile registry with defaults
         _profile_registry = ProfileRegistry()
+
+        # Apply config-defined fallback matrix as source of truth.
+        from app.profiles import ProfileName
+        fallback_matrix = profiles_cfg.get("fallback_matrix", {})
+        for profile_key, chain in fallback_matrix.items():
+            try:
+                profile_name = ProfileName(profile_key)
+            except ValueError:
+                logger.warning("Unknown profile key in config fallback matrix: %s", profile_key)
+                continue
+            profile_obj = _profile_registry.get(profile_name)
+            if profile_obj and isinstance(chain, list) and len(chain) > 0:
+                profile_obj.model_prefs = [chain[0]]
+                profile_obj.fallbacks = chain[1:]
 
         # Routing engine
         _routing_engine = RoutingEngine(

@@ -8,12 +8,11 @@ CREATE TABLE IF NOT EXISTS workspace_documents (
   ingested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS document_chunks (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  chunk_id TEXT UNIQUE NOT NULL,
+CREATE TABLE IF NOT EXISTS workspace_chunks (
+  chunk_id TEXT PRIMARY KEY,
   doc_id TEXT NOT NULL,
   content TEXT NOT NULL,
-  chunk_index INTEGER,
+  chunk_index INTEGER NOT NULL,
   start_offset INTEGER,
   end_offset INTEGER,
   embedding_id TEXT,
@@ -21,7 +20,7 @@ CREATE TABLE IF NOT EXISTS document_chunks (
   FOREIGN KEY(doc_id) REFERENCES workspace_documents(doc_id)
 );
 
-CREATE INDEX idx_workspace_doc_id ON workspace_documents(doc_id);
-CREATE INDEX idx_workspace_type ON workspace_documents(doc_type);
-CREATE INDEX idx_chunks_doc_id ON document_chunks(doc_id);
-CREATE INDEX idx_chunks_embedding ON document_chunks(embedding_id);
+CREATE INDEX IF NOT EXISTS idx_workspace_doc_id ON workspace_documents(doc_id);
+CREATE INDEX IF NOT EXISTS idx_workspace_type ON workspace_documents(doc_type);
+CREATE INDEX IF NOT EXISTS idx_chunks_doc_id ON workspace_chunks(doc_id);
+CREATE INDEX IF NOT EXISTS idx_chunks_embedding ON workspace_chunks(embedding_id);

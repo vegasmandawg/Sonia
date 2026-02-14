@@ -1,4 +1,4 @@
-<#---------------------------------------------------------------------------
+﻿<#---------------------------------------------------------------------------
 doctor-sonia.ps1 (SONIA HEALTH CHECK)
 
 Complete diagnostic of the Sonia system.
@@ -17,9 +17,6 @@ param(
     [string]$Root = "S:\",
 
     [Parameter(Mandatory=$false)]
-    [switch]$Verbose,
-
-    [Parameter(Mandatory=$false)]
     [switch]$QuickCheck
 )
 
@@ -32,11 +29,11 @@ $warned = @()
 
 function Write-Test {
     param([string]$Name, [bool]$Pass, [string]$Detail = "")
-    $status = if ($Pass) { "✓" } else { "✗" }
+    $status = if ($Pass) { "[OK]" } else { "[FAIL]" }
     $color = if ($Pass) { "Green" } else { "Red" }
-    Write-Host "  $status $Name" -ForegroundColor $color
+    Write-Host "  ${status} $Name" -ForegroundColor $color
     if ($Detail) {
-        Write-Host "    └─ $Detail" -ForegroundColor DarkGray
+        Write-Host "    - $Detail" -ForegroundColor DarkGray
     }
 }
 
@@ -47,6 +44,8 @@ function Test-Status {
         if ($result -eq $true) {
             Write-Test $Name $true
             $script:passed += $Name
+        } elseif ($null -eq $result) {
+            Warn $Name "Optional check"
         } else {
             Write-Test $Name $false $result
             $script:failed += $Name
@@ -59,8 +58,8 @@ function Test-Status {
 
 function Warn {
     param([string]$Name, [string]$Message)
-    Write-Host "  ⚠ $Name" -ForegroundColor Yellow
-    Write-Host "    └─ $Message" -ForegroundColor DarkYellow
+    Write-Host "  [WARN] $Name" -ForegroundColor Yellow
+    Write-Host "    - $Message" -ForegroundColor DarkYellow
     $script:warned += $Name
 }
 
@@ -70,28 +69,28 @@ function Normalize-Root {
     return $Path
 }
 
-# ───────────────────────────────────────────────────────────────────────────────
+# -------------------------------------------------------------------------------
 # START
-# ───────────────────────────────────────────────────────────────────────────────
+# -------------------------------------------------------------------------------
 
 $Root = Normalize-Root $Root
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
 Write-Host ""
-Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║           SONIA HEALTH CHECK AND DIAGNOSTICS              ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "+------------------------------------------------------------+" -ForegroundColor Cyan
+Write-Host "|           SONIA HEALTH CHECK AND DIAGNOSTICS              |" -ForegroundColor Cyan
+Write-Host "+------------------------------------------------------------+" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Timestamp: $timestamp" -ForegroundColor DarkGray
 Write-Host "Root: $Root" -ForegroundColor DarkGray
 Write-Host ""
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 # PHASE 1: FOUNDATIONAL SETUP
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 
 Write-Host "Foundational Setup" -ForegroundColor Cyan
-Write-Host "──────────────────"
+Write-Host "------------------"
 
 Test-Status "Root directory exists" {
     Test-Path -LiteralPath $Root -PathType Container
@@ -114,13 +113,13 @@ Test-Status "OpenClaw tool catalog" {
     Test-Path -LiteralPath "$($Root)services\openclaw\tool_catalog.json" -PathType Leaf
 }
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 # PHASE 2: DIRECTORIES AND STRUCTURE
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 
 Write-Host ""
 Write-Host "Directory Structure" -ForegroundColor Cyan
-Write-Host "───────────────────"
+Write-Host "-------------------"
 
 Test-Status "Logs directory (S:\logs\services)" {
     Test-Path -LiteralPath "$($Root)logs\services" -PathType Container
@@ -140,13 +139,13 @@ Test-Status "Integration directories" {
     (Test-Path -LiteralPath "$($Root)integrations\pipecat" -PathType Container)
 }
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 # PHASE 3: RUNTIME DEPENDENCIES
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 
 Write-Host ""
 Write-Host "Runtime Dependencies" -ForegroundColor Cyan
-Write-Host "────────────────────"
+Write-Host "--------------------"
 
 Test-Status "Node.js available (v20+)" {
     $nodeCmd = Get-Command node.exe -ErrorAction SilentlyContinue
@@ -198,14 +197,14 @@ Test-Status "Conda/Miniconda available" {
     }
 }
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 # PHASE 4: SERVICE HEALTH (if not QuickCheck)
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 
 if (-not $QuickCheck) {
     Write-Host ""
     Write-Host "Service Health Checks" -ForegroundColor Cyan
-    Write-Host "────────────────────"
+    Write-Host "---------------------"
     
     $ports = @(
         @{ name = "API Gateway"; port = 7000 },
@@ -217,26 +216,31 @@ if (-not $QuickCheck) {
     
     foreach ($svc in $ports) {
         Test-Status "$($svc.name) (port $($svc.port))" {
-            try {
-                $response = Invoke-WebRequest -Uri "http://127.0.0.1:$($svc.port)/health" `
-                    -TimeoutSec 2 `
-                    -UseBasicParsing `
-                    -ErrorAction SilentlyContinue
-                $response.StatusCode -eq 200
-            } catch {
-                $false
+            foreach ($path in @("healthz", "health")) {
+                try {
+                    $response = Invoke-WebRequest -Uri "http://127.0.0.1:$($svc.port)/$path" `
+                        -TimeoutSec 2 `
+                        -UseBasicParsing `
+                        -ErrorAction SilentlyContinue
+                    if ($response.StatusCode -eq 200) {
+                        return $true
+                    }
+                } catch {
+                    # try next endpoint
+                }
             }
+            return $false
         }
     }
 }
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 # PHASE 5: PORT AVAILABILITY
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 
 Write-Host ""
 Write-Host "Port Availability" -ForegroundColor Cyan
-Write-Host "─────────────────"
+Write-Host "-----------------"
 
 $portsToCheck = @(7000, 7010, 7020, 7030, 7040, 7050)
 $unavailablePorts = @()
@@ -263,13 +267,13 @@ foreach ($port in $portsToCheck) {
     }
 }
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 # PHASE 6: UPSTREAM SOURCES
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 
 Write-Host ""
 Write-Host "Upstream Sources" -ForegroundColor Cyan
-Write-Host "────────────────"
+Write-Host "----------------"
 
 $sources = @(
     @{ name = "OpenClaw"; file = "CURRENT.txt"; path = "$($Root)integrations\openclaw\upstream\CURRENT.txt" },
@@ -286,14 +290,14 @@ foreach ($src in $sources) {
     }
 }
 
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 # SUMMARY AND RECOMMENDATIONS
-# ═════════════════════════════════════════════════════════════════════════════════
+# ================================================================================
 
 Write-Host ""
-Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║                  DIAGNOSTIC SUMMARY                       ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "+------------------------------------------------------------+" -ForegroundColor Cyan
+Write-Host "|                  DIAGNOSTIC SUMMARY                       |" -ForegroundColor Cyan
+Write-Host "+------------------------------------------------------------+" -ForegroundColor Cyan
 Write-Host ""
 
 Write-Host "Passed:  " -NoNewline -ForegroundColor Green
@@ -308,22 +312,22 @@ Write-Host "$($warned.Count) items" -ForegroundColor Yellow
 Write-Host ""
 
 if ($failed.Count -eq 0) {
-    Write-Host "✓ All critical checks passed!" -ForegroundColor Green
+    Write-Host "[OK] All critical checks passed!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Ready to start Sonia:" -ForegroundColor Green
-    Write-Host "  .\scripts\ops\start-sonia-stack.ps1" -ForegroundColor Cyan
+    Write-Host "  .\start-sonia-stack.ps1" -ForegroundColor Cyan
 } else {
-    Write-Host "✗ Some checks failed. See above for details." -ForegroundColor Red
+    Write-Host "[FAIL] Some checks failed. See above for details." -ForegroundColor Red
     Write-Host ""
     Write-Host "Recommended fixes:" -ForegroundColor Red
     if ($failed -contains "Node.js available") {
-        Write-Host "  • Install Node.js 20+ from https://nodejs.org/" -ForegroundColor DarkRed
+        Write-Host "  - Install Node.js 20+ from https://nodejs.org/" -ForegroundColor DarkRed
     }
     if ($failed -contains "Python 3.11+ available") {
-        Write-Host "  • Install Python 3.11+ or Miniconda" -ForegroundColor DarkRed
+        Write-Host "  - Install Python 3.11+ or Miniconda" -ForegroundColor DarkRed
     }
     if ($unavailablePorts.Count -gt 0) {
-        Write-Host "  • Free ports: $($unavailablePorts -join ', ')" -ForegroundColor DarkRed
+        Write-Host "  - Free ports: $($unavailablePorts -join ', ')" -ForegroundColor DarkRed
     }
 }
 

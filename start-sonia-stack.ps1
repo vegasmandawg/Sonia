@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Start the complete Sonia stack (v3.0)
 
@@ -69,9 +69,9 @@ $ErrorActionPreference = "Stop"
 # Import library
 . (Join-Path $Root "scripts\lib\sonia-stack.ps1")
 
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 # Setup
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 
 $root = Get-SoniaRoot $Root
 Write-Host ""
@@ -127,9 +127,9 @@ if (Test-Path -LiteralPath $mcpDir) {
     $services += @{ Name = "MCP Server"; Script = "run-mcp-server.ps1"; Port = 8080 }
 }
 
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 # Validation Phase
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 
 Write-Host "Phase 0: Validation" -ForegroundColor Cyan
 Write-Host "--------------------------------------------------------------"
@@ -154,9 +154,9 @@ if (-not $allValid) {
 Write-Host "[OK] All startup scripts found" -ForegroundColor Green
 Write-Host ""
 
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 # Pre-flight Checks
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 
 if (-not $SkipPreflight) {
     Write-Host "Phase 0b: Pre-flight Checks" -ForegroundColor Cyan
@@ -197,37 +197,87 @@ if (-not $SkipPreflight) {
         if (Test-Path -LiteralPath $configPath) {
             try {
                 $config = Get-Content $configPath -Raw | ConvertFrom-Json
-                $requiredModels = @()
-                # Check for configured model names
+
+                # Build required backend list from canonical model_router config.
+                $requiredBackends = @()
                 if ($config.model_router -and $config.model_router.default_model) {
-                    $requiredModels += $config.model_router.default_model
+                    $requiredBackends += [string]$config.model_router.default_model
                 }
-                if ($config.model_router -and $config.model_router.models) {
-                    foreach ($m in $config.model_router.models.PSObject.Properties) {
-                        if ($m.Value.ollama_model) {
-                            $requiredModels += $m.Value.ollama_model
+                if ($config.model_router -and $config.model_router.fallback_model) {
+                    $requiredBackends += [string]$config.model_router.fallback_model
+                }
+
+                $profiles = $null
+                if ($config.model_router -and $config.model_router.profiles) {
+                    $profiles = $config.model_router.profiles
+                }
+
+                if ($profiles -and $profiles.backend_capacities) {
+                    foreach ($entry in $profiles.backend_capacities) {
+                        if ($entry.backend) {
+                            $requiredBackends += [string]$entry.backend
                         }
                     }
                 }
-                $requiredModels = $requiredModels | Select-Object -Unique
-                if ($requiredModels.Count -gt 0) {
-                    $ollamaModels = @()
-                    if ($ollamaData.models) {
-                        $ollamaModels = $ollamaData.models | ForEach-Object { $_.name }
+
+                if ($profiles -and $profiles.fallback_matrix) {
+                    foreach ($profile in $profiles.fallback_matrix.PSObject.Properties) {
+                        if (-not $profile.Value) { continue }
+                        foreach ($backend in $profile.Value) {
+                            if ($backend) {
+                                $requiredBackends += [string]$backend
+                            }
+                        }
                     }
-                    foreach ($reqModel in $requiredModels) {
-                        $found = $ollamaModels | Where-Object { $_ -like "$reqModel*" }
-                        if ($found) {
-                            Write-Host "[OK] Model available: $reqModel" -ForegroundColor Green
+                }
+
+                # Keep only ollama backends and normalize to bare tags for /api/tags comparison.
+                $requiredBackends = $requiredBackends |
+                    Where-Object { $_ -and $_.StartsWith("ollama/") } |
+                    Select-Object -Unique
+
+                $requiredTags = @()
+                foreach ($backend in $requiredBackends) {
+                    $requiredTags += $backend.Substring("ollama/".Length)
+                }
+                $requiredTags = $requiredTags | Select-Object -Unique
+
+                $availableTags = @()
+                if ($ollamaData.models) {
+                    $availableTags = $ollamaData.models | ForEach-Object { [string]$_.name }
+                }
+
+                if ($requiredTags.Count -eq 0) {
+                    Write-Host "[WARN] No ollama/* backends found in config model_router profile matrix" -ForegroundColor Yellow
+                    $warnings += "No configured ollama models in model_router profiles"
+                } else {
+                    $missingTags = @()
+                    foreach ($tag in $requiredTags) {
+                        $exact = $availableTags | Where-Object { $_ -eq $tag }
+                        $versioned = $availableTags | Where-Object { $_ -like "${tag}:*" }
+                        if ($exact -or $versioned) {
+                            Write-Host "[OK] Model available: ollama/$tag" -ForegroundColor Green
                         } else {
-                            Write-Host "[WARN] Model not found in Ollama: $reqModel" -ForegroundColor Yellow
-                            $warnings += "Missing model: $reqModel"
+                            Write-Host "[WARN] Model not found in Ollama: ollama/$tag" -ForegroundColor Yellow
+                            $warnings += "Missing model: ollama/$tag"
+                            $missingTags += $tag
+                        }
+                    }
+
+                    if ($missingTags.Count -gt 0) {
+                        Write-Host "       Pull missing models with:" -ForegroundColor DarkYellow
+                        foreach ($tag in ($missingTags | Select-Object -Unique)) {
+                            Write-Host "       - ollama pull $tag" -ForegroundColor DarkYellow
                         }
                     }
                 }
             } catch {
-                # Config parse failure is non-fatal for preflight
+                Write-Host "[WARN] Failed to parse model availability config: $($_.Exception.Message)" -ForegroundColor Yellow
+                $warnings += "Model check skipped due to config parse failure"
             }
+        } else {
+            Write-Host "[WARN] Model config not found: $configPath" -ForegroundColor Yellow
+            $warnings += "Missing config: $configPath"
         }
     }
 
@@ -308,9 +358,9 @@ if ($TestOnly) {
     exit 0
 }
 
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 # Startup Phase
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 
 Write-Host "Phase 1: Startup" -ForegroundColor Cyan
 Write-Host "--------------------------------------------------------------"
@@ -337,9 +387,9 @@ foreach ($svc in $services) {
 
 Write-Host ""
 
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 # Health Check Phase
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 
 if (-not $SkipHealthCheck) {
     Write-Host "Phase 2: Health Check" -ForegroundColor Cyan
@@ -376,9 +426,9 @@ if (-not $SkipHealthCheck) {
     Write-Host "Health check completed in ${elapsed}s ($healthyCount/$($startedServices.Count) healthy)" -ForegroundColor Gray
 }
 
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 # Summary
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 
 Write-Host ""
 Write-Host "+=========================================================+" -ForegroundColor Cyan
@@ -410,9 +460,9 @@ Write-Host "  View logs:    Get-Content $root\logs\services\api-gateway.out.log 
 Write-Host "  Launch UI:    npm run electron --prefix $root\ui\sonia-avatar" -ForegroundColor Gray
 Write-Host ""
 
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 # Optional: Launch UI
-# --------------------------------------------------------------───────────────────
+# ---------------------------------------------------------------------------------
 
 if ($LaunchUI) {
     $uiDir = Join-Path $root "ui\sonia-avatar"

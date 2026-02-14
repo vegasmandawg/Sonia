@@ -1,4 +1,4 @@
-# Phase 3 Gate 1 - Minimal Test (Framework Validation Only)
+﻿# Phase 3 Gate 1 - Minimal Test (Framework Validation Only)
 # This version validates the Gate 1 framework and logic without requiring
 # actual service startup (which has environmental dependencies)
 
@@ -76,7 +76,7 @@ for ($i = 1; $i -le $CycleCount; $i++) {
         $CyclesPassed++
         
     } catch {
-        Log "  FAIL - Cycle $i: $_" "FAIL"
+        Log "  FAIL - Cycle ${i}: $($_.Exception.Message)" "FAIL"
         throw $_
     }
 }
@@ -107,11 +107,11 @@ while ((Get-Date) -lt $EndTime) {
     $TotalChecks += 6  # 6 services
     
     # Simulate: All services healthy
-    Log "Interval $IntervalCount: All services healthy" "DEBUG"
+    Log "Interval ${IntervalCount}: All services healthy" "DEBUG"
     Start-Sleep -Seconds 5
 }
 
-$ExpectedChecks = 360 * 6  # Standard: 30 min / 5s = 360 intervals × 6 services
+$ExpectedChecks = 360 * 6  # Standard: 30 min / 5s = 360 intervals x 6 services
 
 Log "" "HEADER"
 Log "=== GATE 2 RESULT ===" "SUMMARY"

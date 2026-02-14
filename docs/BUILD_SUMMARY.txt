@@ -152,7 +152,7 @@ Phase F: ✅ COMPLETE - Health Check and Diagnostics
 
 Phase G: ✅ COMPLETE - Unified Stack Launcher
 ───────────────────────────────────────────────────────────────────────────────
-✓ Created: S:\scripts\ops\start-sonia-stack.ps1
+✓ Created: S:\start-sonia-stack.ps1
 
   Launches complete Sonia stack with:
   • Phase 0: Validation (root, config, ports, executables)
@@ -174,7 +174,7 @@ Phase G: ✅ COMPLETE - Unified Stack Launcher
   • Graceful error reporting
   • Exact recovery steps on failure
 
-  Run to start: .\scripts\ops\start-sonia-stack.ps1
+  Run to start: .\start-sonia-stack.ps1
 
 
 Phase H: ✅ COMPLETE - Comprehensive Build Guide
@@ -209,7 +209,7 @@ Configuration:
 
 Operational Scripts:
   ✓ S:\scripts\ops\setup-upstream-dependencies.ps1  (289 lines)
-  ✓ S:\scripts\ops\start-sonia-stack.ps1            (316 lines)
+  ✓ S:\start-sonia-stack.ps1                        (453 lines)
 
 Diagnostics:
   ✓ S:\scripts\diagnostics\doctor-sonia.ps1   (331 lines)
@@ -276,7 +276,7 @@ Step 5: Start the Stack
 ───────────────────────────────────────────────────────────────────────────────
   PowerShell:
     cd S:\
-    .\scripts\ops\start-sonia-stack.ps1
+    .\start-sonia-stack.ps1
 
   This starts 5 services on ports 7000-7040 and verifies health.
 
@@ -292,8 +292,8 @@ Step 6: Monitor and Interact
     Get-Content -Wait -Tail 50 S:\logs\services\api-gateway.out.log
 
   Call API endpoints:
-    Invoke-WebRequest http://127.0.0.1:7000/health
-    Invoke-WebRequest http://127.0.0.1:7010/health
+    Invoke-WebRequest http://127.0.0.1:7000/healthz
+    Invoke-WebRequest http://127.0.0.1:7010/healthz
     # ... etc for all 5 services
 
   Next phases (D-F) implement:
