@@ -19,7 +19,7 @@ from uuid import uuid4
 
 # Canonical version
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
-from version import SONIA_VERSION
+from version import SONIA_VERSION, SONIA_CONTRACT
 
 from db import get_db, MemoryDatabase
 from hybrid_search import HybridSearchLayer
@@ -97,6 +97,7 @@ def healthz():
     return {
         "ok": True,
         "service": "memory-engine",
+        "contract_version": SONIA_CONTRACT,
         "timestamp": datetime.utcnow().isoformat(),
         "memories": stats.get("active_memories", 0),
         "hybrid_search": hybrid_stats,

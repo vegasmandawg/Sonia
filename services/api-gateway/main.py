@@ -1,9 +1,15 @@
 """
-API Gateway Main Service
+API Gateway Main Service — SONIA v3.0.0
 FastAPI application that orchestrates requests to Memory Engine, Model Router, OpenClaw, and Pipecat.
+
+v3.0.0 M1: Contract + Config Cut
+  - /v3/* endpoints are canonical
+  - /v1/* endpoints preserved with deprecation warnings (removal in v3.1)
+  - Config schema validation on startup
 """
 
 import json
+import logging
 import sys
 import uuid
 from contextlib import asynccontextmanager
@@ -14,7 +20,7 @@ from typing import Optional
 
 # Canonical version
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent.parent / "shared"))
-from version import SONIA_VERSION
+from version import SONIA_VERSION, SONIA_CONTRACT
 
 from clients.memory_client import MemoryClient, MemoryClientError
 from clients.router_client import RouterClient, RouterClientError
@@ -39,11 +45,11 @@ from action_audit import get_audit_logger
 from state_backup import get_backup_manager
 from jsonl_logger import session_log, error_log
 
+logger = logging.getLogger("api-gateway")
+
 # ============================================================================
 # FastAPI Application Setup
 # ============================================================================
-
-SONIA_CONTRACT = f"v{SONIA_VERSION}"
 
 # Global clients (initialized on startup)
 memory_client: Optional[MemoryClient] = None
@@ -72,10 +78,47 @@ def log_event(event_dict: dict):
     print(json.dumps(event_dict))
 
 
+# ============================================================================
+# V1 Deprecation Support
+# ============================================================================
+
+_V1_DEPRECATION = {
+    "deprecated": True,
+    "removal_version": "v3.1.0",
+    "message": "This v1 endpoint is deprecated. Migrate to /v3/* equivalent.",
+}
+
+
+def _add_deprecation(result):
+    """Inject _deprecation field into a v1 response dict."""
+    if isinstance(result, dict):
+        result["_deprecation"] = _V1_DEPRECATION
+    return result
+
+
 @asynccontextmanager
 async def lifespan(a):
     """Startup and shutdown lifecycle for API Gateway."""
     global memory_client, router_client, openclaw_client, action_pipeline, health_supervisor
+
+    # v3.0: Config validation on startup (best-effort, do not block boot)
+    try:
+        from config_validator import SoniaConfig
+        cfg = SoniaConfig()
+        log_event({
+            "level": "INFO",
+            "service": "api-gateway",
+            "event": "config_validated",
+            "config_schema": cfg.schema_version,
+            "config_version": cfg.version,
+        })
+    except Exception as e:
+        log_event({
+            "level": "WARN",
+            "service": "api-gateway",
+            "event": "config_validation_skipped",
+            "reason": str(e),
+        })
 
     memory_client = MemoryClient(base_url="http://127.0.0.1:7020")
     router_client = RouterClient(base_url="http://127.0.0.1:7010")
@@ -97,10 +140,12 @@ async def lifespan(a):
         "level": "INFO",
         "service": "api-gateway",
         "event": "startup",
-        "message": "API Gateway initialized with downstream clients and recovery subsystems"
+        "version": SONIA_VERSION,
+        "contract": SONIA_CONTRACT,
+        "message": "API Gateway v3.0.0 initialized with downstream clients and recovery subsystems"
     })
 
-    yield  # ── app is running ──
+    yield  # -- app is running --
 
     # Stop health supervisor
     if health_supervisor:
@@ -123,10 +168,25 @@ async def lifespan(a):
 
 app = FastAPI(
     title="API Gateway",
-    description="Request orchestration to Memory Engine, Model Router, OpenClaw, and Pipecat",
+    description="SONIA v3.0.0 - Request orchestration to Memory Engine, Model Router, OpenClaw, and Pipecat",
     version=SONIA_VERSION,
     lifespan=lifespan,
 )
+
+
+# ============================================================================
+# V1 Deprecation Middleware (HTTP only; WebSocket handled separately)
+# ============================================================================
+
+@app.middleware("http")
+async def v1_deprecation_middleware(request: Request, call_next):
+    """Add deprecation headers to all /v1/* HTTP responses."""
+    response = await call_next(request)
+    if request.url.path.startswith("/v1/"):
+        response.headers["X-Deprecated"] = "true"
+        response.headers["X-Removal-Version"] = "v3.1.0"
+        response.headers["X-Migrate-To"] = request.url.path.replace("/v1/", "/v3/", 1)
+    return response
 
 
 # ============================================================================
@@ -140,6 +200,7 @@ async def healthz():
         "ok": True,
         "service": "api-gateway",
         "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
         "baseline_contract": SONIA_CONTRACT,
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
@@ -151,7 +212,8 @@ async def root():
     return {
         "service": "api-gateway",
         "status": "online",
-        "version": SONIA_VERSION
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
     }
 
 
@@ -162,35 +224,17 @@ async def status():
         "service": "api-gateway",
         "status": "online",
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "version": SONIA_VERSION
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
     }
 
 
 # ============================================================================
-# Stage 2 — Service-Specific Endpoints (UNCHANGED)
+# Chat Endpoint (v3 canonical + v1 compat)
 # ============================================================================
 
-@app.post("/v1/chat")
-async def chat_endpoint(
-    request: Request,
-    message: str,
-    session_id: Optional[str] = None,
-    model: Optional[str] = None
-):
-    """
-    Chat endpoint with Memory Engine context and Model Router response.
-
-    Request body:
-    ```json
-    {
-        "message": "What is the weather?",
-        "session_id": "optional_session_id",
-        "model": "optional_model_name"
-    }
-    ```
-
-    Response: Standard envelope with chat response, model, provider, and provenance.
-    """
+async def _do_chat(request: Request, message: str, session_id: Optional[str], model: Optional[str]):
+    """Shared chat logic for v3 and v1."""
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
 
     if not message:
@@ -232,15 +276,27 @@ async def chat_endpoint(
     return response
 
 
-@app.post("/v1/turn")
-async def turn_endpoint(request: Request, body: TurnRequest):
-    """
-    Full end-to-end turn pipeline.
+@app.post("/v3/chat")
+async def v3_chat_endpoint(request: Request, message: str, session_id: Optional[str] = None, model: Optional[str] = None):
+    """V3 chat endpoint with Memory Engine context and Model Router response."""
+    return await _do_chat(request, message, session_id, model)
 
-    Accepts a JSON body with user_id, conversation_id, input_text, and optional
-    profile/metadata.  Orchestrates memory recall → model generation →
-    optional tool execution → memory write and returns a structured response.
-    """
+
+@app.post("/v1/chat")
+async def v1_chat_endpoint(request: Request, message: str, session_id: Optional[str] = None, model: Optional[str] = None):
+    """V1 chat endpoint (DEPRECATED - use /v3/chat)."""
+    result = await _do_chat(request, message, session_id, model)
+    if isinstance(result, dict):
+        return _add_deprecation(result)
+    return result
+
+
+# ============================================================================
+# Turn Pipeline (v3 canonical + v1 compat)
+# ============================================================================
+
+async def _do_turn(request: Request, body: TurnRequest):
+    """Shared turn pipeline logic."""
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
 
     response = await handle_turn(
@@ -262,34 +318,31 @@ async def turn_endpoint(request: Request, body: TurnRequest):
     })
 
     result = response.dict(exclude_none=True)
-    # Merge Stage 4 quality annotations and latency breakdown if present
     extra = getattr(response, "_extra_fields", None)
     if extra:
         result.update(extra)
     return result
 
 
-@app.post("/v1/action")
-async def action_endpoint(
-    request: Request,
-    tool_name: str,
-    args: Optional[dict] = None,
-    timeout_ms: int = 5000
-):
-    """
-    Action endpoint for tool execution via OpenClaw.
+@app.post("/v3/turn")
+async def v3_turn_endpoint(request: Request, body: TurnRequest):
+    """V3 full end-to-end turn pipeline."""
+    return await _do_turn(request, body)
 
-    Request body:
-    ```json
-    {
-        "tool_name": "shell.run",
-        "args": {"command": "Get-ChildItem"},
-        "timeout_ms": 5000
-    }
-    ```
 
-    Response: Standard envelope with execution result.
-    """
+@app.post("/v1/turn")
+async def v1_turn_endpoint(request: Request, body: TurnRequest):
+    """V1 turn pipeline (DEPRECATED - use /v3/turn)."""
+    result = await _do_turn(request, body)
+    return _add_deprecation(result)
+
+
+# ============================================================================
+# Action Endpoint (v3 canonical + v1 compat)
+# ============================================================================
+
+async def _do_action(request: Request, tool_name: str, args: Optional[dict], timeout_ms: int):
+    """Shared action logic."""
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
 
     if not tool_name:
@@ -331,13 +384,27 @@ async def action_endpoint(
     return response
 
 
-@app.get("/v1/deps")
-async def deps_endpoint(request: Request):
-    """
-    Check connectivity to all downstream services.
+@app.post("/v3/action")
+async def v3_action_endpoint(request: Request, tool_name: str, args: Optional[dict] = None, timeout_ms: int = 5000):
+    """V3 action endpoint for tool execution via OpenClaw."""
+    return await _do_action(request, tool_name, args, timeout_ms)
 
-    Response: Status of each downstream service with latency.
-    """
+
+@app.post("/v1/action")
+async def v1_action_endpoint(request: Request, tool_name: str, args: Optional[dict] = None, timeout_ms: int = 5000):
+    """V1 action endpoint (DEPRECATED - use /v3/action)."""
+    result = await _do_action(request, tool_name, args, timeout_ms)
+    if isinstance(result, dict):
+        return _add_deprecation(result)
+    return result
+
+
+# ============================================================================
+# Deps Endpoint (v3 canonical + v1 compat)
+# ============================================================================
+
+async def _do_deps(request: Request):
+    """Shared deps logic."""
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
 
     deps = {
@@ -347,69 +414,33 @@ async def deps_endpoint(request: Request):
         "pipecat": {"status": "checking"}
     }
 
-    # Check Memory Engine
     try:
-        status = await memory_client.get_status(correlation_id=correlation_id)
-        deps["memory_engine"] = {
-            "status": "ok",
-            "port": 7020,
-            "service": status.get("service")
-        }
+        st = await memory_client.get_status(correlation_id=correlation_id)
+        deps["memory_engine"] = {"status": "ok", "port": 7020, "service": st.get("service")}
     except MemoryClientError as e:
-        deps["memory_engine"] = {
-            "status": "unavailable",
-            "port": 7020,
-            "error": e.code
-        }
+        deps["memory_engine"] = {"status": "unavailable", "port": 7020, "error": e.code}
 
-    # Check Model Router
     try:
-        status = await router_client.get_status(correlation_id=correlation_id)
-        deps["model_router"] = {
-            "status": "ok",
-            "port": 7010,
-            "service": status.get("service")
-        }
+        st = await router_client.get_status(correlation_id=correlation_id)
+        deps["model_router"] = {"status": "ok", "port": 7010, "service": st.get("service")}
     except RouterClientError as e:
-        deps["model_router"] = {
-            "status": "unavailable",
-            "port": 7010,
-            "error": e.code
-        }
+        deps["model_router"] = {"status": "unavailable", "port": 7010, "error": e.code}
 
-    # Check OpenClaw
     try:
-        status = await openclaw_client.get_status(correlation_id=correlation_id)
-        deps["openclaw"] = {
-            "status": "ok",
-            "port": 7040,
-            "service": status.get("service")
-        }
+        st = await openclaw_client.get_status(correlation_id=correlation_id)
+        deps["openclaw"] = {"status": "ok", "port": 7040, "service": st.get("service")}
     except OpenclawClientError as e:
-        deps["openclaw"] = {
-            "status": "unavailable",
-            "port": 7040,
-            "error": e.code
-        }
+        deps["openclaw"] = {"status": "unavailable", "port": 7040, "error": e.code}
 
-    # Check Pipecat via health endpoint
     try:
         import httpx
         async with httpx.AsyncClient(timeout=3.0) as client:
             resp = await client.get("http://127.0.0.1:7030/healthz")
             resp.raise_for_status()
             pipecat_data = resp.json()
-            deps["pipecat"] = {
-                "status": "ok",
-                "port": 7030,
-                "service": pipecat_data.get("service")
-            }
+            deps["pipecat"] = {"status": "ok", "port": 7030, "service": pipecat_data.get("service")}
     except Exception:
-        deps["pipecat"] = {
-            "status": "unavailable",
-            "port": 7030,
-            "error": "HEALTH_CHECK_FAILED"
-        }
+        deps["pipecat"] = {"status": "unavailable", "port": 7030, "error": "HEALTH_CHECK_FAILED"}
 
     return {
         "ok": all(d.get("status") == "ok" for d in deps.values() if d.get("status") != "pending"),
@@ -422,53 +453,86 @@ async def deps_endpoint(request: Request):
     }
 
 
+@app.get("/v3/deps")
+async def v3_deps_endpoint(request: Request):
+    """V3 dependency check endpoint."""
+    return await _do_deps(request)
+
+
+@app.get("/v1/deps")
+async def v1_deps_endpoint(request: Request):
+    """V1 deps endpoint (DEPRECATED - use /v3/deps)."""
+    result = await _do_deps(request)
+    return _add_deprecation(result)
+
+
 # ============================================================================
-# Stage 3 — Session Control Plane
+# Session Control Plane (v3 canonical + v1 compat)
 # ============================================================================
 
-@app.post("/v1/sessions")
-async def create_session_endpoint(request: Request, body: SessionCreateRequest):
-    """Create a new session."""
+@app.post("/v3/sessions")
+async def v3_create_session_endpoint(request: Request, body: SessionCreateRequest):
+    """V3 create session."""
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
     return await handle_create_session(
-        user_id=body.user_id,
-        conversation_id=body.conversation_id,
-        profile=body.profile,
-        metadata=body.metadata or {},
-        session_mgr=session_mgr,
-        correlation_id=correlation_id,
+        user_id=body.user_id, conversation_id=body.conversation_id,
+        profile=body.profile, metadata=body.metadata or {},
+        session_mgr=session_mgr, correlation_id=correlation_id,
     )
 
 
-@app.get("/v1/sessions/{session_id}")
-async def get_session_endpoint(session_id: str):
-    """Retrieve session info."""
+@app.post("/v1/sessions")
+async def v1_create_session_endpoint(request: Request, body: SessionCreateRequest):
+    """V1 create session (DEPRECATED - use /v3/sessions)."""
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
+    result = await handle_create_session(
+        user_id=body.user_id, conversation_id=body.conversation_id,
+        profile=body.profile, metadata=body.metadata or {},
+        session_mgr=session_mgr, correlation_id=correlation_id,
+    )
+    return _add_deprecation(result)
+
+
+@app.get("/v3/sessions/{session_id}")
+async def v3_get_session_endpoint(session_id: str):
+    """V3 get session."""
     return await handle_get_session(session_id, session_mgr)
 
 
-@app.delete("/v1/sessions/{session_id}")
-async def delete_session_endpoint(request: Request, session_id: str):
-    """Close a session."""
+@app.get("/v1/sessions/{session_id}")
+async def v1_get_session_endpoint(session_id: str):
+    """V1 get session (DEPRECATED)."""
+    result = await handle_get_session(session_id, session_mgr)
+    return _add_deprecation(result)
+
+
+@app.delete("/v3/sessions/{session_id}")
+async def v3_delete_session_endpoint(request: Request, session_id: str):
+    """V3 delete session."""
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
     return await handle_delete_session(session_id, session_mgr, correlation_id)
 
 
+@app.delete("/v1/sessions/{session_id}")
+async def v1_delete_session_endpoint(request: Request, session_id: str):
+    """V1 delete session (DEPRECATED)."""
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
+    result = await handle_delete_session(session_id, session_mgr, correlation_id)
+    return _add_deprecation(result)
+
+
 # ============================================================================
-# Stage 3 — WebSocket Stream
+# WebSocket Stream (v3 canonical + v1 compat)
 # ============================================================================
 
-@app.websocket("/v1/stream/{session_id}")
-async def stream_endpoint(websocket: WebSocket, session_id: str):
-    """Bidirectional streaming via WebSocket with text fallback."""
+async def _do_stream(websocket: WebSocket, session_id: str):
+    """Shared WebSocket stream logic."""
     await websocket.accept()
     try:
         await handle_stream(
-            websocket=websocket,
-            session_id=session_id,
-            session_mgr=session_mgr,
-            memory_client=memory_client,
-            router_client=router_client,
-            openclaw_client=openclaw_client,
+            websocket=websocket, session_id=session_id,
+            session_mgr=session_mgr, memory_client=memory_client,
+            router_client=router_client, openclaw_client=openclaw_client,
             confirmation_mgr=confirmation_mgr,
         )
     except WebSocketDisconnect:
@@ -482,24 +546,30 @@ async def stream_endpoint(websocket: WebSocket, session_id: str):
             pass
 
 
+@app.websocket("/v3/stream/{session_id}")
+async def v3_stream_endpoint(websocket: WebSocket, session_id: str):
+    """V3 bidirectional streaming via WebSocket."""
+    await _do_stream(websocket, session_id)
+
+
+@app.websocket("/v1/stream/{session_id}")
+async def v1_stream_endpoint(websocket: WebSocket, session_id: str):
+    """V1 stream (DEPRECATED - use /v3/stream)."""
+    await _do_stream(websocket, session_id)
+
+
 # ============================================================================
-# v2.7 — UI Stream (Electron console bridge)
+# UI Stream (v3 canonical + v1 compat)
 # ============================================================================
 
-@app.websocket("/v1/ui/stream")
-async def ui_stream_endpoint(websocket: WebSocket):
-    """
-    UI console WebSocket for control ACK round-trips and diagnostics.
-    Implements the protocol from connection.ts (v2.6-c1).
-    """
+async def _do_ui_stream(websocket: WebSocket):
+    """Shared UI stream logic."""
     await websocket.accept()
     session_id = f"ui-{uuid.uuid4().hex[:8]}"
     correlation_id = generate_correlation_id()
     try:
         await handle_ui_stream(
-            websocket=websocket,
-            session_id=session_id,
-            correlation_id=correlation_id,
+            websocket=websocket, session_id=session_id, correlation_id=correlation_id,
         )
     except WebSocketDisconnect:
         pass
@@ -507,13 +577,23 @@ async def ui_stream_endpoint(websocket: WebSocket):
         pass
 
 
+@app.websocket("/v3/ui/stream")
+async def v3_ui_stream_endpoint(websocket: WebSocket):
+    """V3 UI console WebSocket for control ACK round-trips."""
+    await _do_ui_stream(websocket)
+
+
+@app.websocket("/v1/ui/stream")
+async def v1_ui_stream_endpoint(websocket: WebSocket):
+    """V1 UI stream (DEPRECATED - use /v3/ui/stream)."""
+    await _do_ui_stream(websocket)
+
+
 # ============================================================================
-# Stage 3 — Confirmation Queue
+# Confirmation Queue (v3 canonical + v1 compat)
 # ============================================================================
 
-@app.get("/v1/confirmations/pending")
-async def pending_confirmations(session_id: str):
-    """List pending confirmations for a session."""
+async def _do_pending_confirmations(session_id: str):
     tokens = await confirmation_mgr.pending_for_session(session_id)
     return {
         "ok": True,
@@ -523,27 +603,32 @@ async def pending_confirmations(session_id: str):
     }
 
 
-@app.post("/v1/confirmations/{confirmation_id}/approve")
-async def approve_confirmation(request: Request, confirmation_id: str):
-    """Approve a pending confirmation and execute the tool."""
+@app.get("/v3/confirmations/pending")
+async def v3_pending_confirmations(session_id: str):
+    """V3 list pending confirmations."""
+    return await _do_pending_confirmations(session_id)
+
+
+@app.get("/v1/confirmations/pending")
+async def v1_pending_confirmations(session_id: str):
+    """V1 pending confirmations (DEPRECATED)."""
+    return _add_deprecation(await _do_pending_confirmations(session_id))
+
+
+async def _do_approve_confirmation(request: Request, confirmation_id: str):
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
     result = await confirmation_mgr.approve(confirmation_id)
     if result.get("ok"):
-        # Execute the tool now
         token = result.get("token")
         if token:
             try:
                 exec_resp = await openclaw_client.execute(
-                    tool_name=token.tool_name,
-                    args=token.args,
-                    timeout_ms=5000,
-                    correlation_id=correlation_id,
+                    tool_name=token.tool_name, args=token.args,
+                    timeout_ms=5000, correlation_id=correlation_id,
                 )
                 return {
-                    "ok": True,
-                    "confirmation_id": confirmation_id,
-                    "status": "approved",
-                    "reason": "Approved and executed",
+                    "ok": True, "confirmation_id": confirmation_id,
+                    "status": "approved", "reason": "Approved and executed",
                     "tool_result": {
                         "tool_name": token.tool_name,
                         "status": exec_resp.get("status", "unknown"),
@@ -552,127 +637,150 @@ async def approve_confirmation(request: Request, confirmation_id: str):
                 }
             except OpenclawClientError as exc:
                 return {
-                    "ok": False,
-                    "confirmation_id": confirmation_id,
-                    "status": "approved",
-                    "reason": "Approved but execution failed",
+                    "ok": False, "confirmation_id": confirmation_id,
+                    "status": "approved", "reason": "Approved but execution failed",
                     "error": {"code": exc.code, "message": exc.message},
                 }
     return {
-        "ok": result.get("ok", False),
-        "confirmation_id": confirmation_id,
-        "status": result.get("status", "unknown"),
-        "reason": result.get("reason", ""),
+        "ok": result.get("ok", False), "confirmation_id": confirmation_id,
+        "status": result.get("status", "unknown"), "reason": result.get("reason", ""),
     }
 
 
-@app.post("/v1/confirmations/{confirmation_id}/deny")
-async def deny_confirmation(
-    confirmation_id: str,
-    body: Optional[ConfirmationDecisionRequest] = None,
-):
-    """Deny a pending confirmation."""
+@app.post("/v3/confirmations/{confirmation_id}/approve")
+async def v3_approve_confirmation(request: Request, confirmation_id: str):
+    """V3 approve confirmation."""
+    return await _do_approve_confirmation(request, confirmation_id)
+
+
+@app.post("/v1/confirmations/{confirmation_id}/approve")
+async def v1_approve_confirmation(request: Request, confirmation_id: str):
+    """V1 approve confirmation (DEPRECATED)."""
+    return _add_deprecation(await _do_approve_confirmation(request, confirmation_id))
+
+
+async def _do_deny_confirmation(confirmation_id: str, body: Optional[ConfirmationDecisionRequest]):
     reason = body.reason if body and body.reason else "User denied"
     result = await confirmation_mgr.deny(confirmation_id, reason=reason)
     return {
-        "ok": False,
-        "confirmation_id": confirmation_id,
-        "status": result.get("status", "denied"),
-        "reason": result.get("reason", reason),
+        "ok": False, "confirmation_id": confirmation_id,
+        "status": result.get("status", "denied"), "reason": result.get("reason", reason),
     }
 
 
+@app.post("/v3/confirmations/{confirmation_id}/deny")
+async def v3_deny_confirmation(confirmation_id: str, body: Optional[ConfirmationDecisionRequest] = None):
+    """V3 deny confirmation."""
+    return await _do_deny_confirmation(confirmation_id, body)
+
+
+@app.post("/v1/confirmations/{confirmation_id}/deny")
+async def v1_deny_confirmation(confirmation_id: str, body: Optional[ConfirmationDecisionRequest] = None):
+    """V1 deny confirmation (DEPRECATED)."""
+    return _add_deprecation(await _do_deny_confirmation(confirmation_id, body))
+
+
 # ============================================================================
-# Stage 5 — Action Pipeline
+# Action Pipeline (v3 canonical + v1 compat)
 # ============================================================================
 
-@app.post("/v1/actions/plan")
-async def plan_action_endpoint(request: Request, body: ActionPlanRequest):
-    """
-    Plan and optionally execute a desktop action.
-    dry_run=true → validate only; safe actions execute immediately;
-    guarded actions go to pending_approval state.
-    """
+async def _do_plan_action(request: Request, body: ActionPlanRequest):
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
     result = await action_pipeline.run(body, correlation_id)
-
     log_event({
-        "level": "INFO",
-        "service": "api-gateway",
-        "operation": "action.plan",
-        "action_id": result.action_id,
-        "intent": result.intent,
-        "state": result.state,
-        "ok": result.ok,
-        "correlation_id": correlation_id,
+        "level": "INFO", "service": "api-gateway", "operation": "action.plan",
+        "action_id": result.action_id, "intent": result.intent,
+        "state": result.state, "ok": result.ok, "correlation_id": correlation_id,
     })
-
     return result.dict(exclude_none=True)
 
 
-@app.get("/v1/actions/{action_id}")
-async def get_action_endpoint(action_id: str):
-    """Get the current state of an action."""
+@app.post("/v3/actions/plan")
+async def v3_plan_action_endpoint(request: Request, body: ActionPlanRequest):
+    """V3 plan and optionally execute a desktop action."""
+    return await _do_plan_action(request, body)
+
+
+@app.post("/v1/actions/plan")
+async def v1_plan_action_endpoint(request: Request, body: ActionPlanRequest):
+    """V1 plan action (DEPRECATED)."""
+    return _add_deprecation(await _do_plan_action(request, body))
+
+
+async def _do_get_action(action_id: str):
     record = await action_pipeline.store.get(action_id)
     if not record:
         return JSONResponse(status_code=404, content={
-            "ok": False,
-            "error": {"code": "NOT_FOUND", "message": f"Action {action_id} not found"},
+            "ok": False, "error": {"code": "NOT_FOUND", "message": f"Action {action_id} not found"},
         })
     return {"ok": True, "action": record.dict(exclude_none=True)}
 
 
-@app.post("/v1/actions/{action_id}/approve")
-async def approve_action_endpoint(request: Request, action_id: str):
-    """Approve a pending action and trigger execution."""
+@app.get("/v3/actions/{action_id}")
+async def v3_get_action_endpoint(action_id: str):
+    """V3 get action state."""
+    return await _do_get_action(action_id)
+
+
+@app.get("/v1/actions/{action_id}")
+async def v1_get_action_endpoint(action_id: str):
+    """V1 get action (DEPRECATED)."""
+    result = await _do_get_action(action_id)
+    if isinstance(result, dict):
+        return _add_deprecation(result)
+    return result
+
+
+async def _do_approve_action(request: Request, action_id: str):
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
     result = await action_pipeline.approve(action_id)
-
     log_event({
-        "level": "INFO",
-        "service": "api-gateway",
-        "operation": "action.approve",
-        "action_id": action_id,
-        "state": result.state,
-        "ok": result.ok,
+        "level": "INFO", "service": "api-gateway", "operation": "action.approve",
+        "action_id": action_id, "state": result.state, "ok": result.ok,
         "correlation_id": correlation_id,
     })
-
     return result.dict(exclude_none=True)
+
+
+@app.post("/v3/actions/{action_id}/approve")
+async def v3_approve_action_endpoint(request: Request, action_id: str):
+    """V3 approve action."""
+    return await _do_approve_action(request, action_id)
+
+
+@app.post("/v1/actions/{action_id}/approve")
+async def v1_approve_action_endpoint(request: Request, action_id: str):
+    """V1 approve action (DEPRECATED)."""
+    return _add_deprecation(await _do_approve_action(request, action_id))
+
+
+async def _do_deny_action(request: Request, action_id: str):
+    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
+    result = await action_pipeline.deny(action_id)
+    log_event({
+        "level": "INFO", "service": "api-gateway", "operation": "action.deny",
+        "action_id": action_id, "state": result.state, "ok": result.ok,
+        "correlation_id": correlation_id,
+    })
+    return result.dict(exclude_none=True)
+
+
+@app.post("/v3/actions/{action_id}/deny")
+async def v3_deny_action_endpoint(request: Request, action_id: str):
+    """V3 deny action."""
+    return await _do_deny_action(request, action_id)
 
 
 @app.post("/v1/actions/{action_id}/deny")
-async def deny_action_endpoint(request: Request, action_id: str):
-    """Deny a pending action."""
-    correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
-    result = await action_pipeline.deny(action_id)
-
-    log_event({
-        "level": "INFO",
-        "service": "api-gateway",
-        "operation": "action.deny",
-        "action_id": action_id,
-        "state": result.state,
-        "ok": result.ok,
-        "correlation_id": correlation_id,
-    })
-
-    return result.dict(exclude_none=True)
+async def v1_deny_action_endpoint(request: Request, action_id: str):
+    """V1 deny action (DEPRECATED)."""
+    return _add_deprecation(await _do_deny_action(request, action_id))
 
 
-@app.get("/v1/actions")
-async def list_actions_endpoint(
-    state: Optional[str] = None,
-    session_id: Optional[str] = None,
-    limit: int = 50,
-    offset: int = 0,
-):
-    """List actions with optional filters."""
+async def _do_list_actions(state: Optional[str], session_id: Optional[str], limit: int, offset: int):
     limit = max(1, min(limit, 1000))
     offset = max(0, offset)
-    actions = await action_pipeline.store.list_actions(
-        state=state, session_id=session_id, limit=limit, offset=offset
-    )
+    actions = await action_pipeline.store.list_actions(state=state, session_id=session_id, limit=limit, offset=offset)
     total = await action_pipeline.store.count(state=state)
     return {
         "ok": True,
@@ -682,26 +790,35 @@ async def list_actions_endpoint(
     }
 
 
-@app.get("/v1/capabilities")
-async def capabilities_endpoint():
-    """List all registered action capabilities."""
+@app.get("/v3/actions")
+async def v3_list_actions_endpoint(state: Optional[str] = None, session_id: Optional[str] = None, limit: int = 50, offset: int = 0):
+    """V3 list actions."""
+    return await _do_list_actions(state, session_id, limit, offset)
+
+
+@app.get("/v1/actions")
+async def v1_list_actions_endpoint(state: Optional[str] = None, session_id: Optional[str] = None, limit: int = 50, offset: int = 0):
+    """V1 list actions (DEPRECATED)."""
+    return _add_deprecation(await _do_list_actions(state, session_id, limit, offset))
+
+
+# ============================================================================
+# Capabilities (v3 canonical + v1 compat)
+# ============================================================================
+
+async def _do_capabilities():
     reg = get_capability_registry()
     caps = reg.list_all()
     return {
         "ok": True,
         "capabilities": [
             {
-                "intent": c.intent,
-                "display_name": c.display_name,
-                "description": c.description,
-                "risk_level": c.risk_level,
+                "intent": c.intent, "display_name": c.display_name,
+                "description": c.description, "risk_level": c.risk_level,
                 "requires_confirmation": c.requires_confirmation,
-                "implemented": c.implemented,
-                "required_params": c.required_params,
-                "optional_params": c.optional_params,
-                "idempotent": c.idempotent,
-                "reversible": c.reversible,
-                "tags": list(c.tags),
+                "implemented": c.implemented, "required_params": c.required_params,
+                "optional_params": c.optional_params, "idempotent": c.idempotent,
+                "reversible": c.reversible, "tags": list(c.tags),
             }
             for c in caps
         ],
@@ -709,168 +826,221 @@ async def capabilities_endpoint():
     }
 
 
+@app.get("/v3/capabilities")
+async def v3_capabilities_endpoint():
+    """V3 list capabilities."""
+    result = await _do_capabilities()
+    result["contract_version"] = SONIA_CONTRACT
+    return result
+
+
+@app.get("/v1/capabilities")
+async def v1_capabilities_endpoint():
+    """V1 capabilities (DEPRECATED)."""
+    return _add_deprecation(await _do_capabilities())
+
+
 # ============================================================================
-# Stage 5 M2 — Recovery & Observability
+# Recovery & Observability (v3 canonical + v1 compat)
 # ============================================================================
 
-@app.get("/v1/health/summary")
-async def health_summary_endpoint():
-    """Get health supervisor summary with per-dependency states."""
+async def _do_health_summary():
     if not health_supervisor:
         return {"ok": False, "error": "Health supervisor not initialized"}
     return {"ok": True, **health_supervisor.summary()}
 
 
-@app.get("/v1/breakers")
-async def breakers_endpoint():
-    """Get circuit breaker states for all dependencies."""
+@app.get("/v3/health/summary")
+async def v3_health_summary():
+    return await _do_health_summary()
+
+
+@app.get("/v1/health/summary")
+async def v1_health_summary():
+    return _add_deprecation(await _do_health_summary())
+
+
+async def _do_breakers():
     reg = get_breaker_registry()
-    return {
-        "ok": True,
-        "breakers": reg.summary(),
-    }
+    return {"ok": True, "breakers": reg.summary()}
 
 
-@app.post("/v1/breakers/{name}/reset")
-async def reset_breaker_endpoint(name: str):
-    """Manually reset a circuit breaker to CLOSED state."""
+@app.get("/v3/breakers")
+async def v3_breakers():
+    return await _do_breakers()
+
+
+@app.get("/v1/breakers")
+async def v1_breakers():
+    return _add_deprecation(await _do_breakers())
+
+
+async def _do_reset_breaker(name: str):
     reg = get_breaker_registry()
     breaker = reg.get(name)
     if not breaker:
         return JSONResponse(status_code=404, content={
-            "ok": False,
-            "error": {"code": "NOT_FOUND", "message": f"Breaker '{name}' not found"},
+            "ok": False, "error": {"code": "NOT_FOUND", "message": f"Breaker '{name}' not found"},
         })
     await breaker.reset()
-    log_event({
-        "level": "INFO",
-        "service": "api-gateway",
-        "operation": "breaker.reset",
-        "breaker": name,
-    })
+    log_event({"level": "INFO", "service": "api-gateway", "operation": "breaker.reset", "breaker": name})
     return {"ok": True, "breaker": breaker.to_dict()}
 
 
-@app.get("/v1/breakers/metrics")
-async def breaker_metrics_endpoint(last_n: int = 50):
-    """Export time-series breaker metrics for operator dashboards."""
+@app.post("/v3/breakers/{name}/reset")
+async def v3_reset_breaker(name: str):
+    return await _do_reset_breaker(name)
+
+
+@app.post("/v1/breakers/{name}/reset")
+async def v1_reset_breaker(name: str):
+    result = await _do_reset_breaker(name)
+    if isinstance(result, dict):
+        return _add_deprecation(result)
+    return result
+
+
+async def _do_breaker_metrics(last_n: int):
     reg = get_breaker_registry()
-    return {
-        "ok": True,
-        "metrics": reg.metrics(last_n=last_n),
-    }
+    return {"ok": True, "metrics": reg.metrics(last_n=last_n)}
 
 
-@app.get("/v1/dead-letters")
-async def list_dead_letters_endpoint(
-    limit: int = 50,
-    offset: int = 0,
-    include_replayed: bool = False,
-):
-    """List dead letters with optional filters."""
+@app.get("/v3/breakers/metrics")
+async def v3_breaker_metrics(last_n: int = 50):
+    return await _do_breaker_metrics(last_n)
+
+
+@app.get("/v1/breakers/metrics")
+async def v1_breaker_metrics(last_n: int = 50):
+    return _add_deprecation(await _do_breaker_metrics(last_n))
+
+
+# ============================================================================
+# Dead Letter Queue (v3 canonical + v1 compat)
+# ============================================================================
+
+async def _do_list_dead_letters(limit: int, offset: int, include_replayed: bool):
     limit = max(1, min(limit, 1000))
     offset = max(0, offset)
     dlq = get_dead_letter_queue()
-    letters = await dlq.list_letters(limit=limit, offset=offset,
-                                      include_replayed=include_replayed)
+    letters = await dlq.list_letters(limit=limit, offset=offset, include_replayed=include_replayed)
     total = await dlq.count(include_replayed=include_replayed)
-    return {
-        "ok": True,
-        "dead_letters": [l.to_dict() for l in letters],
-        "total": total,
-    }
+    return {"ok": True, "dead_letters": [dl.to_dict() for dl in letters], "total": total}
 
 
-@app.get("/v1/dead-letters/{letter_id}")
-async def get_dead_letter_endpoint(letter_id: str):
-    """Get a single dead letter by ID."""
+@app.get("/v3/dead-letters")
+async def v3_list_dead_letters(limit: int = 50, offset: int = 0, include_replayed: bool = False):
+    return await _do_list_dead_letters(limit, offset, include_replayed)
+
+
+@app.get("/v1/dead-letters")
+async def v1_list_dead_letters(limit: int = 50, offset: int = 0, include_replayed: bool = False):
+    return _add_deprecation(await _do_list_dead_letters(limit, offset, include_replayed))
+
+
+async def _do_get_dead_letter(letter_id: str):
     dlq = get_dead_letter_queue()
     dl = await dlq.get(letter_id)
     if not dl:
         return JSONResponse(status_code=404, content={
-            "ok": False,
-            "error": {"code": "NOT_FOUND", "message": f"Dead letter {letter_id} not found"},
+            "ok": False, "error": {"code": "NOT_FOUND", "message": f"Dead letter {letter_id} not found"},
         })
     return {"ok": True, "dead_letter": dl.to_dict()}
 
 
-@app.post("/v1/dead-letters/{letter_id}/replay")
-async def replay_dead_letter_endpoint(
-    request: Request,
-    letter_id: str,
-    dry_run: bool = False,
-):
-    """
-    Replay a dead-lettered action through the pipeline.
-    dry_run=true → validate only, return diff without executing.
-    """
+@app.get("/v3/dead-letters/{letter_id}")
+async def v3_get_dead_letter(letter_id: str):
+    return await _do_get_dead_letter(letter_id)
+
+
+@app.get("/v1/dead-letters/{letter_id}")
+async def v1_get_dead_letter(letter_id: str):
+    result = await _do_get_dead_letter(letter_id)
+    if isinstance(result, dict):
+        return _add_deprecation(result)
+    return result
+
+
+async def _do_replay_dead_letter(request: Request, letter_id: str, dry_run: bool):
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
     result = await action_pipeline.replay_dead_letter(letter_id, dry_run=dry_run)
-
     log_event({
-        "level": "INFO",
-        "service": "api-gateway",
-        "operation": "dead_letter.replay",
-        "letter_id": letter_id,
-        "action_id": result.action_id,
-        "state": result.state,
-        "ok": result.ok,
-        "dry_run": dry_run,
-        "correlation_id": correlation_id,
+        "level": "INFO", "service": "api-gateway", "operation": "dead_letter.replay",
+        "letter_id": letter_id, "action_id": result.action_id, "state": result.state,
+        "ok": result.ok, "dry_run": dry_run, "correlation_id": correlation_id,
     })
-
     return result.dict(exclude_none=True)
 
 
-@app.get("/v1/audit-trails")
-async def list_audit_trails_endpoint(limit: int = 50, offset: int = 0):
-    """List recent action audit trails."""
+@app.post("/v3/dead-letters/{letter_id}/replay")
+async def v3_replay_dead_letter(request: Request, letter_id: str, dry_run: bool = False):
+    return await _do_replay_dead_letter(request, letter_id, dry_run)
+
+
+@app.post("/v1/dead-letters/{letter_id}/replay")
+async def v1_replay_dead_letter(request: Request, letter_id: str, dry_run: bool = False):
+    return _add_deprecation(await _do_replay_dead_letter(request, letter_id, dry_run))
+
+
+# ============================================================================
+# Audit Trails (v3 canonical + v1 compat)
+# ============================================================================
+
+async def _do_list_audit_trails(limit: int, offset: int):
     limit = max(1, min(limit, 1000))
     offset = max(0, offset)
     audit = get_audit_logger()
     trails = audit.list_trails(limit=limit, offset=offset)
-    return {
-        "ok": True,
-        "trails": trails,
-        "total": audit.count(),
-    }
+    return {"ok": True, "trails": trails, "total": audit.count()}
 
 
-@app.get("/v1/audit-trails/{action_id}")
-async def get_audit_trail_endpoint(action_id: str):
-    """Get the audit trail for a specific action."""
+@app.get("/v3/audit-trails")
+async def v3_list_audit_trails(limit: int = 50, offset: int = 0):
+    return await _do_list_audit_trails(limit, offset)
+
+
+@app.get("/v1/audit-trails")
+async def v1_list_audit_trails(limit: int = 50, offset: int = 0):
+    return _add_deprecation(await _do_list_audit_trails(limit, offset))
+
+
+async def _do_get_audit_trail(action_id: str):
     audit = get_audit_logger()
     trail = audit.get_trail(action_id)
     if not trail:
         return JSONResponse(status_code=404, content={
-            "ok": False,
-            "error": {"code": "NOT_FOUND", "message": f"Audit trail for {action_id} not found"},
+            "ok": False, "error": {"code": "NOT_FOUND", "message": f"Audit trail for {action_id} not found"},
         })
     return {"ok": True, "trail": trail.to_dict()}
 
 
+@app.get("/v3/audit-trails/{action_id}")
+async def v3_get_audit_trail(action_id: str):
+    return await _do_get_audit_trail(action_id)
+
+
+@app.get("/v1/audit-trails/{action_id}")
+async def v1_get_audit_trail(action_id: str):
+    result = await _do_get_audit_trail(action_id)
+    if isinstance(result, dict):
+        return _add_deprecation(result)
+    return result
+
+
 # ============================================================================
-# Stage 7 — Diagnostic Snapshot
+# Diagnostic Snapshot (v3 canonical + v1 compat)
 # ============================================================================
 
-@app.get("/v1/diagnostics/snapshot")
-async def diagnostics_snapshot_endpoint(last_n: int = 50):
-    """
-    Stage 7: Export a diagnostic snapshot for incident analysis.
-    Returns health, breakers, DLQ, recent actions, and config metadata
-    in a single response for operational debugging.
-    """
+async def _do_diagnostics_snapshot(last_n: int):
     correlation_id = generate_correlation_id()
     snapshot = {"ok": True, "correlation_id": correlation_id, "timestamp": datetime.utcnow().isoformat() + "Z"}
 
-    # Health
     try:
         if health_supervisor:
             snapshot["health"] = health_supervisor.summary()
     except Exception as e:
         snapshot["health"] = {"error": str(e)}
 
-    # Breakers
     try:
         reg = get_breaker_registry()
         snapshot["breakers"] = reg.summary()
@@ -878,16 +1048,14 @@ async def diagnostics_snapshot_endpoint(last_n: int = 50):
     except Exception as e:
         snapshot["breakers"] = {"error": str(e)}
 
-    # DLQ
     try:
         dlq = get_dead_letter_queue()
         count = await dlq.count(include_replayed=False)
         recent = await dlq.list_letters(limit=last_n, include_replayed=False)
-        snapshot["dead_letters"] = {"unresolved": count, "recent": [l.to_dict() for l in recent]}
+        snapshot["dead_letters"] = {"unresolved": count, "recent": [dl.to_dict() for dl in recent]}
     except Exception as e:
         snapshot["dead_letters"] = {"error": str(e)}
 
-    # Recent actions
     try:
         if action_pipeline:
             actions = await action_pipeline.store.list_actions(limit=last_n)
@@ -898,13 +1066,21 @@ async def diagnostics_snapshot_endpoint(last_n: int = 50):
     return snapshot
 
 
+@app.get("/v3/diagnostics/snapshot")
+async def v3_diagnostics_snapshot(last_n: int = 50):
+    return await _do_diagnostics_snapshot(last_n)
+
+
+@app.get("/v1/diagnostics/snapshot")
+async def v1_diagnostics_snapshot(last_n: int = 50):
+    return _add_deprecation(await _do_diagnostics_snapshot(last_n))
+
+
 # ============================================================================
-# Stage 7 — State Backup & Restore
+# State Backup & Restore (v3 canonical + v1 compat)
 # ============================================================================
 
-@app.post("/v1/backups")
-async def create_backup_endpoint(label: str = ""):
-    """Create a full state backup of DLQ, actions, breakers, and config."""
+async def _do_create_backup(label: str):
     mgr = get_backup_manager()
     dlq = get_dead_letter_queue()
     reg = get_breaker_registry()
@@ -913,28 +1089,66 @@ async def create_backup_endpoint(label: str = ""):
     return {"ok": True, "backup": manifest}
 
 
-@app.get("/v1/backups")
-async def list_backups_endpoint():
-    """List all available state backups."""
+@app.post("/v3/backups")
+async def v3_create_backup(label: str = ""):
+    return await _do_create_backup(label)
+
+
+@app.post("/v1/backups")
+async def v1_create_backup(label: str = ""):
+    return _add_deprecation(await _do_create_backup(label))
+
+
+async def _do_list_backups():
     mgr = get_backup_manager()
     backups = mgr.list_backups()
     return {"ok": True, "backups": backups, "total": len(backups)}
 
 
-@app.get("/v1/backups/{backup_id}/verify")
-async def verify_backup_endpoint(backup_id: str):
-    """Verify backup integrity by re-computing checksums."""
+@app.get("/v3/backups")
+async def v3_list_backups():
+    return await _do_list_backups()
+
+
+@app.get("/v1/backups")
+async def v1_list_backups():
+    return _add_deprecation(await _do_list_backups())
+
+
+async def _do_verify_backup(backup_id: str):
     mgr = get_backup_manager()
-    result = await mgr.verify_backup(backup_id)
+    return await mgr.verify_backup(backup_id)
+
+
+@app.get("/v3/backups/{backup_id}/verify")
+async def v3_verify_backup(backup_id: str):
+    return await _do_verify_backup(backup_id)
+
+
+@app.get("/v1/backups/{backup_id}/verify")
+async def v1_verify_backup(backup_id: str):
+    result = await _do_verify_backup(backup_id)
+    if isinstance(result, dict):
+        return _add_deprecation(result)
     return result
 
 
-@app.post("/v1/backups/{backup_id}/restore/dlq")
-async def restore_dlq_endpoint(backup_id: str, dry_run: bool = True):
-    """Restore DLQ records from backup. dry_run=true by default."""
+async def _do_restore_dlq(backup_id: str, dry_run: bool):
     mgr = get_backup_manager()
     dlq = get_dead_letter_queue()
-    result = await mgr.restore_dlq(backup_id, dlq, dry_run=dry_run)
+    return await mgr.restore_dlq(backup_id, dlq, dry_run=dry_run)
+
+
+@app.post("/v3/backups/{backup_id}/restore/dlq")
+async def v3_restore_dlq(backup_id: str, dry_run: bool = True):
+    return await _do_restore_dlq(backup_id, dry_run)
+
+
+@app.post("/v1/backups/{backup_id}/restore/dlq")
+async def v1_restore_dlq(backup_id: str, dry_run: bool = True):
+    result = await _do_restore_dlq(backup_id, dry_run)
+    if isinstance(result, dict):
+        return _add_deprecation(result)
     return result
 
 

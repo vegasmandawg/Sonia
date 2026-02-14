@@ -18,7 +18,7 @@ if str(SERVICES_DIR) not in sys.path:
 
 # Canonical version
 sys.path.insert(0, str(SERVICES_DIR / "shared"))
-from version import SONIA_VERSION
+from version import SONIA_VERSION, SONIA_CONTRACT
 
 from openclaw.schemas import (
     ExecuteRequest, ExecuteResponse, HealthzResponse, StatusResponse,
@@ -83,6 +83,7 @@ async def healthz() -> HealthzResponse:
     return HealthzResponse(
         ok=True,
         service="openclaw",
+        contract_version=SONIA_CONTRACT,
         tools_registered=stats.total_tools,
         tools_implemented=stats.implemented_tools
     )

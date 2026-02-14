@@ -19,7 +19,7 @@ from pathlib import Path
 
 # Canonical version
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
-from version import SONIA_VERSION
+from version import SONIA_VERSION, SONIA_CONTRACT
 
 # Configure logging
 logging.basicConfig(
@@ -56,6 +56,7 @@ def healthz():
     health = {
         "ok": True,
         "service": "eva-os",
+        "contract_version": SONIA_CONTRACT,
         "timestamp": datetime.utcnow().isoformat(),
     }
     if _safe_orchestrator is not None:

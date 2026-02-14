@@ -30,6 +30,11 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, validator
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent.parent / "shared"))
+from version import SONIA_VERSION, SONIA_CONTRACT
+
 logger = logging.getLogger("perception")
 
 # ---------------------------------------------------------------------------
@@ -303,7 +308,7 @@ async def lifespan(app: FastAPI):
     logger.info("Perception pipeline stopped")
 
 
-app = FastAPI(title="Perception Pipeline", version="2.6.0", lifespan=lifespan)
+app = FastAPI(title="Perception Pipeline", version=SONIA_VERSION, lifespan=lifespan)
 
 
 # ---------------------------------------------------------------------------
@@ -315,7 +320,8 @@ async def healthz():
     return {
         "status": "ok",
         "service": "perception",
-        "version": "2.6.0",
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
         "inference_status": state.status.value,
         "total_inferences": state.total_inferences,
         "privacy_blocks": state.total_privacy_blocks,

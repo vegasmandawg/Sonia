@@ -21,7 +21,7 @@ from pydantic import BaseModel
 
 # Canonical version
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
-from version import SONIA_VERSION
+from version import SONIA_VERSION, SONIA_CONTRACT
 
 from providers import (
     get_router, TaskType, ProviderRouter, ModelInfo
@@ -160,6 +160,7 @@ def healthz():
     result = {
         "ok": True,
         "service": "model-router",
+        "contract_version": SONIA_CONTRACT,
         "timestamp": datetime.utcnow().isoformat(),
         "available_providers": available_providers,
     }
