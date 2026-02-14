@@ -84,7 +84,7 @@ New: `MemoryRetrievalPolicyV3` class, `write_typed_memory()` helper.
 
 ## Test Coverage
 
-36 integration tests in `test_v300_m3_memory.py`:
+38 integration tests in `test_v300_m3_memory.py`:
 
 | Group | Count |
 |-------|-------|
@@ -95,6 +95,7 @@ New: `MemoryRetrievalPolicyV3` class, `write_typed_memory()` helper.
 | Budget enforcement | 4 |
 | Backward compatibility | 3 |
 | Adversarial / hardening | 6 |
+| M3 invariant assertions | 2 |
 
 Regression: M2 (28 tests) + M1 (18 tests) all green.
 

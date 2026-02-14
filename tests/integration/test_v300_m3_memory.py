@@ -9,8 +9,9 @@ Tests:
   - Budget enforcement (4 tests)
   - Backward compatibility (3 tests)
   - Adversarial / hardening (6 tests)
+  - M3 invariant assertions (2 tests)
 
-Total: 36 tests.
+Total: 38 tests.
 Runs against in-process ASGI TestClient (no live services needed).
 """
 import json
@@ -643,3 +644,118 @@ class TestAdversarialHardening:
             valid_until="2025-01-01T00:00:00Z",
         )
         assert r.status_code == 400
+
+
+# ═════════════════════════════════════════════════════════════════════════
+# Group 8: M3 Invariant Assertions (2 tests)
+# ═════════════════════════════════════════════════════════════════════════
+
+class TestM3Invariants:
+    """Pre-M4 invariant assertions per design doc."""
+
+    def test_chain_head_normalization(self, client):
+        """Invariant A: For typed rows, version_chain_head is always non-null
+        and equals the head id (self for head). Legacy rows keep NULL.
+
+        Store a typed memory, create two versions, then verify:
+        1. Head record: version_chain_head == self.id (non-null)
+        2. All chain members: version_chain_head == head's id (non-null)
+        3. A legacy row: version_chain_head IS NULL
+        """
+        # Store typed head
+        r = _store_fact(client, subject="InvA", predicate="chain", obj="v1")
+        assert r.status_code == 200
+        head_id = r.json()["id"]
+
+        # Create v2
+        v2_content = json.dumps({"subject": "InvA", "predicate": "chain",
+                                  "object": "v2", "confidence": 0.9})
+        r2 = client.post("/v3/memory/version", json={
+            "original_id": head_id, "new_content": v2_content,
+        })
+        assert r2.status_code == 200
+        v2_id = r2.json()["id"]
+
+        # Create v3 off v2
+        v3_content = json.dumps({"subject": "InvA", "predicate": "chain",
+                                  "object": "v3", "confidence": 0.9})
+        r3 = client.post("/v3/memory/version", json={
+            "original_id": v2_id, "new_content": v3_content,
+        })
+        assert r3.status_code == 200
+
+        # Fetch full version history
+        rh = client.get(f"/v3/memory/{head_id}/versions")
+        assert rh.status_code == 200
+        versions = rh.json()["versions"]
+        assert len(versions) == 3
+
+        # All members point to same chain head
+        for v in versions:
+            assert v["version_chain_head"] is not None, \
+                f"version_chain_head is NULL on typed row {v['id']}"
+            assert v["version_chain_head"] == head_id, \
+                f"version_chain_head mismatch: {v['version_chain_head']} != {head_id}"
+
+        # Head record self-referential
+        head_row = [v for v in versions if v["id"] == head_id][0]
+        assert head_row["version_chain_head"] == head_row["id"]
+
+        # Legacy row: version_chain_head should be NULL
+        client.post("/store", json={
+            "type": "fact", "content": "legacy_inv_a_check",
+        })
+        rl = client.post("/search", json={"query": "legacy_inv_a_check"})
+        assert rl.status_code == 200
+        legacy_results = rl.json()["results"]
+        assert len(legacy_results) >= 1
+        # Legacy rows have no version_chain_head field (or it's NULL)
+        # The search endpoint doesn't return v3 columns, so verify via
+        # the v3 budget query which returns all columns
+        rl2 = client.post("/v3/memory/query", json={
+            "query": "legacy_inv_a_check", "max_chars": 5000,
+        })
+        legacy_v3 = [r for r in rl2.json()["results"]
+                      if r.get("version_chain_head") is None]
+        assert len(legacy_v3) >= 1, "Expected at least one legacy row with NULL version_chain_head"
+
+    def test_single_current_guarantee(self, client):
+        """Invariant B: create_version() only succeeds if original's
+        superseded_by IS NULL. Second attempt on same original yields 409.
+
+        Verify:
+        1. First supersede succeeds
+        2. Second supersede on same original returns 409
+        3. Version chain has exactly one current (superseded_by IS NULL)
+        """
+        r = _store_fact(client, subject="InvB", predicate="single", obj="v1")
+        assert r.status_code == 200
+        orig_id = r.json()["id"]
+
+        # First supersede -- should succeed
+        v2_content = json.dumps({"subject": "InvB", "predicate": "single",
+                                  "object": "v2", "confidence": 0.9})
+        r2 = client.post("/v3/memory/version", json={
+            "original_id": orig_id, "new_content": v2_content,
+        })
+        assert r2.status_code == 200
+        v2_id = r2.json()["id"]
+
+        # Second supersede on SAME original -- must be 409
+        v3_content = json.dumps({"subject": "InvB", "predicate": "single",
+                                  "object": "v3_conflict", "confidence": 0.9})
+        r3 = client.post("/v3/memory/version", json={
+            "original_id": orig_id, "new_content": v3_content,
+        })
+        assert r3.status_code == 409, \
+            f"Expected 409 for double-supersede, got {r3.status_code}"
+        assert "CONCURRENT_SUPERSEDE" in json.dumps(r3.json())
+
+        # Verify exactly one current version in the chain
+        rh = client.get(f"/v3/memory/{orig_id}/versions")
+        assert rh.status_code == 200
+        versions = rh.json()["versions"]
+        current = [v for v in versions if v["superseded_by"] is None]
+        assert len(current) == 1, \
+            f"Expected exactly 1 current version, found {len(current)}"
+        assert current[0]["id"] == v2_id
