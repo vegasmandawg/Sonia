@@ -1,0 +1,21 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.14, pytest-8.4.2, pluggy-1.6.0 -- S:\envs\sonia-core\python.exe
+cachedir: .pytest_cache
+rootdir: S:\
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-0.25.3, typeguard-4.4.4
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None
+collecting ... collected 10 items
+
+tests/v33_perception/test_zero_frame_confirmation.py::TestZeroFrameConfirmation::test_zero_frame_suspended_state_rejects_processing PASSED [ 10%]
+tests/v33_perception/test_zero_frame_confirmation.py::TestZeroFrameConfirmation::test_zero_frame_no_envelopes_during_suspension PASSED [ 20%]
+tests/v33_perception/test_zero_frame_confirmation.py::TestZeroFrameConfirmation::test_zero_frame_resumes_after_clear PASSED [ 30%]
+tests/v33_perception/test_zero_frame_confirmation.py::TestZeroFrameConfirmation::test_one_shot_approval_consumed PASSED [ 40%]
+tests/v33_perception/test_zero_frame_confirmation.py::TestZeroFrameConfirmation::test_denied_requirement_cannot_execute PASSED [ 50%]
+tests/v33_perception/test_zero_frame_confirmation.py::TestZeroFrameConfirmation::test_double_approve_returns_none PASSED [ 60%]
+tests/v33_perception/test_zero_frame_confirmation.py::TestZeroFrameConfirmation::test_burst_throttle_no_auto_approve PASSED [ 70%]
+tests/v33_perception/test_zero_frame_confirmation.py::TestZeroFrameConfirmation::test_expired_confirmation_cannot_approve PASSED [ 80%]
+tests/v33_perception/test_zero_frame_confirmation.py::TestZeroFrameConfirmation::test_normalizer_batch_order_deterministic PASSED [ 90%]
+tests/v33_perception/test_zero_frame_confirmation.py::TestZeroFrameConfirmation::test_gate_stats_track_all_outcomes PASSED [100%]
+
+============================= 10 passed in 0.24s ==============================

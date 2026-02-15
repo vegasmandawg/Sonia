@@ -1,0 +1,21 @@
+{
+  "epic": "C",
+  "title": "Perception Privacy Hardening",
+  "timestamp": "2026-02-15T06:28:14.067167+00:00",
+  "gates": {
+    "G28": {
+      "tests_passed": 14,
+      "tests_failed": 0,
+      "verdict": "PASS"
+    },
+    "G29": {
+      "tests_passed": 10,
+      "tests_failed": 0,
+      "verdict": "PASS"
+    }
+  },
+  "delta_tests": 24,
+  "combined_tests": 157,
+  "floor_tests": 77,
+  "verdict": "PASS"
+}
