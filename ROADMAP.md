@@ -2,39 +2,42 @@
 
 ## Released
 
+### v3.1.0 GA (2026-02-15) -- Stabilization Baseline Complete
+- GA tag: `v3.1.0` | RC tag: `v3.1.0-rc1`
+- Release commit: `12c1b08` (merge of PR #15)
+- Promotion gate: 17/17 PASS (12 baseline + 5 hardening)
+- Regression: 151 tests PASS (112 M1-M4 + 39 hardening)
+- Chaos: 5/5 scripts PASS, 0 bypass attempts
+- Cleanroom rebuild: verified from tag
+- Rollback drill: v3.0.0 validated (112 passed)
+- Artifact hashes: 16/16 matched
+- Release bundle: `S:\releases\v3.1.0\`
+- **No contract drift from v3.0.0** (SONIA_CONTRACT = v3.0.0)
+- Maintenance branch: `release/v3.1.x` (bugfix/security only)
+
 ### v3.0.0 GA (2026-02-14)
-- GA tag: `v3.0.0`
-- RC tag: `v3.0.0-rc1`
+- GA tag: `v3.0.0` | RC tag: `v3.0.0-rc1`
 - Release commit: `3bf3e64`
 - Promotion gate: 12/12 PASS
 - Regression: 112 tests PASS
 - Release bundle: `S:\releases\v3.0.0\`
-- Milestone docs:
-  - `docs/V3_M1_CONTRACT.md`
-  - `docs/V3_M2_IDENTITY.md`
-  - `docs/V3_M3_MEMORY_LEDGER.md`
-  - `docs/V3_M4_PERCEPTION_BRIDGE.md`
 
-## Completed in v3.0
-- M1-M4 delivery complete
-- Perception memory bridge integrated
-- Repo hygiene hardening (`.gitignore`, quarantine workflow)
-- Release gate automation (`scripts/release/gate-v30.py`)
-- Artifact tolerance fix for gate stability
+## Current: v3.2-dev
 
-## v3.1-dev Focus (Post-GA)
-1. GA hardening follow-ups only (no regressions to v3.0 behavior contracts)
-2. Extended soak profiles (duration + concurrency envelopes)
-3. Incident bundle validation under fault injection
-4. Recovery drills across service supervisor states
-5. Gate expansion (`gate-v31.py`) with stricter reproducibility checks
-6. Backlog triage: classify all deferred items as `blocker`, `hardening`, or `feature`
+### Scope
+Companion-facing capability built on v3.1 stability baseline.
+Contract posture: v3.0.0 contract frozen; new surface behind feature flags.
 
-## Entry Criteria for v3.1 Work
-- `main` includes release merge commit
-- `v3.1-dev` branch created and protected
-- Version set to `3.1.0-dev`
-- CI target switched to v3.1 gate script
+### Candidate Epics (pick 2-3 for first milestone)
+- **A: Companion session experience** -- voice latency, barge-in, turn-taking
+- **B: Perception-to-action ergonomics** -- confirmation batching, priority lanes
+- **C: Memory ledger operator tooling** -- review/edit/redact, budget visibility
+
+### Entry Criteria
+- `v3.2-dev` branch off `v3.1.0` tag
+- SONIA_VERSION = `3.2.0-dev`
+- `docs/V3_2_SCOPE_LOCK.md` written before first feature commit
+- `gate-v32.py` scaffolded (v3.1 gates as stability floor)
 
 ---
 
