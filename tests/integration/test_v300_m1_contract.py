@@ -39,7 +39,7 @@ class TestVersionExports:
     def test_sonia_version(self):
         from version import SONIA_VERSION
         # v3.1 branch: accept release or dev suffix; v3.0 baseline also valid
-        assert SONIA_VERSION in ("3.0.0", "3.1.0", "3.1.0-dev"), f"Unexpected version: {SONIA_VERSION}"
+        assert SONIA_VERSION in ("3.0.0", "3.1.0", "3.1.0-dev", "3.2.0-dev"), f"Unexpected version: {SONIA_VERSION}"
 
     def test_sonia_contract(self):
         from version import SONIA_CONTRACT
