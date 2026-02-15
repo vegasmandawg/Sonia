@@ -1,0 +1,64 @@
+{
+  "matrix": "v3.5_gate_sweep",
+  "timestamp_utc": "20260215-225822",
+  "gates_passed": 9,
+  "gates_total": 9,
+  "all_pass": true,
+  "verdict": "PROMOTE",
+  "results": [
+    {
+      "gate": "secret_scan",
+      "passed": true,
+      "detail": "PASS: No hardcoded secrets detected.",
+      "returncode": 0
+    },
+    {
+      "gate": "traceability",
+      "passed": true,
+      "detail": "PASS: Control traceability verified.",
+      "returncode": 0
+    },
+    {
+      "gate": "incident_bundle",
+      "passed": true,
+      "detail": "PASS: Incident bundle infrastructure validated.",
+      "returncode": 0
+    },
+    {
+      "gate": "rate_limiter",
+      "passed": true,
+      "detail": "PASS: Rate limiter enforcement verified.",
+      "returncode": 0
+    },
+    {
+      "gate": "runbook_pragma",
+      "passed": true,
+      "detail": "[PASS] pragma_health -> S:\\reports\\audit\\pragma-health-20260215-225822.json",
+      "returncode": 0
+    },
+    {
+      "gate": "preaudit",
+      "passed": true,
+      "detail": "PASS",
+      "returncode": 0
+    },
+    {
+      "gate": "auth_posture",
+      "passed": true,
+      "detail": "PASS",
+      "returncode": 0
+    },
+    {
+      "gate": "unit_test_layer",
+      "passed": true,
+      "detail": "PASS",
+      "returncode": 0
+    },
+    {
+      "gate": "fallback_behavior",
+      "passed": true,
+      "detail": "PASS",
+      "returncode": 0
+    }
+  ]
+}

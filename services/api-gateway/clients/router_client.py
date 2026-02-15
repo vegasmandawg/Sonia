@@ -11,6 +11,34 @@ import uuid
 DEFAULT_TIMEOUT = 10.0
 DEFAULT_RETRIES = 3
 BACKOFF_FACTOR = 1.5
+FALLBACK_CONTRACT_VERSION = "1.0"
+
+# Allowed fallback_trigger values (enum-like)
+FALLBACK_TRIGGERS = frozenset({
+    "router_unavailable",   # TIMEOUT or UNAVAILABLE from router
+    "router_error",         # other RouterClientError (4xx, etc.)
+    "unexpected_error",     # non-RouterClientError exception
+})
+
+
+def _fallback_envelope(
+    message: str,
+    trigger: str,
+    correlation_id: str,
+    exc: Exception,
+) -> Dict[str, Any]:
+    """Build a deterministic, machine-detectable fallback response."""
+    return {
+        "response": message,
+        "source": "fallback",
+        "model": "fallback",
+        "provider": "static",
+        "fallback_used": True,
+        "fallback_trigger": trigger,
+        "fallback_reason": f"{type(exc).__name__}: {exc}",
+        "fallback_contract_version": FALLBACK_CONTRACT_VERSION,
+        "correlation_id": correlation_id,
+    }
 
 
 class RouterClientError(Exception):
@@ -194,6 +222,46 @@ class RouterClient:
         
         return response.json()
     
+    async def chat_with_fallback(
+        self,
+        messages: List[Dict[str, str]],
+        model: Optional[str] = None,
+        task_type: str = "text",
+        correlation_id: Optional[str] = None,
+        fallback_message: str = "(Model unavailable — please try again shortly.)",
+    ) -> Dict[str, Any]:
+        """
+        Chat with automatic fallback on failure.
+
+        If the primary chat() call fails (timeout, unavailable, error),
+        returns a deterministic fallback response instead of raising.
+
+        Args:
+            messages: List of message dicts with 'role' and 'content'
+            model: Optional specific model to use
+            task_type: Task type for routing
+            correlation_id: Optional correlation ID for tracing
+            fallback_message: Static message returned on failure
+
+        Returns:
+            Chat response dict. On failure, includes fallback_used=True.
+        """
+        correlation_id = correlation_id or str(uuid.uuid4())
+        try:
+            result = await self.chat(
+                messages=messages,
+                model=model,
+                task_type=task_type,
+                correlation_id=correlation_id,
+            )
+            result["fallback_used"] = False
+            return result
+        except RouterClientError as exc:
+            trigger = "router_unavailable" if exc.code in ("UNAVAILABLE", "TIMEOUT") else "router_error"
+            return _fallback_envelope(fallback_message, trigger, correlation_id, exc)
+        except Exception as exc:
+            return _fallback_envelope(fallback_message, "unexpected_error", correlation_id, exc)
+
     async def get_models(
         self,
         task_type: Optional[str] = None,
