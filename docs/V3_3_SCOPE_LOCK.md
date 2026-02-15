@@ -261,3 +261,4 @@ sensible defaults. Existing consumers must not break.
 | 2026-02-14 | M0 LOCKED: epics A/B/C defined, G24-G29 specified with binary criteria, risk register + promotion criteria finalized |
 | 2026-02-15 | Epic A COMPLETE: G24 (16/16), G25 (14/14), 30 delta tests green, 77 floor intact, 107 combined. Modules: ledger_editor, redaction_engine, provenance_slicer, export_import |
 | 2026-02-15 | Epic B COMPLETE: G26 (13/13), G27 (13/13), 26 delta tests green, 107 prior intact, 133 combined. Modules: restore_verifier, triage_recommender, operator_drill |
+| 2026-02-15 | Epic C COMPLETE: G28 (14/14), G29 (10/10), 24 delta tests green, 133 prior intact, 157 combined. Modules: privacy_gate, zero_frame_enforcer |
