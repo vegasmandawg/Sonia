@@ -38,7 +38,8 @@ class TestVersionExports:
 
     def test_sonia_version(self):
         from version import SONIA_VERSION
-        assert SONIA_VERSION == "3.0.0"
+        # On v3.1-dev branch, version is bumped but contract stays at v3.0.0
+        assert SONIA_VERSION in ("3.0.0", "3.1.0-dev"), f"Unexpected version: {SONIA_VERSION}"
 
     def test_sonia_contract(self):
         from version import SONIA_CONTRACT
