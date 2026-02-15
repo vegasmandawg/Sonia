@@ -13,7 +13,8 @@
       "Bash(OPENCLAW_SKIP_CHANNELS=1 CLAWDBOT_SKIP_CHANNELS=1 OPENCLAW_GATEWAY_TOKEN=test-token timeout 8 node:*)",
       "Bash(powershell -Command:*)",
       "Bash(git log:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(S:\\\\envs\\\\sonia-core\\\\python.exe -m pytest:*)"
     ]
   }
 }
