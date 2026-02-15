@@ -83,13 +83,36 @@ class MemoryDatabase:
     
     @contextmanager
     def connection(self):
-        """Context manager for database connections."""
+        """Context manager for database connections with durability pragmas."""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
+        # Durability pragmas - WAL for concurrent reads + writer,
+        # NORMAL synchronous for balance of speed and safety,
+        # 64MB mmap for read performance.
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA foreign_keys=ON")
+        conn.execute("PRAGMA busy_timeout=5000")
+        conn.execute("PRAGMA mmap_size=67108864")
         try:
             yield conn
         finally:
             conn.close()
+
+    def verify_pragmas(self) -> dict:
+        """Verify database pragmas are correctly set. Used by runtime gate."""
+        with self.connection() as conn:
+            result = {}
+            for pragma in ["journal_mode", "synchronous", "foreign_keys", "busy_timeout"]:
+                row = conn.execute(f"PRAGMA {pragma}").fetchone()
+                result[pragma] = row[0] if row else None
+        expected = {"journal_mode": "wal", "synchronous": 1, "foreign_keys": 1, "busy_timeout": 5000}
+        result["all_ok"] = all(
+            str(result.get(k, "")).lower() == str(v).lower()
+            for k, v in expected.items()
+        )
+        result["expected"] = expected
+        return result
     
     # ─────────────────────────────────────────────────────────────────────────
     # CRUD Operations

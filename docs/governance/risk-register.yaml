@@ -1,0 +1,175 @@
+# SONIA Risk Register
+# Version: 1.0.0
+# Last Reviewed: 2026-02-15
+# Next Review: 2026-03-15
+
+metadata:
+  version: "1.0.0"
+  last_reviewed: "2026-02-15"
+  next_review: "2026-03-15"
+  review_cadence: "monthly"
+
+risks:
+  - id: RISK-001
+    title: "SQLite Database Corruption"
+    severity: critical
+    likelihood: medium
+    impact: "Complete memory loss, session history unavailable, system unusable"
+    owner: "Memory System Owner"
+    mitigation: |
+      - Backup/restore endpoints implemented (v2.7)
+      - SHA-256 manifest verification
+      - Quarterly backup drill (see retrospective-cadence.md)
+      - WAL mode enabled for concurrent access
+      - Recovery procedure documented in RUNBOOK.md
+    status: mitigated
+    review_cadence: monthly
+
+  - id: RISK-002
+    title: "Service Outage (Core Service Down)"
+    severity: critical
+    likelihood: medium
+    impact: "Complete SONIA unavailability, active sessions terminated"
+    owner: "EVA-OS Supervision Owner"
+    mitigation: |
+      - EVA-OS ServiceSupervisor with /healthz probes (v2.9)
+      - State machine tracking (HEALTHY/DEGRADED/CRITICAL/RECOVERING/FAILED)
+      - RTO < 60s demonstrated in chaos tests
+      - Circuit breaker with dead letter queue
+      - Incident bundle export for post-mortem
+    status: mitigated
+    review_cadence: monthly
+
+  - id: RISK-003
+    title: "Secret Leak (API Keys Exposed)"
+    severity: critical
+    likelihood: low
+    impact: "Unauthorized model access, quota exhaustion, security breach"
+    owner: "Security Owner"
+    mitigation: |
+      - Secrets in .env (gitignored, not committed)
+      - Log redaction for sensitive patterns (v3.4 baseline)
+      - Access control: tool confirmation gate for guarded actions
+      - No secrets in URL parameters or query strings
+      - Quarterly security scan (see retrospective-cadence.md)
+    status: mitigated
+    review_cadence: quarterly
+
+  - id: RISK-004
+    title: "Dependency Vulnerability"
+    severity: high
+    likelihood: medium
+    impact: "Supply chain attack, remote code execution, data exfiltration"
+    owner: "Dependency Management Owner"
+    mitigation: |
+      - requirements-frozen.txt with pinned versions
+      - dependency-lock.json with SHA-256 hashes (v2.6+)
+      - Quarterly dependency audit (see retrospective-cadence.md)
+      - Promotion gate checks for dep hygiene
+      - Manual upgrade review before relock
+    status: mitigated
+    review_cadence: quarterly
+
+  - id: RISK-005
+    title: "Dead Letter Queue Overflow"
+    severity: high
+    likelihood: medium
+    impact: "Failed actions lost, DLQ storage exhaustion, recovery impossible"
+    owner: "Action Pipeline Owner"
+    mitigation: |
+      - DLQ bounded to 1000 entries (configurable)
+      - Replay with dry-run validation (v2.6)
+      - Monthly retrospective reviews DLQ size/patterns
+      - Breaker metrics for early detection
+      - Alert on DLQ > 500 entries (manual check)
+    status: mitigated
+    review_cadence: monthly
+
+  - id: RISK-006
+    title: "Perception Privacy Breach"
+    severity: critical
+    likelihood: low
+    impact: "Unauthorized vision capture, privacy violation, regulatory exposure"
+    owner: "Perception System Owner"
+    mitigation: |
+      - Hard privacy gate on vision-capture (v2.6 Track B)
+      - Zero-frame default, explicit enable required
+      - SceneAnalysis confirmation flow (fail-closed)
+      - PerceptionActionGate non-bypass enforcement (v3.0)
+      - Perception memory bridge with provenance (v3.0 M4)
+    status: mitigated
+    review_cadence: quarterly
+
+  - id: RISK-007
+    title: "Model Provider Unavailability"
+    severity: high
+    likelihood: medium
+    impact: "No chat generation, sessions blocked, degraded user experience"
+    owner: "Model Routing Owner"
+    mitigation: |
+      - Multi-provider support (Anthropic + OpenRouter, v2.9)
+      - Routing policy (local_only/cloud_allowed/provider_pinned)
+      - Cancellation support for hung calls (v2.8)
+      - Circuit breaker on model client
+      - Fallback cascade in turn quality controls (v1.4)
+    status: mitigated
+    review_cadence: monthly
+
+  - id: RISK-008
+    title: "Memory Recall Irrelevance"
+    severity: medium
+    likelihood: medium
+    impact: "Poor context quality, hallucinations, wasted token budget"
+    owner: "Memory System Owner"
+    mitigation: |
+      - HybridSearchLayer (BM25 + LIKE fallback, v2.9)
+      - Token budget enforcement (2000 tokens, v1.4)
+      - ProvenanceTracker for audit (v2.9)
+      - Type filters (FACT/SYSTEM_STATE/DIALOG/SUMMARY, v3.0)
+      - Memory recall quality metrics (v2.8)
+    status: mitigated
+    review_cadence: monthly
+
+  - id: RISK-009
+    title: "Confirmation Gate Bypass"
+    severity: critical
+    likelihood: low
+    impact: "Unauthorized guarded actions, data loss, system harm"
+    owner: "Tool Safety Owner"
+    mitigation: |
+      - Idempotent approve/deny (v1.4)
+      - Confirmation TTL (120s) with EXPIRED code
+      - Per-session pending limit (10)
+      - Tool policy classification (safe_read/guarded_write/blocked)
+      - Audit trail for all confirmations
+    status: mitigated
+    review_cadence: monthly
+
+  - id: RISK-010
+    title: "Correlation ID Loss"
+    severity: medium
+    likelihood: low
+    impact: "Trace fragmentation, incident investigation impaired"
+    owner: "Observability Owner"
+    mitigation: |
+      - Fixed 5 gaps in v2.7 (all entry points mint req_xxx IDs)
+      - Correlation survival tested in chaos suite
+      - Incident bundle export includes correlation traces
+      - Structured JSONL logging with correlation IDs
+      - EventEnvelope in shared/events.py (v2.6)
+    status: mitigated
+    review_cadence: quarterly
+
+accepted_risks:
+  - id: RISK-011
+    title: "Single-Node Architecture"
+    severity: medium
+    likelihood: high
+    impact: "No horizontal scale, hardware failure = total outage"
+    owner: "Architecture Owner"
+    rationale: |
+      SONIA is a local-first system for single-user operation.
+      Distributed deployment is explicitly out of scope for v3.x.
+      RTO < 60s demonstrated; backup/restore sufficient for recovery.
+    status: accepted
+    review_cadence: quarterly

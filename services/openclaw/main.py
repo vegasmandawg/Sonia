@@ -19,6 +19,10 @@ if str(SERVICES_DIR) not in sys.path:
 # Canonical version
 sys.path.insert(0, str(SERVICES_DIR / "shared"))
 from version import SONIA_VERSION, SONIA_CONTRACT
+try:
+    from log_redaction import redact_string
+except ImportError:
+    redact_string = lambda x: x
 
 from openclaw.schemas import (
     ExecuteRequest, ExecuteResponse, HealthzResponse, StatusResponse,
@@ -89,6 +93,18 @@ async def healthz() -> HealthzResponse:
     )
 
 
+@app.get("/version")
+async def version():
+    """Version endpoint."""
+    return {
+        "ok": True,
+        "service": "openclaw",
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
+        "python_version": sys.version.split()[0],
+    }
+
+
 @app.get("/")
 async def root():
     """Root endpoint."""
@@ -106,7 +122,7 @@ async def status() -> StatusResponse:
     return StatusResponse(
         service="openclaw",
         status="online",
-        version="1.0.0",
+        version=SONIA_VERSION,
         tools=stats
     )
 
@@ -282,6 +298,21 @@ async def registry_stats():
     }
 
 
+@app.get("/breakers")
+async def breaker_status():
+    """Circuit breaker status for all tools."""
+    try:
+        from openclaw.retry import ToolRetryExecutor
+        executor = ToolRetryExecutor()
+        return {
+            "ok": True,
+            "breakers": executor.all_breaker_status(),
+            "service": "openclaw",
+        }
+    except Exception:
+        return {"ok": True, "breakers": [], "service": "openclaw"}
+
+
 @app.get("/logs/execution")
 async def execution_logs(limit: int = 100):
     """
@@ -333,11 +364,12 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle general exceptions."""
+    redacted_error = redact_string(str(exc))
     log_entry = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "level": "ERROR",
         "service": "openclaw",
-        "error": str(exc),
+        "error": redacted_error,
         "path": request.url.path
     }
     print(json.dumps(log_entry), file=sys.stderr)

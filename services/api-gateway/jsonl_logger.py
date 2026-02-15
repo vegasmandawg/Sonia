@@ -8,11 +8,18 @@ Each logger writes to a separate file under S:\\logs\\gateway\\.
 import json
 import logging
 import os
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-LOG_DIR = Path(r"S:\logs\gateway")
+# Try to import shared paths module; fall back to hardcoded path
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
+    from paths import LOGS_GATEWAY_DIR
+    LOG_DIR = LOGS_GATEWAY_DIR
+except ImportError:
+    LOG_DIR = Path(r"S:\logs\gateway")
 
 logger = logging.getLogger("api-gateway.jsonl")
 

@@ -1,0 +1,252 @@
+# SONIA Control Traceability Map
+# Maps audit control IDs to documentation sections and gate artifacts.
+# CI gate: scripts/gates/traceability-gate.py verifies all required controls
+# have both a documentation reference and an evidence artifact.
+#
+# Format:
+#   control_id:
+#     section: Checklist section letter
+#     description: What the control asserts
+#     doc_ref: docs/<file>#<heading>  (or null if no doc yet)
+#     gate_artifact: reports/audit/<pattern>  (glob, or null)
+#     status: covered | partial | gap
+
+controls:
+  # --- A: Governance ---
+  A04_severity_classification:
+    section: A
+    description: Incident severity levels defined (S1-S4)
+    doc_ref: docs/V3_4_GOVERNANCE_BASELINE.md#severity-classification
+    gate_artifact: null
+    status: covered
+
+  A05_sla_targets:
+    section: A
+    description: SLAs defined per severity
+    doc_ref: docs/V3_4_GOVERNANCE_BASELINE.md#service-level-agreements
+    gate_artifact: null
+    status: covered
+
+  A08_risk_register:
+    section: A
+    description: Risk register with owners and mitigations
+    doc_ref: docs/governance/risk-register.yaml
+    gate_artifact: null
+    status: covered
+
+  A09_definition_of_done:
+    section: A
+    description: Definition of Done for ops changes
+    doc_ref: docs/governance/definition-of-done.md
+    gate_artifact: null
+    status: covered
+
+  A10_retrospective_cadence:
+    section: A
+    description: Retrospective ceremony schedule
+    doc_ref: docs/governance/retrospective-cadence.md
+    gate_artifact: null
+    status: covered
+
+  # --- M: Data Stores ---
+  M01_wal_mode:
+    section: M
+    description: WAL journal mode enforced at boot
+    doc_ref: docs/BACKUP_RECOVERY.md#database-configuration
+    gate_artifact: reports/audit/migration-verify-*.json
+    status: covered
+
+  M02_durability_pragmas:
+    section: M
+    description: synchronous=NORMAL, foreign_keys=ON, busy_timeout=5000
+    doc_ref: docs/BACKUP_RECOVERY.md#database-configuration
+    gate_artifact: reports/audit/migration-verify-*.json
+    status: covered
+
+  M03_migration_runner:
+    section: M
+    description: Forward-only numbered SQL migrations with version table
+    doc_ref: docs/BACKUP_RECOVERY.md#database-migrations
+    gate_artifact: reports/audit/migration-verify-*.json
+    status: covered
+
+  M04_migration_idempotent:
+    section: M
+    description: Re-running migrations is safe and produces no errors
+    doc_ref: null
+    gate_artifact: reports/audit/migration-verify-*.json
+    status: covered
+
+  M05_connection_management:
+    section: M
+    description: Connection strategy documented
+    doc_ref: docs/DEPLOYMENT.md#database
+    gate_artifact: null
+    status: covered
+
+  M06_hot_backup:
+    section: M
+    description: Hot backup procedure for WAL-mode SQLite
+    doc_ref: docs/BACKUP_RECOVERY.md#backup-procedure
+    gate_artifact: reports/audit/backup-restore-drill-*.json
+    status: covered
+
+  # --- U: Backup & Recovery ---
+  U01_scheduled_backup:
+    section: U
+    description: Automated daily backup at 2 AM
+    doc_ref: docs/BACKUP_RECOVERY.md#backup-schedule
+    gate_artifact: reports/audit/backup-restore-drill-*.json
+    status: covered
+
+  U02_retention_policy:
+    section: U
+    description: 7-day retention with automated cleanup
+    doc_ref: docs/BACKUP_RECOVERY.md#retention-policy
+    gate_artifact: null
+    status: covered
+
+  U03_encryption:
+    section: U
+    description: DPAPI encryption for backup artifacts
+    doc_ref: docs/BACKUP_RECOVERY.md#encryption
+    gate_artifact: null
+    status: covered
+
+  U04_restore_procedure:
+    section: U
+    description: Documented restore from backup
+    doc_ref: docs/BACKUP_RECOVERY.md#restore-procedure
+    gate_artifact: reports/audit/backup-restore-drill-*.json
+    status: covered
+
+  U05_restore_drill:
+    section: U
+    description: Automated backup-restore-verify drill
+    doc_ref: docs/BACKUP_RECOVERY.md#restore-verification-drill
+    gate_artifact: reports/audit/backup-restore-drill-*.json
+    status: covered
+
+  U06_rpo_rto:
+    section: U
+    description: RPO 24h / RTO 60s targets defined and measured
+    doc_ref: docs/BACKUP_RECOVERY.md#rpo-rto-targets
+    gate_artifact: reports/audit/backup-restore-drill-*.json
+    status: covered
+
+  # --- W: Documentation ---
+  W01_deployment_guide:
+    section: W
+    description: Fresh install through first healthy stack
+    doc_ref: docs/DEPLOYMENT.md
+    gate_artifact: null
+    status: covered
+
+  W02_operations_runbook:
+    section: W
+    description: Start/stop, triage, failure modes, incident export
+    doc_ref: docs/OPERATIONS_RUNBOOK.md
+    gate_artifact: null
+    status: covered
+
+  W03_security_model:
+    section: W
+    description: Threat model, auth, redaction, scanning
+    doc_ref: docs/SECURITY_MODEL.md
+    gate_artifact: null
+    status: covered
+
+  W04_privacy_model:
+    section: W
+    description: Data inventory, PII redaction, perception gate
+    doc_ref: docs/PRIVACY_MODEL.md
+    gate_artifact: null
+    status: covered
+
+  W05_troubleshooting:
+    section: W
+    description: Decision trees for common failures
+    doc_ref: docs/TROUBLESHOOTING.md
+    gate_artifact: null
+    status: covered
+
+  W06_backup_recovery:
+    section: W
+    description: Backup schedule, restore, drill cadence
+    doc_ref: docs/BACKUP_RECOVERY.md
+    gate_artifact: null
+    status: covered
+
+  # --- P: Security ---
+  P01_no_hardcoded_secrets:
+    section: P
+    description: No API keys in source (test/example must be non-functional)
+    doc_ref: docs/SECURITY_MODEL.md#secrets-handling
+    gate_artifact: reports/audit/secret-scan-*.json
+    status: covered
+
+  P02_log_redaction:
+    section: P
+    description: PII redacted from all log output
+    doc_ref: docs/SECURITY_MODEL.md#log-redaction
+    gate_artifact: reports/audit/redaction-verification-*.json
+    status: covered
+
+  P06_rate_limiting:
+    section: P
+    description: Token bucket rate limiting enforced on api-gateway
+    doc_ref: docs/SECURITY_MODEL.md#rate-limiting
+    gate_artifact: reports/audit/rate-limiter-gate-*.json
+    status: covered
+
+  P07_static_analysis:
+    section: P
+    description: Bandit SAST scanning configured
+    doc_ref: docs/SECURITY_MODEL.md#static-analysis
+    gate_artifact: reports/audit/secret-scan-*.json
+    status: covered
+
+  # --- Q: Privacy ---
+  Q01_pii_redaction:
+    section: Q
+    description: Email, SSN, CC, phone, API keys redacted
+    doc_ref: docs/PRIVACY_MODEL.md#pii-redaction
+    gate_artifact: reports/audit/redaction-verification-*.json
+    status: covered
+
+  Q09_perception_privacy:
+    section: Q
+    description: Vision capture privacy gate (fail-closed)
+    doc_ref: docs/PRIVACY_MODEL.md#perception-privacy-gate
+    gate_artifact: null
+    status: covered
+
+  # --- N: Observability ---
+  N01_incident_bundle:
+    section: N
+    description: Incident export produces complete bundle
+    doc_ref: docs/OPERATIONS_RUNBOOK.md#incident-bundle-export
+    gate_artifact: reports/audit/incident-gate-*.json
+    status: covered
+
+  N02_diagnostics_snapshot:
+    section: N
+    description: /v3/diagnostics/snapshot captures runtime state
+    doc_ref: docs/OPERATIONS_RUNBOOK.md#diagnostics
+    gate_artifact: null
+    status: covered
+
+  # --- V: Incident Response ---
+  V01_severity_classification:
+    section: V
+    description: S1-S4 severity with response procedures
+    doc_ref: docs/V3_4_GOVERNANCE_BASELINE.md#severity-classification
+    gate_artifact: null
+    status: covered
+
+  V02_export_tooling:
+    section: V
+    description: Incident bundle export script
+    doc_ref: docs/OPERATIONS_RUNBOOK.md#incident-bundle-export
+    gate_artifact: reports/audit/incident-gate-*.json
+    status: covered

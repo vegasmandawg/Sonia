@@ -22,6 +22,10 @@ import secrets
 # Canonical version
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
 from version import SONIA_VERSION, SONIA_CONTRACT
+try:
+    from log_redaction import redact_string
+except ImportError:
+    redact_string = lambda x: x
 
 from db import get_db, MemoryDatabase
 from hybrid_search import HybridSearchLayer
@@ -177,6 +181,27 @@ def healthz():
         "memories": stats.get("active_memories", 0),
         "hybrid_search": hybrid_stats,
     }
+
+
+@app.get("/version")
+def version():
+    """Version endpoint."""
+    return {
+        "ok": True,
+        "service": "memory-engine",
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
+        "python_version": sys.version.split()[0],
+    }
+
+
+@app.get("/pragmas")
+def pragmas():
+    """Runtime pragma verification gate. Fails fast if durability pragmas not set."""
+    result = db.verify_pragmas()
+    if not result["all_ok"]:
+        raise HTTPException(status_code=500, detail={"error": "PRAGMA_VIOLATION", "pragmas": result})
+    return {"ok": True, "service": "memory-engine", "pragmas": result}
 
 
 @app.get("/health")
@@ -1480,7 +1505,8 @@ def v3_resolve_conflict(conflict_id: str, request: ConflictResolveRequest):
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle unexpected errors."""
-    logger.error(f"Unhandled exception: {exc}")
+    redacted_error = redact_string(str(exc))
+    logger.error(f"Unhandled exception: {redacted_error}")
     return JSONResponse(
         status_code=500,
         content={

@@ -1,0 +1,20 @@
+# Bandit security scanner configuration for SONIA
+# Run: bandit -c bandit.yaml -r services/
+
+skips:
+  - B101  # assert_used (OK in tests)
+  - B603  # subprocess_without_shell_check (we use controlled subprocess calls)
+
+exclude_dirs:
+  - tests
+  - quarantine
+  - releases
+  - ui
+
+assert_used:
+  skips: []
+
+hardcoded_tmp_directory:
+  tmp_dirs:
+    - /tmp
+    - /var/tmp

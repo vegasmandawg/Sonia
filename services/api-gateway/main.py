@@ -14,6 +14,7 @@ import sys
 import uuid
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from typing import Optional
@@ -209,10 +210,59 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ── CORS middleware for local UI ──
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["X-Correlation-ID", "X-Deprecated", "X-Removal-Version", "X-Migrate-To"],
+)
+
+# ── Rate limiting ──
+try:
+    sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent.parent / "shared"))
+    from rate_limiter import RateLimiter
+    _rate_limiter = RateLimiter(rate=20.0, burst=40)
+except ImportError:
+    _rate_limiter = None
+
+# ── Log redaction ──
+try:
+    from log_redaction import redact_dict
+except ImportError:
+    redact_dict = None
+
 
 # ============================================================================
 # V1 Deprecation Middleware (HTTP only; WebSocket handled separately)
 # ============================================================================
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Per-client rate limiting via token bucket."""
+    if _rate_limiter is not None:
+        client_id = request.headers.get("X-API-Key", request.client.host if request.client else "unknown")
+        allowed, retry_after = _rate_limiter.check(client_id)
+        if not allowed:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "ok": False,
+                    "service": "api-gateway",
+                    "error": {"code": "RATE_LIMITED", "message": "Too many requests", "retry_after": round(retry_after, 2)},
+                },
+                headers={"Retry-After": str(int(retry_after) + 1)},
+            )
+    return await call_next(request)
+
 
 @app.middleware("http")
 async def v1_deprecation_middleware(request: Request, call_next):
@@ -239,6 +289,18 @@ async def healthz():
         "contract_version": SONIA_CONTRACT,
         "baseline_contract": SONIA_CONTRACT,
         "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+
+@app.get("/version")
+async def version():
+    """Version endpoint — returns version, contract, and build metadata."""
+    return {
+        "ok": True,
+        "service": "api-gateway",
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
+        "python_version": sys.version.split()[0],
     }
 
 

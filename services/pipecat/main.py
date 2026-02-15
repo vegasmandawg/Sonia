@@ -24,6 +24,10 @@ if _shared_dir not in sys.path:
 
 # Canonical version
 from version import SONIA_VERSION, SONIA_CONTRACT
+try:
+    from log_redaction import redact_string
+except ImportError:
+    redact_string = lambda x: x
 
 from sessions import SessionManager, SessionState
 from routes.ws import websocket_handler
@@ -159,6 +163,18 @@ async def healthz():
     return health
 
 
+@app.get("/version")
+async def version():
+    """Version endpoint."""
+    return {
+        "ok": True,
+        "service": "pipecat",
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
+        "python_version": sys.version.split()[0],
+    }
+
+
 @app.get("/")
 async def root():
     """Root endpoint."""
@@ -185,6 +201,27 @@ async def status():
             "total": all_sessions
         }
     }
+
+
+@app.get("/voice/backends")
+async def voice_backends():
+    """Status of ASR/TTS/VAD backends."""
+    try:
+        from app.voice_backends import create_asr, create_tts, create_vad
+        asr = create_asr()
+        tts = create_tts()
+        vad = create_vad()
+        return {
+            "ok": True,
+            "service": "pipecat",
+            "backends": {
+                "asr": {"available": asr.available, "provider": asr.provider},
+                "tts": {"available": tts.available, "provider": tts.provider},
+                "vad": {"available": vad.available, "provider": vad.provider},
+            },
+        }
+    except Exception as e:
+        return {"ok": False, "service": "pipecat", "error": str(e)}
 
 
 # ============================================================================
@@ -558,10 +595,11 @@ async def general_exception_handler(request: Request, exc: Exception):
     """Handle general exceptions."""
     correlation_id = request.headers.get("X-Correlation-ID", generate_correlation_id())
     
+    redacted_error = redact_string(str(exc))
     log_event({
         "level": "ERROR",
         "service": "pipecat",
-        "error": str(exc),
+        "error": redacted_error,
         "error_type": type(exc).__name__,
         "path": request.url.path,
         "correlation_id": correlation_id
