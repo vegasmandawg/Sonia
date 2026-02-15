@@ -47,16 +47,43 @@ SessionManager = session_mod.SessionManager
 
 # ── Tests: Gate Concurrency ──────────────────────────────────────────────
 
+# ── Contractual constants ────────────────────────────────────────────────
+# These are the published contract values. Tests MUST derive limits from
+# the source class, not from hardcoded numbers. If the contract changes,
+# tests break loudly rather than silently under-testing.
+
+CONTRACTUAL_MAX_PENDING = PerceptionActionGate.MAX_PENDING  # currently 50
+CONTRACTUAL_DEFAULT_TTL = PerceptionActionGate.DEFAULT_TTL   # currently 120.0
+
+
+class TestContractualInvariants:
+    """Verify that contractual limits match expectations."""
+
+    def test_max_pending_is_published_value(self):
+        """MAX_PENDING must be the documented contract value (50)."""
+        assert CONTRACTUAL_MAX_PENDING == 50, (
+            f"MAX_PENDING contract changed to {CONTRACTUAL_MAX_PENDING}! "
+            f"Update gate spec and all load tests."
+        )
+
+    def test_default_ttl_is_published_value(self):
+        """DEFAULT_TTL must be the documented contract value (120s)."""
+        assert CONTRACTUAL_DEFAULT_TTL == 120.0, (
+            f"DEFAULT_TTL contract changed to {CONTRACTUAL_DEFAULT_TTL}! "
+            f"Update gate spec and all TTL-dependent tests."
+        )
+
+
 class TestConfirmationGateConcurrency:
     """PerceptionActionGate under concurrent load."""
 
     def test_parallel_require_no_duplicates(self):
-        """Many rapid require_confirmation calls produce unique IDs (up to MAX_PENDING)."""
+        """Rapid require_confirmation calls produce unique IDs up to contractual MAX_PENDING."""
         gate = PerceptionActionGate(ttl_seconds=300)
         ids = set()
 
-        # Stay within MAX_PENDING limit (50)
-        count = gate.MAX_PENDING
+        # Derive limit from contract, not a magic number
+        count = CONTRACTUAL_MAX_PENDING
         for i in range(count):
             req = gate.require_confirmation(
                 action="file.read",
