@@ -55,11 +55,22 @@ TOTAL_GATES = 23
 
 def run_pytest(test_path, label):
     """Run pytest on a path, return (passed, failed, output)."""
-    cmd = [PYTHON, "-m", "pytest", str(test_path), "-v", "--tb=short", "-q"]
+    import re
+    cmd = [PYTHON, "-m", "pytest", str(test_path), "-v", "--tb=short"]
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=600)
     output = result.stdout + result.stderr
+    # Count per-test PASSED/FAILED lines (verbose output)
     passed = output.count(" PASSED")
     failed = output.count(" FAILED")
+    # Fallback: parse summary line "X passed" / "X failed" if per-test count is 0
+    if passed == 0:
+        m = re.search(r"(\d+) passed", output)
+        if m:
+            passed = int(m.group(1))
+    if failed == 0:
+        m = re.search(r"(\d+) failed", output)
+        if m:
+            failed = int(m.group(1))
     return passed, failed, output
 
 
