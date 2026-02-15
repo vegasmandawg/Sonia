@@ -20,6 +20,10 @@ from pathlib import Path
 # Canonical version
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
 from version import SONIA_VERSION, SONIA_CONTRACT
+try:
+    from log_redaction import redact_string
+except ImportError:
+    redact_string = lambda x: x
 
 # Configure logging
 logging.basicConfig(
@@ -68,13 +72,25 @@ def healthz():
         }
     return health
 
+@app.get("/version")
+def version():
+    """Version endpoint."""
+    return {
+        "ok": True,
+        "service": "eva-os",
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
+        "python_version": sys.version.split()[0],
+    }
+
+
 @app.get("/")
 def root():
     """Root endpoint."""
     return {
         "service": "eva-os",
         "status": "online",
-        "version": "1.0.0"
+        "version": SONIA_VERSION
     }
 
 @app.get("/status")
@@ -272,7 +288,8 @@ async def probe_service(service_name: str):
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle unexpected errors."""
-    logger.error(f"Unhandled exception: {exc}")
+    redacted_error = redact_string(str(exc))
+    logger.error(f"Unhandled exception: {redacted_error}")
     return JSONResponse(
         status_code=500,
         content={

@@ -10,6 +10,7 @@ Provider abstraction and model routing with support for:
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+import asyncio
 import json
 import logging
 import os
@@ -22,6 +23,10 @@ from pydantic import BaseModel
 # Canonical version
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
 from version import SONIA_VERSION, SONIA_CONTRACT
+try:
+    from log_redaction import redact_string
+except ImportError:
+    redact_string = lambda x: x
 
 from providers import (
     get_router, TaskType, ProviderRouter, ModelInfo
@@ -46,6 +51,7 @@ _health_registry = None
 _budget_guard = None
 _audit_logger = None
 _legacy_chat_fallback = os.getenv("SONIA_MODEL_ROUTER_LEGACY_CHAT_FALLBACK", "1").lower() not in ("0", "false", "no")
+_inflight_tasks: Dict[str, asyncio.Task] = {}
 
 # Create FastAPI app (lifespan defined below, assigned after)
 app = FastAPI(
@@ -176,6 +182,18 @@ def healthz():
         result["audit"] = _audit_logger.to_dict()
     return result
 
+@app.get("/version")
+def version():
+    """Version endpoint."""
+    return {
+        "ok": True,
+        "service": "model-router",
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
+        "python_version": sys.version.split()[0],
+    }
+
+
 @app.get("/")
 def root():
     """Root endpoint."""
@@ -286,9 +304,10 @@ async def select(request: SelectRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/chat")
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, cancel_token: Optional[str] = None):
     """Send chat request to routed provider with policy support."""
-    try:
+
+    async def _chat_inner() -> Dict:
         # Validate task type
         try:
             task = TaskType[request.task_type.upper()]
@@ -385,11 +404,43 @@ async def chat(request: ChatRequest):
 
         return result
 
+    try:
+        if cancel_token:
+            task_obj = asyncio.current_task()
+            _inflight_tasks[cancel_token] = task_obj
+            try:
+                return await _chat_inner()
+            except asyncio.CancelledError:
+                logger.info(f"Chat request cancelled: cancel_token={cancel_token}")
+                raise HTTPException(status_code=499, detail="Request cancelled by client")
+            finally:
+                _inflight_tasks.pop(cancel_token, None)
+        else:
+            return await _chat_inner()
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Chat error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+
+
+class CancelRequest(BaseModel):
+    cancel_token: str
+
+
+@app.post("/chat/cancel")
+async def chat_cancel(request: CancelRequest):
+    """Cancel an in-flight chat request by its cancel token."""
+    task_obj = _inflight_tasks.pop(request.cancel_token, None)
+    if task_obj is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No in-flight request with cancel_token: {request.cancel_token}"
+        )
+    task_obj.cancel()
+    logger.info(f"Cancelled in-flight chat request: cancel_token={request.cancel_token}")
+    return {"status": "cancelled", "cancel_token": request.cancel_token}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Provider Information Endpoints
@@ -520,7 +571,8 @@ def get_route_audit(n: int = 20):
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle unexpected errors."""
-    logger.error(f"Unhandled exception: {exc}")
+    redacted_error = redact_string(str(exc))
+    logger.error(f"Unhandled exception: {redacted_error}")
     return JSONResponse(
         status_code=500,
         content={

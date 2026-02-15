@@ -1,0 +1,237 @@
+{
+  "timestamp_utc": "20260215-220444",
+  "root": "S:",
+  "artifact_count": 46,
+  "artifacts": [
+    {
+      "file": "FINAL_SCORECARD-20260215-213441.json",
+      "sha256": "93a2099bdef3fb882a1f5a0d98d4ec571953696809ebb17ac3d93a605573892c",
+      "size_bytes": 3188
+    },
+    {
+      "file": "audit-snapshot-manifest.json",
+      "sha256": "161b65680ba938afc6ad836b399f36a914704331dfb9eee6391231d7bf3f2758",
+      "size_bytes": 7158
+    },
+    {
+      "file": "backup-restore-drill-20260215-144850.json",
+      "sha256": "fda22d95331d8dcc1c5a4cbd7357945a69e3fd446d84b19dcd865ffd32e466a5",
+      "size_bytes": 1547
+    },
+    {
+      "file": "backup-restore-drill-20260215-145225.json",
+      "sha256": "7a0d226f3d17e10b60dfe1995199062f34735b80ba9547960b7456c03f6a762b",
+      "size_bytes": 1549
+    },
+    {
+      "file": "backup-restore-drill-20260215-153730.json",
+      "sha256": "bc1ec295a7c25a4e4d55c79c33ca34c8ceed9a49a909b413293e54e747436dc6",
+      "size_bytes": 1547
+    },
+    {
+      "file": "backup-restore-drill-20260215-154042.json",
+      "sha256": "386da14e433844296726f9fba8fd5c8073071afd9664c94a49d9b7c7307b0815",
+      "size_bytes": 1549
+    },
+    {
+      "file": "consolidated-preaudit-20260215-145225.json",
+      "sha256": "1f00c309d488e61569b1a801da189addebb9d0b8b9fbe791ce7392d6fbd826ef",
+      "size_bytes": 3715
+    },
+    {
+      "file": "consolidated-preaudit-20260215-154042.json",
+      "sha256": "aeb95a19b0e6ed93506a2a055cfcc659e04a404148dc97adba434714b702ddd7",
+      "size_bytes": 3715
+    },
+    {
+      "file": "durability-verify-20260215-213441.json",
+      "sha256": "550b3283a39cca38102e1b1a892b8647345ab7a3f35990df778e953916bae5fa",
+      "size_bytes": 801
+    },
+    {
+      "file": "fullbuild-deps-20260215-213441.json",
+      "sha256": "fa97f4a86d5e53d3279ba47d9bbd5abb53a1340ad904867bf914f565bb4b1fc8",
+      "size_bytes": 1233
+    },
+    {
+      "file": "fullbuild-preflight-20260215-213441.json",
+      "sha256": "3ffcf055fab18b410c182e67bb78cace461035a3e7e81d344431096066788781",
+      "size_bytes": 517
+    },
+    {
+      "file": "incident-gate-20260215-143742.json",
+      "sha256": "6ff4505076177f0404be8c97d7e5958c959f060f551a788f91afc8f2a675299d",
+      "size_bytes": 1174
+    },
+    {
+      "file": "incident-gate-20260215-145225.json",
+      "sha256": "2ab2f7e1514ee7add7ddc3a604810d4a1bbbb89cbec2c48d5f7966aa8b0cf31f",
+      "size_bytes": 1174
+    },
+    {
+      "file": "incident-gate-20260215-153514.json",
+      "sha256": "a8ac40a74f09cea2b08a4b4640ecf2ee40d9f00717684518fff123efff2790d6",
+      "size_bytes": 1174
+    },
+    {
+      "file": "incident-gate-20260215-154042.json",
+      "sha256": "c4fe404aeb92e51346e4b95124b8dc32a4f117f7d66fcfb044385fbe020f1513",
+      "size_bytes": 1174
+    },
+    {
+      "file": "integration-critical-20260215-213441.json",
+      "sha256": "cbe06ca90ff5a2728fb0b327af374e8aa39bc72b5359d652af7fb04fa1b88f49",
+      "size_bytes": 950
+    },
+    {
+      "file": "integration-live-delta-20260215-220444.json",
+      "sha256": "63071df91fef9e2345cbc919fd0fc80cddda9d5898df0b0d5b6d0124f03789fa",
+      "size_bytes": 908
+    },
+    {
+      "file": "migration-verify-20260215-145006.json",
+      "sha256": "07d4524c6bcd14e568d211d59a56cf8e178d970161e88f8a045f179130b6887d",
+      "size_bytes": 2155
+    },
+    {
+      "file": "migration-verify-20260215-145048.json",
+      "sha256": "60795940bd18e4ec8020ddcd8d499ea278d93381b58864ba92ff3e9f9ba9bc29",
+      "size_bytes": 2378
+    },
+    {
+      "file": "migration-verify-20260215-145224.json",
+      "sha256": "4bfaab5b9ccb47a289405052a4a32ed561d6a5fa00aba9ad3380dbd003858f92",
+      "size_bytes": 2378
+    },
+    {
+      "file": "migration-verify-20260215-153702.json",
+      "sha256": "5c300c27f9539bf5ddd6186cb807449373e0de4b58aff780ea62a0ac33506e1a",
+      "size_bytes": 2378
+    },
+    {
+      "file": "migration-verify-20260215-153827.json",
+      "sha256": "a9bd1ee3d95bb8c6283ef14252811ab4b5fe5684b5274d762752b7905f562658",
+      "size_bytes": 2378
+    },
+    {
+      "file": "migration-verify-20260215-153918.json",
+      "sha256": "21bcb5eaedc0fe8960d443a95eedcfe8d4c0a37a284c53d8af44464dbe5de4f8",
+      "size_bytes": 2378
+    },
+    {
+      "file": "migration-verify-20260215-154041.json",
+      "sha256": "16da42e89303faf0663302b6161d0d4b55d66e7769d046a1fc490d4faef0873b",
+      "size_bytes": 2378
+    },
+    {
+      "file": "migration-verify-20260215-213441.json",
+      "sha256": "6356d0e9d4ee2c324aac8ea57ee80abc05390805ae15ac6438da3eacc9e3482f",
+      "size_bytes": 450
+    },
+    {
+      "file": "pragma-health-20260215-213545.json",
+      "sha256": "72f3beb12c16c1cb540ee81c9a0ab53672727d5a4205f22d640d7cb720b288a3",
+      "size_bytes": 363
+    },
+    {
+      "file": "pragma-health-20260215-213620.json",
+      "sha256": "aa2643135efca9c83e140ba790f12c29ab51d461217011428c22ebad19c52ce9",
+      "size_bytes": 431
+    },
+    {
+      "file": "rate-limiter-gate-20260215-145117.json",
+      "sha256": "9168cda910acedc912d9f236cfbc3695a42f29410f367b1d0948a7cfc8627a96",
+      "size_bytes": 1096
+    },
+    {
+      "file": "rate-limiter-gate-20260215-153519.json",
+      "sha256": "6388e6149721cc5a46d957bef5e38b3cc68e1fe57d40839e867539ba77e82c2c",
+      "size_bytes": 1096
+    },
+    {
+      "file": "redaction-verification-20260215-143634.json",
+      "sha256": "0576f7b9a00b3f16ff7b9cf118975cbc69d5985f5707f0fb42ced8674c0f8578",
+      "size_bytes": 2808
+    },
+    {
+      "file": "redaction-verification-20260215-143734.json",
+      "sha256": "f8223cce213ab7c50c51cbd16eebdf0c14f674958ffc2a0a06525704dbedb065",
+      "size_bytes": 5034
+    },
+    {
+      "file": "redaction-verification-20260215-145156.json",
+      "sha256": "2999e505c3ba12105c161f34dab6bd7f9de67928a6b71b04f6343cbb6d8214bc",
+      "size_bytes": 5034
+    },
+    {
+      "file": "redaction-verification-20260215-153825.json",
+      "sha256": "939b8b3cfe470097d75f1890c988a3074e4e3bf1a9fe6afc4c60e07c28c0db78",
+      "size_bytes": 5034
+    },
+    {
+      "file": "redaction-verification-20260215-153916.json",
+      "sha256": "dfaf2e37d727fc24da13bfb3fe08f6d3b5f6d1028b2334965518669d002169f8",
+      "size_bytes": 5034
+    },
+    {
+      "file": "redaction-verification-20260215-154013.json",
+      "sha256": "3dce582ab9bf5e78b8e92bcae9bb49f25b5713d4f12b866c2c6f4fec987ceea6",
+      "size_bytes": 5034
+    },
+    {
+      "file": "runbook-headings-20260215-213545.json",
+      "sha256": "16ee52575fbdbdd33d023e5ad073ad2450adc626763c12f75439713a400f56be",
+      "size_bytes": 321
+    },
+    {
+      "file": "runbook-headings-20260215-213620.json",
+      "sha256": "02b5c39a3c532f09f00f6dc94a27047dfa0d03cf802a6a67fdeaf9ad94ef0eba",
+      "size_bytes": 321
+    },
+    {
+      "file": "secret-scan-20260215-143602.json",
+      "sha256": "728d41ab9feaa72f19b8e213c86aef239f51a1e1ff146019834e68a9422e93bc",
+      "size_bytes": 766
+    },
+    {
+      "file": "secret-scan-20260215-145130.json",
+      "sha256": "84eb49e18c8542d695d886b8be310ad3da1014bbd8d901b1064cd02725b07039",
+      "size_bytes": 766
+    },
+    {
+      "file": "secret-scan-20260215-153504.json",
+      "sha256": "dd0c23f9b9d3d3ca6b8c199e0346945467ee69400d4df60c0d041ad55ca53954",
+      "size_bytes": 766
+    },
+    {
+      "file": "secret-scan-20260215-153947.json",
+      "sha256": "fda3d0144143a21e589255069826a6f4516080a6e9a075ae312522acb116bfa4",
+      "size_bytes": 766
+    },
+    {
+      "file": "traceability-gate-20260215-144851.json",
+      "sha256": "8db82f783473d6ec0774748a2cace32695d2b951aa39e5515ff8c03a194d70d8",
+      "size_bytes": 9037
+    },
+    {
+      "file": "traceability-gate-20260215-145125.json",
+      "sha256": "1da329a95a0644fc90e07ce99b37c083e8bece4fc934bb5be9d568f644637ff3",
+      "size_bytes": 8889
+    },
+    {
+      "file": "traceability-gate-20260215-145225.json",
+      "sha256": "97ea8dc08e288cd38c688f6a9ae4bf1d53bba9824d3cd50e8e28aefc7ffcecc8",
+      "size_bytes": 8889
+    },
+    {
+      "file": "traceability-gate-20260215-153509.json",
+      "sha256": "e164595fa4e6abb52ad26908b00ae16baab7035dc52bb9b1c7f560bab8815116",
+      "size_bytes": 8889
+    },
+    {
+      "file": "traceability-gate-20260215-154042.json",
+      "sha256": "1ddd68fa86c04ccb07c6db9d21497d65e77c8b79066fc603fecf1b0e2c9cb661",
+      "size_bytes": 8889
+    }
+  ]
+}

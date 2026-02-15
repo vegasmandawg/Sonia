@@ -1,0 +1,107 @@
+{
+  "timestamp_utc": "20260215-213441",
+  "root": "S:\\",
+  "branch": "v3.4-dev",
+  "commit": "0c7fb6e3ae3413facb30cedf575cb5329a4ab494",
+  "forbidden_path_check": "PASS",
+  "gates": [
+    {
+      "name": "secret_scan",
+      "verdict": "PASS",
+      "artifact": "secret-scan-20260215-153947.json"
+    },
+    {
+      "name": "traceability",
+      "verdict": "PASS",
+      "artifact": "traceability-gate-20260215-154042.json"
+    },
+    {
+      "name": "incident_bundle",
+      "verdict": "PASS",
+      "artifact": "incident-gate-20260215-154042.json"
+    },
+    {
+      "name": "rate_limiter",
+      "verdict": "PASS",
+      "artifact": "rate-limiter-gate-20260215-153519.json"
+    },
+    {
+      "name": "runbook_headings",
+      "verdict": "PASS",
+      "artifact": "runbook-headings-20260215-213620.json"
+    },
+    {
+      "name": "pragma_health",
+      "verdict": "PASS",
+      "artifact": "pragma-health-20260215-213620.json"
+    },
+    {
+      "name": "migration_verify",
+      "verdict": "PASS",
+      "artifact": "migration-verify-20260215-213441.json"
+    },
+    {
+      "name": "durability_verify",
+      "verdict": "PASS",
+      "artifact": "durability-verify-20260215-213441.json"
+    },
+    {
+      "name": "backup_restore_drill",
+      "verdict": "PASS",
+      "artifact": "backup-restore-drill-20260215-154042.json"
+    },
+    {
+      "name": "consolidated_preaudit",
+      "verdict": "PASS",
+      "artifact": "consolidated-preaudit-20260215-154042.json"
+    }
+  ],
+  "tests": [
+    {
+      "name": "test_log_redaction_verification.py",
+      "passed": 10,
+      "failed": 0,
+      "artifact": "integration-critical-20260215-213441.json"
+    },
+    {
+      "name": "test_migration_idempotency.py",
+      "passed": 6,
+      "failed": 0,
+      "artifact": "integration-critical-20260215-213441.json"
+    },
+    {
+      "name": "test_rate_limiter_enforcement.py",
+      "passed": 4,
+      "failed": 0,
+      "artifact": "integration-critical-20260215-213441.json",
+      "note": "Live-delta pass completed; 1 test assertion fixed (test bug, not app bug)",
+      "live_delta_artifact": "integration-live-delta-20260215-220444.json"
+    }
+  ],
+  "binder": {
+    "path": "S:\\\\reports\\audit",
+    "manifest": "evidence-manifest-20260215-213441.sha256"
+  },
+  "execution_profile": "offline",
+  "deferred_tests": [
+    {
+      "file": "test_rate_limiter_enforcement.py",
+      "tests": 4,
+      "reason": "Requires live api-gateway on :7000",
+      "compensating_controls": [
+        "rate-limiter-gate.py PASS (module-level enforcement verified)",
+        "rate_limiter.py token bucket + per-client isolation tested directly"
+      ]
+    }
+  ],
+  "promotion_basis": "mean-based with compensating controls; offline deterministic gates cover deferred live checks at module level",
+  "overall_verdict": "PROMOTE",
+  "overall_verdict_note": "Upgraded from PROMOTE_WITH_EXCEPTION after live-delta pass (4/4 PASS)",
+  "blockers": [],
+  "live_delta": {
+    "artifact": "integration-live-delta-20260215-220444.json",
+    "passed": 4,
+    "failed": 0,
+    "verdict": "PASS"
+  }
+}

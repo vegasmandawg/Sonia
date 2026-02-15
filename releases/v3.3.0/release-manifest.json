@@ -1,0 +1,53 @@
+{
+  "version": "3.3.0",
+  "contract": "v3.0.0",
+  "timestamp": "2026-02-15T06:35:06.715489+00:00",
+  "branch": "main",
+  "tag": "v3.3.0",
+  "rc_tag": "v3.3.0-rc1",
+  "rc_commit": "f9e0321",
+  "ga_commit": "5a65f45",
+  "gates_passed": 14,
+  "gates_total": 14,
+  "test_count": 157,
+  "floor_count": 77,
+  "delta_count": 80,
+  "epics": {
+    "A": {
+      "name": "Memory Ledger Operations v2",
+      "gates": [
+        "G24",
+        "G25"
+      ],
+      "tests": 30,
+      "status": "COMPLETE"
+    },
+    "B": {
+      "name": "Recovery + Incident Tooling",
+      "gates": [
+        "G26",
+        "G27"
+      ],
+      "tests": 26,
+      "status": "COMPLETE"
+    },
+    "C": {
+      "name": "Perception Privacy Hardening",
+      "gates": [
+        "G28",
+        "G29"
+      ],
+      "tests": 24,
+      "status": "COMPLETE"
+    }
+  },
+  "soak_verdict": "PASS",
+  "invariants_all_zero": true,
+  "promotion_verdict": "PROMOTE",
+  "files": {
+    "gate-report.json": "9ca049c32b71ade9a984f0b365e1bd0431ed8f4727e59ba7ff9d952dacf2dccd",
+    "requirements-frozen.txt": "24330beab15a8acd931d8a1cbdd11b7ab196927c383732b8fce316f90eee3d1a",
+    "scope-lock.md": "edba56417d302c35f7fd06cb93327892765996a59b2d6d1abdd3385daf4e0583",
+    "soak-report.json": "deb042d18acd24d1ec6c3554c923fe5b69d6c6b1568a3df67fb1ace9129154c9"
+  }
+}
