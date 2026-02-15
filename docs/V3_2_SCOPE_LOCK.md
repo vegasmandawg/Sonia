@@ -159,6 +159,71 @@ transition that the reducer absorbs with `EmitDiagnostic`.
 
 ---
 
+## Phase Completion Status
+
+### Phase 1: Epic A -- Voice Turn Determinism (COMPLETE)
+
+**Commits**: 6 (8154171..0ff83c0)
+**Tests**: 24/24 PASS (0.08s)
+**Gates**: G18 PASS, G19 PASS
+
+Modules delivered:
+- `services/voice/voice_turn_state.py` -- FSM with strict transition matrix
+- `services/voice/voice_turn_reducer.py` -- pure-function reducer (state, event) -> (state, effects)
+- `services/voice/voice_cancel_registry.py` -- bounded cancel tokens, one-shot semantics
+- `services/voice/voice_latency_tracker.py` -- per-phase latency with percentile reporting
+
+Test suites:
+- `tests/v32_voice/test_turn_lifecycle.py` (8 tests)
+- `tests/v32_voice/test_replay_determinism.py` (5 tests)
+- `tests/v32_voice/test_bargein_cancel_semantics.py` (7 tests)
+- `tests/v32_voice/test_latency_budget_g18.py` (4 tests)
+
+### Phase 2: Epic B -- Perception -> Confirmation Ergonomics (COMPLETE)
+
+**Commits**: 5 (da8af27..bf43d2b)
+**Tests**: 23/23 PASS (0.25s)
+**Gates**: G20 PASS, G21 PASS
+
+Modules delivered:
+- `services/perception/event_normalizer.py` -- canonical PerceptionEnvelope, stable dedupe_key
+- `services/perception/dedupe_engine.py` -- window-bounded exact/near-duplicate detection
+- `services/perception/priority_router.py` -- P0/P1/P2 lanes, strict preemption, weighted round-robin
+- `services/perception/confirmation_batcher.py` -- one-shot confirmation, throttle-not-bypass
+- `services/perception/provenance_hooks.py` -- append-only audit chain, deterministic hash
+- `services/perception/policy.py` -- pipeline orchestrator (normalize -> dedupe -> route -> confirm)
+
+Test suites:
+- `tests/v32_perception/test_dedupe_correctness.py` (7 tests)
+- `tests/v32_perception/test_priority_routing.py` (8 tests)
+- `tests/v32_perception/test_confirmation_storm_integrity.py` (8 tests)
+
+### Phase 3: Epic C -- Memory Ops Governance (NOT STARTED)
+
+**Gates**: G22 NOT IMPLEMENTED, G23 NOT IMPLEMENTED
+
+Deferred to Phase 3. Scope:
+- Memory write proposal/approval/reject/retract primitives
+- Provenance chain for all memory mutation attempts
+- Replay integrity (deterministic ledger state)
+- Invariants: no silent writes, proposal requires approval, conflicts surfaced not merged
+
+### Gate Summary (as of bf43d2b)
+
+| Gate | Status | Tests |
+|------|--------|-------|
+| G18 | PASS | 4/4 |
+| G19 | PASS | 12/12 |
+| G20 | PASS | 15/15 |
+| G21 | PASS | 8/8 |
+| G22 | NOT IMPLEMENTED | -- |
+| G23 | NOT IMPLEMENTED | -- |
+| G08 | KNOWN FAILURE | Requires live services (not a regression) |
+
+**Combined v3.2 floor**: 47/47 PASS in 0.25s
+
+---
+
 ## Entry Criteria
 
 - [x] `v3.2-dev` branch off `v3.1.0` tag
