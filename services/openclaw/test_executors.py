@@ -7,11 +7,17 @@ import pytest
 import tempfile
 from pathlib import Path
 import os
+import sys
 
-from .executors.shell_exec import ShellExecutor
-from .executors.file_exec import FileExecutor
-from .executors.browser_exec import BrowserExecutor
-from .policy import ExecutionPolicy, FilesystemSandbox, ShellCommandAllowlist
+OPENCLAW_DIR = Path(__file__).resolve().parent
+SERVICES_DIR = OPENCLAW_DIR.parent
+if str(SERVICES_DIR) not in sys.path:
+    sys.path.insert(0, str(SERVICES_DIR))
+
+from openclaw.executors.shell_exec import ShellExecutor
+from openclaw.executors.file_exec import FileExecutor
+from openclaw.executors.browser_exec import BrowserExecutor
+from openclaw.policy import ExecutionPolicy, FilesystemSandbox, ShellCommandAllowlist
 
 
 # ============================================================================

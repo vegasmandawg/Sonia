@@ -11,15 +11,20 @@ from datetime import datetime
 import json
 import sys
 
-# Canonical version
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
-from version import SONIA_VERSION
+OPENCLAW_DIR = Path(__file__).resolve().parent
+SERVICES_DIR = OPENCLAW_DIR.parent
+if str(SERVICES_DIR) not in sys.path:
+    sys.path.insert(0, str(SERVICES_DIR))
 
-from schemas import (
+# Canonical version
+sys.path.insert(0, str(SERVICES_DIR / "shared"))
+from version import SONIA_VERSION, SONIA_CONTRACT
+
+from openclaw.schemas import (
     ExecuteRequest, ExecuteResponse, HealthzResponse, StatusResponse,
     RegistryStats
 )
-from registry import get_registry
+from openclaw.registry import get_registry
 
 # ============================================================================
 # FastAPI Application Setup
@@ -78,6 +83,7 @@ async def healthz() -> HealthzResponse:
     return HealthzResponse(
         ok=True,
         service="openclaw",
+        contract_version=SONIA_CONTRACT,
         tools_registered=stats.total_tools,
         tools_implemented=stats.implemented_tools
     )

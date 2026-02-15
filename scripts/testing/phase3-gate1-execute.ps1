@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Phase 3 Gate 1 Execution - Hard Evidence Collection
 Validates 10 consecutive start/stop cycles with strict service verification
@@ -87,11 +87,12 @@ function Start-AllServices {
                 "S:\scripts\ops\run-pipecat.ps1",
                 "S:\scripts\ops\run-openclaw.ps1"
             ) | Where-Object { Test-Path $_ } | ForEach-Object {
+                $runnerScript = $_
                 try {
-                    . $_
+                    . $runnerScript
                     Start-Sleep -Milliseconds 500
                 } catch {
-                    Log "Failed to start $_: $_" "ERROR"
+                    Log "Failed to start ${runnerScript}: $($_.Exception.Message)" "ERROR"
                 }
             }
         }
@@ -167,9 +168,9 @@ function Wait-ServicesHealthy {
 }
 
 # Main execution
-Log "═══════════════════════════════════════════════════════════" "HEADER"
+Log "===========================================================" "HEADER"
 Log "Phase 3 Gate 1 Execution - Hard Evidence Collection" "HEADER"
-Log "═══════════════════════════════════════════════════════════" "HEADER"
+Log "===========================================================" "HEADER"
 Log "StartupTimeoutSeconds: $StartupTimeoutSeconds" "INFO"
 Log "CycleCount: $CycleCount" "INFO"
 Log "" "INFO"
@@ -196,7 +197,7 @@ for ($cycle = 1; $cycle -le $CycleCount; $cycle++) {
     $healthy = Wait-ServicesHealthy $StartupTimeoutSeconds
     
     if (-not $healthy) {
-        Log "  FAIL - Cycle $cycle failed: Services did not become healthy" "FAIL"
+        Log "  FAIL - Cycle ${cycle} failed: Services did not become healthy" "FAIL"
         $cycleResults += @{ Cycle=$cycle; Status="FAILED"; Reason="Timeout waiting for services" }
         continue
     }
@@ -205,7 +206,7 @@ for ($cycle = 1; $cycle -le $CycleCount; $cycle++) {
     $allPidsValid = $true
     foreach ($svc in $ServiceSpec) {
         if (-not (Test-Path $svc.Pid)) {
-            Log "  FAIL - Cycle $cycle: Missing PID file for $($svc.Name)" "FAIL"
+            Log "  FAIL - Cycle ${cycle}: Missing PID file for $($svc.Name)" "FAIL"
             $allPidsValid = $false
             break
         }
@@ -214,12 +215,12 @@ for ($cycle = 1; $cycle -le $CycleCount; $cycle++) {
             $procId = [int](Get-Content $svc.Pid -ErrorAction Stop | Select-Object -First 1)
             $proc = Get-Process -Id $procId -ErrorAction SilentlyContinue
             if (-not $proc) {
-                Log "  FAIL - Cycle $cycle: Process dead for $($svc.Name)" "FAIL"
+                Log "  FAIL - Cycle ${cycle}: Process dead for $($svc.Name)" "FAIL"
                 $allPidsValid = $false
                 break
             }
         } catch {
-            Log "  FAIL - Cycle $cycle: Cannot read PID for $($svc.Name): $_" "FAIL"
+            Log "  FAIL - Cycle ${cycle}: Cannot read PID for $($svc.Name): $($_.Exception.Message)" "FAIL"
             $allPidsValid = $false
             break
         }
@@ -246,10 +247,10 @@ for ($cycle = 1; $cycle -le $CycleCount; $cycle++) {
     $totalZombieCount += $zombieCount
     
     if ($zombieCount -eq 0) {
-        Log "  PASS - Cycle $cycle: All services stopped cleanly (zero zombies)" "PASS"
+        Log "  PASS - Cycle ${cycle}: All services stopped cleanly (zero zombies)" "PASS"
         $cycleResults += @{ Cycle=$cycle; Status="PASSED"; ZombieCount=0 }
     } else {
-        Log "  WARNING - Cycle $cycle: $zombieCount zombie processes detected" "WARN"
+        Log "  WARNING - Cycle ${cycle}: $zombieCount zombie processes detected" "WARN"
         $cycleResults += @{ Cycle=$cycle; Status="PASSED_WITH_WARNINGS"; ZombieCount=$zombieCount }
     }
 }
@@ -320,9 +321,9 @@ $summary = @{
 $summary | ConvertTo-Json -Depth 10 | Out-File -FilePath $SummaryFile -Encoding UTF8
 
 Log "" "INFO"
-Log "═══════════════════════════════════════════════════════════" "HEADER"
+Log "===========================================================" "HEADER"
 Log "Gate 1 Results Summary" "HEADER"
-Log "═══════════════════════════════════════════════════════════" "HEADER"
+Log "===========================================================" "HEADER"
 Log "Cycles Completed: $CycleCount" "INFO"
 Log "Cycles Passed: $passedCycles" "INFO"
 Log "Cycles Failed: $failedCycles" "INFO"
@@ -340,7 +341,7 @@ Log "PYTHONHASHSEED: $($env:PYTHONHASHSEED)" "INFO"
 Log "SONIA_TEST_MODE: $($env:SONIA_TEST_MODE)" "INFO"
 Log "" "INFO"
 Log "Summary written to: $SummaryFile" "INFO"
-Log "═══════════════════════════════════════════════════════════" "HEADER"
+Log "===========================================================" "HEADER"
 
 # Clean exit code
 if ($summary.Validation.Gate1_Pass -and $summary.Validation.Gate2_Pass) {

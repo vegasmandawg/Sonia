@@ -1,0 +1,227 @@
+{
+  "sonia_version": "2.10.0",
+  "final_iteration": true,
+  "canonical_root": "S:\\",
+  "session_id": "sonia-final-iteration-2026-02",
+  
+  "services": {
+    "api_gateway": {
+      "name": "API Gateway",
+      "port": 7000,
+      "host": "127.0.0.1",
+      "description": "Stable front door, UI transport, input normalization",
+      "health_endpoint": "/healthz",
+      "status_endpoint": "/status",
+      "log_file": "S:\\logs\\services\\api-gateway.out.log",
+      "pid_file": "S:\\state\\pids\\api-gateway.pid"
+    },
+    "model_router": {
+      "name": "Model Router",
+      "port": 7010,
+      "host": "127.0.0.1",
+      "description": "Provider/model selection, routing policy",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\model-router.out.log",
+      "pid_file": "S:\\state\\pids\\model-router.pid"
+    },
+    "memory_engine": {
+      "name": "Memory Engine",
+      "port": 7020,
+      "host": "127.0.0.1",
+      "description": "Persistence, ledger, retrieval, knowledge workspace",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\memory-engine.out.log",
+      "pid_file": "S:\\state\\pids\\memory-engine.pid"
+    },
+    "pipecat": {
+      "name": "Pipecat",
+      "port": 7030,
+      "host": "127.0.0.1",
+      "description": "Real-time modality gateway, voice I/O, events",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\pipecat.out.log",
+      "pid_file": "S:\\state\\pids\\pipecat.pid"
+    },
+    "openclaw": {
+      "name": "OpenClaw",
+      "port": 7040,
+      "host": "127.0.0.1",
+      "description": "Action executor, tool catalog, verification",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\openclaw.out.log",
+      "pid_file": "S:\\state\\pids\\openclaw.pid"
+    },
+    "eva_os": {
+      "name": "EVA-OS",
+      "port": 7050,
+      "host": "127.0.0.1",
+      "description": "Supervisory control plane, orchestration, policy",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\eva-os.out.log",
+      "pid_file": "S:\\state\\pids\\eva-os.pid"
+    },
+    "vision_capture": {
+      "name": "Vision Capture",
+      "port": 7060,
+      "host": "127.0.0.1",
+      "description": "Camera capture, ring buffer, privacy controls",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\vision-capture.out.log",
+      "pid_file": "S:\\state\\pids\\vision-capture.pid"
+    },
+    "perception": {
+      "name": "Perception",
+      "port": 7070,
+      "host": "127.0.0.1",
+      "description": "Event-driven VLM inference, scene analysis",
+      "health_endpoint": "/healthz",
+      "log_file": "S:\\logs\\services\\perception.out.log",
+      "pid_file": "S:\\state\\pids\\perception.pid"
+    }
+  },
+
+  "directories": {
+    "logs_services": "S:\\logs\\services",
+    "state_pids": "S:\\state\\pids",
+    "config": "S:\\config",
+    "schemas": "S:\\config\\schemas",
+    "scripts_ops": "S:\\scripts\\ops",
+    "scripts_diagnostics": "S:\\scripts\\diagnostics",
+    "cache_npm": "S:\\cache\\npm",
+    "cache_pnpm": "S:\\cache\\pnpm-store",
+    "cache_node_gyp": "S:\\cache\\node-gyp",
+    "tools_catalog": "S:\\services\\openclaw\\tool_catalog.json"
+  },
+
+  "eva_os": {
+    "default_mode": "conversation",
+    "root_contract": "S:\\",
+    "approval_timeout_seconds": 300,
+    "auto_degrade_on_service_failure": true,
+    "log_all_tool_calls": true,
+    "require_verification": true,
+    "memory_discipline": "strict"
+  },
+
+  "pipecat": {
+    "audio_sample_rate_hz": 16000,
+    "vad_enabled": true,
+    "vad_hangover_ms": 300,
+    "turn_finalization_silence_ms": 1000,
+    "streaming_asr_enabled": true,
+    "barge_in_enabled": true,
+    "save_audio_artifacts": false,
+    "audio_artifact_path": "S:\\voice\\recordings\\raw",
+    "voice_loop": {
+      "interrupt_debounce_ms": 150,
+      "asr_timeout_secs": 10.0,
+      "infer_timeout_secs": 30.0,
+      "tts_timeout_secs": 30.0,
+      "session_cleanup_timeout_secs": 5.0,
+      "telemetry_log_path": "S:\\logs\\services\\pipecat\\turns.jsonl",
+      "max_concurrent_sessions": 10
+    }
+  },
+
+  "memory_engine": {
+    "memory_discipline": "strict",
+    "ledger_path": "S:\\data\\memory.db",
+    "knowledge_workspace": "S:\\data\\knowledge",
+    "auto_archive_days": 90,
+    "durable_memory_types": ["fact", "preference", "project_state", "stable_constraint"]
+  },
+
+  "model_router": {
+    "default_model": "ollama/sonia-vlm:32b",
+    "fallback_model": "anthropic/claude-sonnet-4-6",
+    "local_endpoint": "http://127.0.0.1:11434",
+    "offline_preferred": true,
+    "context_length_default": 4096,
+    "audit_log_path": "S:\\logs\\services\\model-router\\routes.jsonl",
+    "health": {
+      "failure_window_s": 60,
+      "failure_threshold": 3,
+      "quarantine_s": 30,
+      "recovery_probes": 2
+    },
+    "profiles": {
+      "backend_capacities": [
+        { "backend": "ollama/sonia-vlm:32b",          "max_context": 4096,  "avg_latency_ms": 2000 },
+        { "backend": "ollama/qwen2.5:7b",             "max_context": 4096,  "avg_latency_ms": 800  },
+        { "backend": "ollama/qwen3-vl:32b-instruct",  "max_context": 4096,  "avg_latency_ms": 2000 },
+        { "backend": "anthropic/claude-opus-4-6",      "max_context": 200000, "avg_latency_ms": 3000 },
+        { "backend": "anthropic/claude-sonnet-4-6",    "max_context": 200000, "avg_latency_ms": 1500 },
+        { "backend": "anthropic/claude-haiku-4-5",     "max_context": 200000, "avg_latency_ms": 500  }
+      ],
+      "fallback_matrix": {
+        "chat_low_latency":  ["ollama/sonia-vlm:32b", "ollama/qwen2.5:7b"],
+        "reasoning_deep":    ["anthropic/claude-opus-4-6", "anthropic/claude-sonnet-4-6", "ollama/sonia-vlm:32b"],
+        "vision_analysis":   ["ollama/sonia-vlm:32b", "ollama/qwen3-vl:32b-instruct", "anthropic/claude-sonnet-4-6"],
+        "memory_ops":        ["ollama/qwen2.5:7b", "ollama/sonia-vlm:32b"],
+        "tool_execution":    ["ollama/sonia-vlm:32b", "anthropic/claude-sonnet-4-6", "ollama/qwen2.5:7b"],
+        "safe_fallback":     ["ollama/qwen2.5:7b", "ollama/sonia-vlm:32b"]
+      }
+    }
+  },
+
+  "openclaw": {
+    "tool_catalog": "S:\\services\\openclaw\\tool_catalog.json",
+    "root_contract": "S:\\",
+    "deny_escaping_root": true,
+    "require_approval_for_tier": "TIER_3_DESTRUCTIVE",
+    "verify_all_executions": true,
+    "logs_tool_calls": "S:\\logs\\tools\\calls.log",
+    "audit_log": "S:\\audit\\tool-calls.json"
+  },
+
+  "action_safety": {
+    "confirmation_ttl_seconds": 120,
+    "max_pending_confirmations": 50,
+    "default_verdict": "confirm",
+    "custom_rules": []
+  },
+
+  "api_gateway": {
+    "max_request_size_mb": 100,
+    "streaming_enabled": true,
+    "cors_enabled": true,
+    "request_timeout_seconds": 300
+  },
+
+  "vision_capture": {
+    "ring_buffer_max_frames": 300,
+    "ambient_fps": 1.0,
+    "active_fps": 10.0,
+    "ambient_resolution": [320, 240],
+    "active_resolution": [640, 480],
+    "max_frame_bytes": 1048576,
+    "default_privacy": "disabled",
+    "default_mode": "off"
+  },
+
+  "perception": {
+    "max_gpu_budget_ms": 2000,
+    "inference_timeout_s": 10.0,
+    "trigger_types": ["wake_word", "motion", "user_command", "scheduled"],
+    "auto_execute_actions": false,
+    "default_frame_count": 1,
+    "max_frame_count": 5
+  },
+
+  "companion_ui": {
+    "window_width": 480,
+    "window_height": 720,
+    "theme": "dark_red",
+    "avatar_placeholder": true,
+    "websocket_reconnect_ms": 3000,
+    "max_reconnect_attempts": 10
+  },
+
+  "operational": {
+    "health_check_interval_seconds": 10,
+    "stale_pid_cleanup_seconds": 60,
+    "log_rotation_days": 7,
+    "log_max_size_mb": 500,
+    "safe_shutdown_timeout_seconds": 30
+  }
+}

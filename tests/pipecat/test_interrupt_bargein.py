@@ -21,6 +21,10 @@ import sys
 import os
 import time
 
+for _m in list(sys.modules):
+    if _m == "app" or _m.startswith("app."):
+        sys.modules.pop(_m, None)
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "services", "pipecat"))
 
 from app.turn_taking import TurnState, transition, remove_lock

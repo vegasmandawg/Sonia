@@ -170,39 +170,59 @@ class OllamaProvider(Provider):
         return None
     
     def chat(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
-        """Send chat request to Ollama."""
+        """Send chat request to Ollama.
+
+        Supports both plain text and vision messages.  When a message
+        contains multimodal content (list with image_url entries), images
+        are extracted and sent via the Ollama ``images`` field (base64).
+        """
         if not self.available:
             return {
                 "status": "error",
                 "error": "Ollama provider not available"
             }
-        
+
         try:
-            # Ollama API format
+            images: List[str] = []
             prompt = ""
             for msg in messages:
                 role = msg.get("role", "user")
                 content = msg.get("content", "")
-                prompt += f"{role}: {content}\n"
-            
-            payload = {
+
+                if isinstance(content, list):
+                    # Multimodal message -- extract text + images
+                    text_parts = []
+                    for part in content:
+                        if part.get("type") == "text":
+                            text_parts.append(part.get("text", ""))
+                        elif part.get("type") == "image_url":
+                            url = part.get("image_url", {}).get("url", "")
+                            if url.startswith("data:") and "," in url:
+                                images.append(url.split(",", 1)[1])
+                    prompt += f"{role}: {' '.join(text_parts)}\n"
+                else:
+                    prompt += f"{role}: {content}\n"
+
+            payload: Dict[str, Any] = {
                 "model": model,
                 "prompt": prompt,
                 "stream": False,
             }
+            if images:
+                payload["images"] = images
             if "temperature" in kwargs:
                 payload["options"] = payload.get("options", {})
                 payload["options"]["temperature"] = kwargs["temperature"]
-            
+
             response = httpx.post(
                 f"{self.endpoint}/api/generate",
                 json=payload,
-                timeout=30
+                timeout=60 if images else 30,
             )
             response.raise_for_status()
-            
+
             data = response.json()
-            
+
             return {
                 "status": "success",
                 "model": model,
@@ -213,7 +233,7 @@ class OllamaProvider(Provider):
                     "total_duration": data.get("total_duration")
                 }
             }
-        
+
         except Exception as e:
             logger.error(f"Ollama chat error: {e}")
             return {
@@ -280,8 +300,32 @@ class AnthropicProvider(Provider):
             for msg in messages:
                 role = msg.get("role", "user")
                 content = msg.get("content", "")
+
                 if role == "system":
-                    system_text = content
+                    system_text = content if isinstance(content, str) else str(content)
+                    continue
+
+                # Convert OpenAI vision format to Anthropic format
+                if isinstance(content, list):
+                    anthropic_parts = []
+                    for part in content:
+                        if part.get("type") == "text":
+                            anthropic_parts.append({"type": "text", "text": part.get("text", "")})
+                        elif part.get("type") == "image_url":
+                            url = part.get("image_url", {}).get("url", "")
+                            if url.startswith("data:") and "," in url:
+                                header, b64 = url.split(",", 1)
+                                # Extract media_type from "data:image/png;base64"
+                                media_type = header.replace("data:", "").split(";")[0]
+                                anthropic_parts.append({
+                                    "type": "image",
+                                    "source": {
+                                        "type": "base64",
+                                        "media_type": media_type,
+                                        "data": b64,
+                                    },
+                                })
+                    api_messages.append({"role": role, "content": anthropic_parts})
                 else:
                     api_messages.append({"role": role, "content": content})
 

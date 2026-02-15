@@ -73,3 +73,30 @@ releases/stage4-*/
 
 # Integration upstream sources
 integrations/*/upstream/
+
+# v3.0 release -- generated outputs and temp files
+renders/
+result_images/
+quarantine/
+*.tmp
+*.bak
+*.log
+*.cache
+*.seed.json
+*.trace.json
+.pytest_cache/
+
+# Root-level scratch files (batch scripts, test outputs, temp runners)
+/*.bat
+/*.txt
+/*.py
+!/pytest.ini
+!/README.md
+!/ROADMAP.md
+!/ARCHITECTURE.md
+!/CHANGELOG.md
+!/RUNTIME_CONTRACT.md
+/pr_body.md
+
+# Large 3D model assets
+ui/Female Advanced V2 3D Model/

@@ -26,8 +26,14 @@ from contextlib import asynccontextmanager
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, validator
+
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent.parent / "shared"))
+from version import SONIA_VERSION, SONIA_CONTRACT
 
 logger = logging.getLogger("perception")
 
@@ -151,7 +157,6 @@ state = PerceptionState()
 
 async def check_vision_privacy() -> Dict[str, Any]:
     """Check vision-capture privacy status. Returns privacy info dict."""
-    import httpx
     try:
         async with httpx.AsyncClient(timeout=3.0) as client:
             resp = await client.get(f"{VISION_CAPTURE_URL}/v1/vision/privacy/status")
@@ -165,7 +170,6 @@ async def check_vision_privacy() -> Dict[str, Any]:
 
 async def fetch_frames(n: int = 1) -> list:
     """Fetch latest frames from vision-capture service."""
-    import httpx
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             resp = await client.get(
@@ -192,25 +196,105 @@ async def run_vlm_inference(
     Send frames + context to model-router for VLM inference.
     Returns structured scene analysis data.
 
-    Currently a stub -- real implementation will call model-router
-    with task_type=vision_analysis.
+    Calls model-router POST /chat with task_type=vision and
+    OpenAI vision message format (image_url with base64 data).
+    Falls back to stub response on any failure.
     """
+    import json as _json
+
     start = time.perf_counter()
-    # Stub: simulate minimal latency
-    await asyncio.sleep(0.05)
-    elapsed_ms = (time.perf_counter() - start) * 1000
 
-    frame_desc = f"{len(frames)} frame(s)"
-    ctx_desc = f"context: '{context[:50]}'" if context else "no context"
+    # Build vision messages in OpenAI multimodal format
+    content_parts = []
 
-    return {
-        "summary": f"Scene analysis ({frame_desc}, {ctx_desc})",
-        "entities": [],
-        "overall_confidence": 0.0,
-        "recommended_action": None,
-        "inference_ms": round(elapsed_ms, 1),
-        "model_used": "stub/none",
-    }
+    # Add analysis prompt
+    analysis_prompt = (
+        "Analyze this image and provide a structured scene description. "
+        "Identify objects, people, text, and notable elements. "
+        "For each entity, provide a label and confidence score (0.0-1.0). "
+        "If an action is recommended based on the scene, state it clearly."
+    )
+    if context:
+        analysis_prompt += f"\n\nAdditional context: {context}"
+
+    content_parts.append({"type": "text", "text": analysis_prompt})
+
+    # Add frames as base64 image references
+    for frame in frames:
+        # Frame format from vision-capture: {data_b64, mime_type, ...}
+        data_b64 = frame.get("data_b64") or frame.get("data", "")
+        mime_type = frame.get("mime_type", "image/png")
+        if data_b64:
+            content_parts.append({
+                "type": "image_url",
+                "image_url": {"url": f"data:{mime_type};base64,{data_b64}"},
+            })
+
+    messages = [{"role": "user", "content": content_parts}]
+
+    try:
+        async with httpx.AsyncClient(timeout=max(max_ms / 1000, 5.0)) as client:
+            resp = await client.post(
+                f"{MODEL_ROUTER_URL}/chat",
+                json={
+                    "task_type": "vision",
+                    "messages": messages,
+                    "temperature": 0.3,
+                    "max_tokens": 1024,
+                    "policy": "cloud_allowed",
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+        elapsed_ms = (time.perf_counter() - start) * 1000
+
+        if data.get("status") != "success":
+            raise ValueError(data.get("error", "model-router returned non-success"))
+
+        response_text = data.get("response", "")
+        model_used = data.get("model", "unknown")
+
+        # Parse structured response -- extract entities if model returns JSON
+        entities = []
+        overall_confidence = 0.5  # default for real inference
+        recommended_action = None
+
+        try:
+            # Try to parse JSON from the response
+            parsed = _json.loads(response_text)
+            if isinstance(parsed, dict):
+                entities = parsed.get("entities", [])
+                overall_confidence = parsed.get("overall_confidence", 0.5)
+                recommended_action = parsed.get("recommended_action")
+                response_text = parsed.get("summary", response_text)
+        except (_json.JSONDecodeError, TypeError):
+            # Model returned free-text; use as summary directly
+            pass
+
+        return {
+            "summary": response_text[:500] if response_text else "Scene analyzed",
+            "entities": entities,
+            "overall_confidence": overall_confidence,
+            "recommended_action": recommended_action,
+            "inference_ms": round(elapsed_ms, 1),
+            "model_used": model_used,
+        }
+
+    except Exception as e:
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        logger.warning(f"VLM inference failed, returning degraded result: {e}")
+
+        frame_desc = f"{len(frames)} frame(s)"
+        ctx_desc = f"context: '{context[:50]}'" if context else "no context"
+        return {
+            "summary": f"Scene analysis failed ({frame_desc}, {ctx_desc}): {e}",
+            "entities": [],
+            "overall_confidence": 0.0,
+            "recommended_action": None,
+            "inference_ms": round(elapsed_ms, 1),
+            "model_used": "fallback/error",
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -224,7 +308,7 @@ async def lifespan(app: FastAPI):
     logger.info("Perception pipeline stopped")
 
 
-app = FastAPI(title="Perception Pipeline", version="2.6.0", lifespan=lifespan)
+app = FastAPI(title="Perception Pipeline", version=SONIA_VERSION, lifespan=lifespan)
 
 
 # ---------------------------------------------------------------------------
@@ -236,7 +320,8 @@ async def healthz():
     return {
         "status": "ok",
         "service": "perception",
-        "version": "2.6.0",
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
         "inference_status": state.status.value,
         "total_inferences": state.total_inferences,
         "privacy_blocks": state.total_privacy_blocks,

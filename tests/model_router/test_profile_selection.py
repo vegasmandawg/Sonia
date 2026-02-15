@@ -1,109 +1,107 @@
-"""
-Test Suite: Profile Selection (PS1-PS12)
-Validates deterministic profile mapping and routing.
-"""
+"""Pytest suite for deterministic profile selection."""
 
 import sys
-sys.path.insert(0, r"S:\services\model-router")
+from pathlib import Path
 
-passed = failed = 0
 
-def check(tag, cond, msg=""):
-    global passed, failed
-    if cond:
-        passed += 1
-        print(f"  [PASS] {tag}: {msg}")
-    else:
-        failed += 1
-        print(f"  [FAIL] {tag}: {msg}")
-
+MODEL_ROUTER_DIR = Path(__file__).resolve().parents[2] / "services" / "model-router"
+if str(MODEL_ROUTER_DIR) not in sys.path:
+    sys.path.insert(0, str(MODEL_ROUTER_DIR))
 
 from app.profiles import (
-    ProfileName, ReasonCode, RoutingProfile, ProfileRegistry,
-    classify_request, default_profiles, RetryPolicy,
+    ProfileName,
+    ProfileRegistry,
+    RoutingProfile,
+    classify_request,
 )
-from app.routing_engine import RoutingEngine, RouteDecision
+from app.routing_engine import RoutingEngine
 
-print("=" * 60)
-print("Test Suite: Profile Selection (PS1-PS12)")
-print("=" * 60)
 
-print("\n--- PS1: classify_request determinism ---")
-for _ in range(3):
+def test_ps1_classify_request_is_deterministic():
     results = [classify_request(hint="analyze image") for _ in range(50)]
-    unique = set(r.value for r in results)
-    check("PS1a", len(unique) == 1, f"50 calls -> {unique}")
+    assert len({r.value for r in results}) == 1
 
-print("\n--- PS2: classify by task_type ---")
-check("PS2a", classify_request(task_type="vision") == ProfileName.VISION_ANALYSIS, "vision")
-check("PS2b", classify_request(task_type="text", hint="reasoning") == ProfileName.REASONING_DEEP, "reasoning wins")
 
-print("\n--- PS3: classify by hint ---")
-check("PS3a", classify_request(hint="execute tool") == ProfileName.TOOL_EXECUTION, "tool")
-check("PS3b", classify_request(hint="remember this fact") == ProfileName.MEMORY_OPS, "memory")
-check("PS3c", classify_request(hint="quick chat") == ProfileName.CHAT_LOW_LATENCY, "chat")
+def test_ps2_classify_by_task_type_and_hint():
+    assert classify_request(task_type="vision") == ProfileName.VISION_ANALYSIS
+    assert classify_request(task_type="text", hint="reasoning") == ProfileName.REASONING_DEEP
 
-print("\n--- PS4: default classification ---")
-check("PS4a", classify_request() == ProfileName.CHAT_LOW_LATENCY, "empty -> chat")
-check("PS4b", classify_request(hint="xyz unknown") == ProfileName.CHAT_LOW_LATENCY, "unknown -> chat")
 
-print("\n--- PS5: all 6 profiles in registry ---")
-reg = ProfileRegistry()
-check("PS5a", len(reg.names) == 6, f"{len(reg.names)} profiles")
-for pn in ProfileName:
-    check(f"PS5b_{pn.value}", reg.get(pn) is not None, f"{pn.value} exists")
+def test_ps3_classify_by_hint_patterns():
+    assert classify_request(hint="execute tool") == ProfileName.TOOL_EXECUTION
+    assert classify_request(hint="remember this fact") == ProfileName.MEMORY_OPS
+    assert classify_request(hint="quick chat") == ProfileName.CHAT_LOW_LATENCY
 
-print("\n--- PS6: profile validation ---")
-good = reg.get(ProfileName.CHAT_LOW_LATENCY)
-check("PS6a", good.validate() == [], "valid profile")
-bad = RoutingProfile(name=ProfileName.SAFE_FALLBACK, model_prefs=[], fallbacks=[],
-                     latency_ms=-1, max_context=-1)
-errs = bad.validate()
-check("PS6b", len(errs) >= 3, f"{len(errs)} errors")
 
-print("\n--- PS7: dispatch_chain dedup ---")
-p = RoutingProfile(name=ProfileName.TOOL_EXECUTION,
-                   model_prefs=["a", "b"], fallbacks=["b", "c", "a"])
-chain = p.dispatch_chain()
-check("PS7a", chain == ["a", "b", "c"], f"deduped: {chain}")
+def test_ps4_default_classification_is_chat():
+    assert classify_request() == ProfileName.CHAT_LOW_LATENCY
+    assert classify_request(hint="xyz unknown") == ProfileName.CHAT_LOW_LATENCY
 
-print("\n--- PS8: routing engine selects first healthy ---")
-engine = RoutingEngine()
-dec1 = engine.select(ProfileName.CHAT_LOW_LATENCY, trace_id="ps8")
-dec2 = engine.select(ProfileName.CHAT_LOW_LATENCY, trace_id="ps8b")
-check("PS8a", dec1.selected_backend == dec2.selected_backend, "same backend twice")
-check("PS8b", dec1.reason_code == "PROFILE_MATCH", f"reason={dec1.reason_code}")
 
-print("\n--- PS9: routing engine with unhealthy primary ---")
-engine2 = RoutingEngine(is_healthy=lambda b: "1.5b" in b)
-dec = engine2.select(ProfileName.CHAT_LOW_LATENCY, trace_id="ps9")
-check("PS9a", dec.selected_backend == "ollama/qwen2:1.5b", f"fallback={dec.selected_backend}")
-check("PS9b", dec.reason_code == "FALLBACK_USED", f"reason={dec.reason_code}")
+def test_ps5_registry_contains_all_profiles():
+    registry = ProfileRegistry()
+    assert len(registry.names) == 6
+    for name in ProfileName:
+        assert registry.get(name) is not None
 
-print("\n--- PS10: routing engine all unhealthy ---")
-engine3 = RoutingEngine(is_healthy=lambda b: False)
-dec = engine3.select(ProfileName.REASONING_DEEP, trace_id="ps10")
-check("PS10a", dec.selected_backend is None, "no backend")
-check("PS10b", dec.reason_code == "NO_BACKEND_AVAILABLE", f"reason={dec.reason_code}")
 
-print("\n--- PS11: route_request end-to-end ---")
-engine4 = RoutingEngine()
-dec = engine4.route_request(task_type="vision", hint="screenshot", trace_id="ps11")
-check("PS11a", dec.profile_name == "vision_analysis", f"profile={dec.profile_name}")
-check("PS11b", dec.selected_backend is not None, f"backend={dec.selected_backend}")
+def test_ps6_profile_validation():
+    registry = ProfileRegistry()
+    valid_profile = registry.get(ProfileName.CHAT_LOW_LATENCY)
+    assert valid_profile.validate() == []
+    invalid = RoutingProfile(
+        name=ProfileName.SAFE_FALLBACK,
+        model_prefs=[],
+        fallbacks=[],
+        latency_ms=-1,
+        max_context=-1,
+    )
+    assert len(invalid.validate()) >= 3
 
-print("\n--- PS12: RouteDecision serialisation ---")
-d = dec.to_dict()
-check("PS12a", "trace_id" in d, "trace_id")
-check("PS12b", "fallback_chain" in d, "fallback_chain")
-check("PS12c", "reason_code" in d, "reason_code")
-check("PS12d", "skipped" in d, "skipped")
 
-print("\n" + "=" * 60)
-total = passed + failed
-print(f"Results: {passed}/{total} passed")
-if failed:
-    print("SOME TESTS FAILED")
-    sys.exit(1)
-else:
-    print("ALL TESTS PASSED")
+def test_ps7_dispatch_chain_dedupes_fallbacks():
+    profile = RoutingProfile(
+        name=ProfileName.TOOL_EXECUTION,
+        model_prefs=["a", "b"],
+        fallbacks=["b", "c", "a"],
+    )
+    assert profile.dispatch_chain() == ["a", "b", "c"]
+
+
+def test_ps8_routing_engine_selects_first_healthy():
+    engine = RoutingEngine()
+    decision_1 = engine.select(ProfileName.CHAT_LOW_LATENCY, trace_id="ps8a")
+    decision_2 = engine.select(ProfileName.CHAT_LOW_LATENCY, trace_id="ps8b")
+    assert decision_1.selected_backend == decision_2.selected_backend
+    assert decision_1.reason_code == "PROFILE_MATCH"
+
+
+def test_ps9_routing_engine_uses_fallback_when_primary_unhealthy():
+    engine = RoutingEngine(is_healthy=lambda backend: "qwen2.5" in backend)
+    decision = engine.select(ProfileName.CHAT_LOW_LATENCY, trace_id="ps9")
+    assert decision.selected_backend == "ollama/qwen2.5:7b"
+    assert decision.reason_code == "FALLBACK_USED"
+
+
+def test_ps10_all_unhealthy_returns_no_backend():
+    engine = RoutingEngine(is_healthy=lambda backend: False)
+    decision = engine.select(ProfileName.REASONING_DEEP, trace_id="ps10")
+    assert decision.selected_backend is None
+    assert decision.reason_code == "NO_BACKEND_AVAILABLE"
+
+
+def test_ps11_route_request_end_to_end():
+    engine = RoutingEngine()
+    decision = engine.route_request(task_type="vision", hint="screenshot", trace_id="ps11")
+    assert decision.profile_name == "vision_analysis"
+    assert decision.selected_backend is not None
+
+
+def test_ps12_route_decision_serialization():
+    engine = RoutingEngine()
+    decision = engine.route_request(task_type="vision", hint="screenshot", trace_id="ps12")
+    data = decision.to_dict()
+    assert "trace_id" in data
+    assert "fallback_chain" in data
+    assert "reason_code" in data
+    assert "skipped" in data

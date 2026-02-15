@@ -83,6 +83,8 @@ CREATE TABLE IF NOT EXISTS workspace_chunks (
     content TEXT NOT NULL,
     start_offset INTEGER,
     end_offset INTEGER,
+    embedding_id TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (doc_id) REFERENCES workspace_documents(doc_id)
 );
 

@@ -18,6 +18,10 @@ import asyncio
 import sys
 import os
 
+for _m in list(sys.modules):
+    if _m == "app" or _m.startswith("app."):
+        sys.modules.pop(_m, None)
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "services", "pipecat"))
 
 from app.watchdog import run_with_timeout, StageTimeout, WatchdogResult

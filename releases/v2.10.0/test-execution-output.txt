@@ -1,0 +1,34 @@
+﻿ssssssss................................................................ [ 92%]
+....s.                                                                   [100%]
+============================== warnings summary ===============================
+..\..\..\tests\integration\test_multimodal_turn_pipeline.py:12
+  S:\tests\integration\test_multimodal_turn_pipeline.py:12: DeprecationWarning: websockets.client.connect is deprecated
+    from websockets.client import connect as ws_connect
+
+..\..\..\envs\sonia-core\Lib\site-packages\websockets\legacy\__init__.py:6
+  S:\envs\sonia-core\Lib\site-packages\websockets\legacy\__init__.py:6: DeprecationWarning: websockets.legacy is deprecated; see https://websockets.readthedocs.io/en/stable/howto/upgrade.html for upgrade instructions
+    warnings.warn(  # deprecated in 14.0 - 2024-11-09
+
+..\..\..\tests\integration\test_stage3_compat.py:12
+  S:\tests\integration\test_stage3_compat.py:12: DeprecationWarning: websockets.client.connect is deprecated
+    from websockets.client import connect as ws_connect
+
+..\..\..\tests\integration\test_stream_text_fallback.py:6
+  S:\tests\integration\test_stream_text_fallback.py:6: DeprecationWarning: websockets.client.connect is deprecated
+    from websockets.client import connect as ws_connect
+
+..\..\..\tests\integration\test_stream_vision_ingest.py:12
+  S:\tests\integration\test_stream_vision_ingest.py:12: DeprecationWarning: websockets.client.connect is deprecated
+    from websockets.client import connect as ws_connect
+
+..\..\..\tests\integration\test_tool_confirmation_gate.py:12
+  S:\tests\integration\test_tool_confirmation_gate.py:12: DeprecationWarning: websockets.client.connect is deprecated
+    from websockets.client import connect as ws_connect
+
+tests/integration/test_v210_perception_vlm.py::TestVLMInference::test_vlm_sends_correct_payload
+  S:\services\perception\main.py:104: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    @validator("action_requires_confirmation", always=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+69 passed, 9 skipped, 714 deselected, 7 warnings in 46.14s
+

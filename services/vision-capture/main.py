@@ -26,6 +26,11 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared"))
+from version import SONIA_VERSION, SONIA_CONTRACT
+
 logger = logging.getLogger("vision-capture")
 
 # ---------------------------------------------------------------------------
@@ -153,7 +158,7 @@ async def lifespan(app: FastAPI):
     logger.info("Vision capture stopped, buffer cleared")
 
 
-app = FastAPI(title="Vision Capture Service", version="2.6.0", lifespan=lifespan)
+app = FastAPI(title="Vision Capture Service", version=SONIA_VERSION, lifespan=lifespan)
 
 
 # ---------------------------------------------------------------------------
@@ -184,7 +189,8 @@ async def healthz():
     return {
         "status": "ok",
         "service": "vision-capture",
-        "version": "2.6.0",
+        "version": SONIA_VERSION,
+        "contract_version": SONIA_CONTRACT,
         "privacy": state.privacy.value,
         "mode": state.mode.value,
         "buffer_frames": len(state.buffer),

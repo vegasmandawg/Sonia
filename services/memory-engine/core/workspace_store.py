@@ -43,10 +43,10 @@ class WorkspaceStore:
                 (doc_id, doc_type, content, json.dumps(metadata))
             )
             
-            # Chunk document for indexing
+            # Chunk document for indexing (sentence-aware boundaries)
             from core.chunker import Chunker
             chunker = Chunker(chunk_size=800, overlap=100)
-            chunks = chunker.chunk_text(content)
+            chunks = chunker.chunk_text(content)  # now sentence-aware
             logger.info(
                 f"Document {doc_id} chunked into {len(chunks)} chunks"
             )
@@ -59,14 +59,10 @@ class WorkspaceStore:
                     (chunk_id, doc_id, chunk_index, content, start_offset, end_offset)
                     VALUES (?, ?, ?, ?, ?, ?)
                 """
-                try:
-                    await self.db.execute(
-                        chunk_query,
-                        (chunk_id, doc_id, i, chunk_text, start, end)
-                    )
-                except Exception as chunk_err:
-                    logger.warning(f"Chunk {chunk_id} insert failed (table may not exist): {chunk_err}")
-                    break  # Table doesn't exist yet; skip chunking
+                await self.db.execute(
+                    chunk_query,
+                    (chunk_id, doc_id, i, chunk_text, start, end)
+                )
 
             logger.info(f"Document {doc_id} ingested")
             return doc_id

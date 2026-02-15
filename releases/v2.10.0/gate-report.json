@@ -1,0 +1,243 @@
+﻿{
+    "version":  "v2.10.0",
+    "policy":  "no-skip-mandatory",
+    "finished_at":  "2026-02-14T13:03:15.4053403-06:00",
+    "summary":  {
+                    "skip":  0,
+                    "pass":  19,
+                    "fail":  0,
+                    "decision":  "GO"
+                },
+    "gates":  [
+                  {
+                      "id":  "G01",
+                      "name":  "Python compile check (all .py files)",
+                      "evidence":  [
+                                       "All .py files compile clean"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  8980,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G02",
+                      "name":  "PowerShell parse check (GA-scoped .ps1 files)",
+                      "evidence":  [
+                                       "All GA-scoped .ps1 files parse clean"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  66,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G03",
+                      "name":  "Config schema validation (sonia-config.json)",
+                      "evidence":  [
+                                       "All 11 required keys present"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  32,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G04",
+                      "name":  "Regression test collection (v2.9 and earlier)",
+                      "evidence":  [
+                                       "Collected 792 tests"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  727,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G05",
+                      "name":  "v2.10 MCP boot tests collect",
+                      "evidence":  [
+                                       "MCP boot tests collected OK"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  487,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G06",
+                      "name":  "v2.10 perception VLM tests collect",
+                      "evidence":  [
+                                       "Perception VLM tests collected OK"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  494,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G07",
+                      "name":  "v2.10 policy engine tests collect",
+                      "evidence":  [
+                                       "Policy engine tests collected OK"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  468,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G08",
+                      "name":  "v2.10 chunker upgrade tests collect",
+                      "evidence":  [
+                                       "Chunker upgrade tests collected OK"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  493,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G09",
+                      "name":  "All services define /healthz endpoint",
+                      "evidence":  [
+                                       "All 1 1 1 1 1 1 1 1 services use /healthz"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  8,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G10",
+                      "name":  "Version consistency check",
+                      "evidence":  [
+                                       "version.py=2.10.0, config=2.10.0 (GA clean)"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  31,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G11",
+                      "name":  "MCP hardening tests exist and collect",
+                      "evidence":  [
+                                       "8 tests collected from MCP hardening"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  481,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G12",
+                      "name":  "VLM robustness tests exist and collect",
+                      "evidence":  [
+                                       "8 tests collected from VLM robustness"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  505,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G13",
+                      "name":  "Chunker edge-case tests exist and collect",
+                      "evidence":  [
+                                       "8 tests collected from chunker edge cases"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  484,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G14",
+                      "name":  "No stale config references",
+                      "evidence":  [
+                                       "No stale references found"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  1,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G15",
+                      "name":  "Session prune infrastructure",
+                      "evidence":  [
+                                       "Script exists, scheduled task registered"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  446,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G16",
+                      "name":  "Dependency lock (requirements-frozen.txt)",
+                      "evidence":  [
+                                       "79 pinned packages, SHA256=24330BEAB15A8ACD..."
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  34,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G17",
+                      "name":  "Release manifest generation",
+                      "evidence":  [
+                                       "Manifest written: 5 artifacts, S:\\releases\\v2.10.0\\release-manifest.json"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  15,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G18",
+                      "name":  "Full v2.10 test collection (all test_v210_*.py)",
+                      "evidence":  [
+                                       "792 v2.10 tests collected across 7 files"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  731,
+                      "status":  "PASS"
+                  },
+                  {
+                      "id":  "G19",
+                      "name":  "Test execution -- bounded real run (v2.10 tests)",
+                      "evidence":  [
+                                       "passed=69 failed=0 errors=0 skipped=9 duration=46695ms",
+                                       "Output: S:\\releases\\v2.10.0\\test-execution-output.txt"
+                                   ],
+                      "metrics":  {
+
+                                  },
+                      "duration_ms":  46708,
+                      "status":  "PASS"
+                  }
+              ],
+    "started_at":  "2026-02-14T13:02:14.1683130-06:00"
+}

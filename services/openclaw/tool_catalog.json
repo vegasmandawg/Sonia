@@ -1,6 +1,12 @@
 {
   "catalog_version": "1.0.0",
   "description": "OpenClaw Tool Catalog with Risk Tiers and Verification Specs",
+  "runtime_name_aliases": {
+    "filesystem.read_file": "file.read",
+    "filesystem.write_file": "file.write",
+    "shell.run_command": "shell.run",
+    "shell.run_powershell_script": "shell.run"
+  },
   "tools": {
     "filesystem.list_directory": {
       "tier": "TIER_0_READONLY",

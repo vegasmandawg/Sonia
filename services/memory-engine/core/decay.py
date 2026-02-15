@@ -1,12 +1,23 @@
 """Memory decay and forgetting strategies."""
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Any
 from enum import Enum
 import math
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_iso_utc(timestamp: str) -> datetime:
+    """Parse ISO timestamp and normalize to UTC-aware datetime."""
+    normalized = timestamp.strip()
+    if normalized.endswith("Z"):
+        normalized = normalized[:-1] + "+00:00"
+    dt = datetime.fromisoformat(normalized)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 class DecayStrategy(str, Enum):
@@ -61,9 +72,11 @@ class MemoryDecay:
         """
         try:
             # Parse timestamps
-            created = datetime.fromisoformat(created_time.replace('Z', '+00:00'))
-            current = datetime.fromisoformat(
-                (current_time or datetime.utcnow().isoformat()).replace('Z', '+00:00')
+            created = _parse_iso_utc(created_time)
+            current = (
+                _parse_iso_utc(current_time)
+                if current_time
+                else datetime.now(timezone.utc)
             )
 
             age_days = (current - created).total_seconds() / (24 * 3600)
@@ -79,7 +92,7 @@ class MemoryDecay:
                 decay = 1.0
 
             # Apply access boost (accessed items fade slower)
-            access_boost = min(1.0, 1.0 + access_count * 0.1)
+            access_boost = min(2.0, 1.0 + access_count * 0.1)
             
             # Apply relevance weight
             final_score = decay * access_boost * relevance
@@ -170,7 +183,7 @@ class MemoryDecay:
             original_relevance = result.get("relevance", 1.0)
 
             decay_score = self.compute_decay_score(
-                created_time, access_count, original_relevance
+                created_time, access_count, 1.0
             )
 
             # Adjust relevance: blend original with decay
@@ -257,7 +270,7 @@ class MemoryConsolidation:
         Returns:
             Dict with "recent" and "archived" lists
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         recent = []
         archived = []
 
@@ -265,9 +278,7 @@ class MemoryConsolidation:
             timestamp = item.get("timestamp")
             if timestamp:
                 try:
-                    item_time = datetime.fromisoformat(
-                        timestamp.replace('Z', '+00:00')
-                    )
+                    item_time = _parse_iso_utc(timestamp)
                     age_days = (now - item_time).total_seconds() / (24 * 3600)
 
                     if age_days < days_threshold:

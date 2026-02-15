@@ -7,14 +7,22 @@ import pytest
 import json
 from datetime import datetime
 from fastapi.testclient import TestClient
+from pathlib import Path
+import sys
 
-from .main import app
+OPENCLAW_DIR = Path(__file__).resolve().parent
+SERVICES_DIR = OPENCLAW_DIR.parent
+if str(SERVICES_DIR) not in sys.path:
+    sys.path.insert(0, str(SERVICES_DIR))
+
+from openclaw.main import app
 
 
 @pytest.fixture
 def client():
     """FastAPI test client."""
-    return TestClient(app)
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 # ============================================================================

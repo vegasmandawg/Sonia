@@ -180,16 +180,15 @@ def default_profiles() -> Dict[ProfileName, RoutingProfile]:
     """
     Return the built-in profile catalogue.
 
-    The model keys reference identifiers in the provider registry
-    (e.g., "ollama/qwen2:7b", "anthropic/claude-opus-4-6").
+    The model keys reference identifiers from config/sonia-config.json.
     """
     return {
         ProfileName.CHAT_LOW_LATENCY: RoutingProfile(
             name=ProfileName.CHAT_LOW_LATENCY,
-            model_prefs=["ollama/qwen2:7b"],
+            model_prefs=["ollama/sonia-vlm:32b"],
             latency_ms=3_000,
-            max_context=4_000,
-            fallbacks=["ollama/qwen2:1.5b"],
+            max_context=4_096,
+            fallbacks=["ollama/qwen2.5:7b"],
             retry=RetryPolicy(max_retries=1, backoff_base_ms=200),
             capabilities={"text"},
         ),
@@ -197,43 +196,43 @@ def default_profiles() -> Dict[ProfileName, RoutingProfile]:
             name=ProfileName.REASONING_DEEP,
             model_prefs=["anthropic/claude-opus-4-6", "anthropic/claude-sonnet-4-6"],
             latency_ms=30_000,
-            max_context=32_000,
-            fallbacks=["ollama/qwen2:7b"],
+            max_context=200_000,
+            fallbacks=["ollama/sonia-vlm:32b"],
             retry=RetryPolicy(max_retries=2, backoff_base_ms=1000),
             capabilities={"text"},
         ),
         ProfileName.VISION_ANALYSIS: RoutingProfile(
             name=ProfileName.VISION_ANALYSIS,
-            model_prefs=["ollama/qwen2-vl:7b"],
+            model_prefs=["ollama/sonia-vlm:32b", "ollama/qwen3-vl:32b-instruct"],
             latency_ms=15_000,
-            max_context=8_000,
+            max_context=4_096,
             fallbacks=["anthropic/claude-sonnet-4-6"],
             retry=RetryPolicy(max_retries=1, backoff_base_ms=500),
             capabilities={"text", "vision"},
         ),
         ProfileName.MEMORY_OPS: RoutingProfile(
             name=ProfileName.MEMORY_OPS,
-            model_prefs=["ollama/qwen2:7b"],
+            model_prefs=["ollama/qwen2.5:7b"],
             latency_ms=5_000,
-            max_context=8_000,
-            fallbacks=["ollama/qwen2:1.5b"],
+            max_context=4_096,
+            fallbacks=["ollama/sonia-vlm:32b"],
             retry=RetryPolicy(max_retries=1, backoff_base_ms=300),
             capabilities={"text"},
         ),
         ProfileName.TOOL_EXECUTION: RoutingProfile(
             name=ProfileName.TOOL_EXECUTION,
-            model_prefs=["ollama/qwen2:7b", "anthropic/claude-sonnet-4-6"],
+            model_prefs=["ollama/sonia-vlm:32b", "anthropic/claude-sonnet-4-6"],
             latency_ms=10_000,
-            max_context=8_000,
-            fallbacks=["ollama/qwen2:1.5b"],
+            max_context=4_096,
+            fallbacks=["ollama/qwen2.5:7b"],
             retry=RetryPolicy(max_retries=2, backoff_base_ms=500),
             capabilities={"text"},
         ),
         ProfileName.SAFE_FALLBACK: RoutingProfile(
             name=ProfileName.SAFE_FALLBACK,
-            model_prefs=["ollama/qwen2:1.5b", "ollama/qwen2:7b"],
+            model_prefs=["ollama/qwen2.5:7b", "ollama/sonia-vlm:32b"],
             latency_ms=5_000,
-            max_context=2_000,
+            max_context=4_096,
             fallbacks=[],
             retry=RetryPolicy(max_retries=0),
             capabilities={"text"},

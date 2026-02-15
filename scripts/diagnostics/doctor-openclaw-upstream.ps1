@@ -49,24 +49,24 @@ $failed = @()
 $warned = @()
 
 function Check { param([string]$Name, [scriptblock]$Block)
-    Write-Host "  • $Name..." -NoNewline
+    Write-Host "  * $Name..." -NoNewline
     try {
         $result = & $Block
         if ($result -eq $true) {
-            Write-Host " ✓" -ForegroundColor Green
+            Write-Host " [OK]" -ForegroundColor Green
             $script:passed += $Name
         } else {
-            Write-Host " ✗" -ForegroundColor Red
+            Write-Host " [FAIL]" -ForegroundColor Red
             $script:failed += @{ name = $Name; detail = $result }
         }
     } catch {
-        Write-Host " ✗" -ForegroundColor Red
+        Write-Host " [FAIL]" -ForegroundColor Red
         $script:failed += @{ name = $Name; detail = $_.Exception.Message }
     }
 }
 
 function Warn { param([string]$Name, [string]$Message)
-    Write-Host "  ⚠ $Name" -ForegroundColor Yellow
+    Write-Host "  [WARN]$Name" -ForegroundColor Yellow
     $script:warned += @{ name = $Name; detail = $Message }
 }
 
@@ -75,9 +75,9 @@ function Normalize-Root { param([string]$Path) if ($Path -and -not $Path.EndsWit
 $Root = Normalize-Root $Root
 
 Write-Host ""
-Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║       OpenClaw Upstream Gateway - Diagnostic Check        ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "  OpenClaw Upstream Gateway - Diagnostic Check" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # === SETUP CHECKS ===
@@ -265,15 +265,15 @@ Check "Cache directories configurable" {
 
 # === SUMMARY ===
 Write-Host ""
-Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║                    Diagnostic Summary                      ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "  Diagnostic Summary" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host ""
 
 Write-Host "Passed:  " -NoNewline -ForegroundColor Green
 Write-Host "$($passed.Count) checks" -ForegroundColor Green
 if ($Verbose) {
-    $passed | ForEach-Object { Write-Host "  ✓ $_" }
+    $passed | ForEach-Object { Write-Host "  [OK] $_" }
     Write-Host ""
 }
 
@@ -281,7 +281,7 @@ if ($warned.Count -gt 0) {
     Write-Host "Warnings: " -NoNewline -ForegroundColor Yellow
     Write-Host "$($warned.Count) items" -ForegroundColor Yellow
     $warned | ForEach-Object {
-        Write-Host "  ⚠ $($_.name)"
+        Write-Host "  [WARN]$($_.name)"
         Write-Host "    $($_.detail)" -ForegroundColor DarkYellow
     }
     Write-Host ""
@@ -291,7 +291,7 @@ if ($failed.Count -gt 0) {
     Write-Host "Failed:  " -NoNewline -ForegroundColor Red
     Write-Host "$($failed.Count) checks" -ForegroundColor Red
     $failed | ForEach-Object {
-        Write-Host "  ✗ $($_.name)"
+        Write-Host "  [FAIL] $($_.name)"
         Write-Host "    $($_.detail)" -ForegroundColor DarkRed
     }
     Write-Host ""
@@ -303,7 +303,7 @@ if ($failed.Count -gt 0) {
     exit 1
 }
 
-Write-Host "✓ All checks passed!" -ForegroundColor Green
+Write-Host "[OK] All checks passed!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Ready to start gateway:" -ForegroundColor Green
 Write-Host "  .\run-openclaw-upstream.ps1" -ForegroundColor Cyan

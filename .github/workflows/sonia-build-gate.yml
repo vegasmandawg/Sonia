@@ -1,0 +1,171 @@
+name: Sonia Build Gate
+
+on:
+  push:
+    branches:
+      - main
+      - "v*-dev"
+      - "v*-runtime-hardening"
+      - "v*-m*"
+      - "fix/**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-gate:
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: ui/sonia-avatar/package-lock.json
+
+      - name: Install Python Test Dependencies
+        shell: powershell
+        run: |
+          python -m pip install --upgrade pip
+          pip install `
+            pytest `
+            pytest-asyncio `
+            fastapi `
+            uvicorn `
+            pydantic `
+            httpx `
+            aiohttp `
+            websockets `
+            python-dateutil `
+            pyyaml `
+            numpy `
+            pillow `
+            jsonschema
+
+      - name: Python Compile Check
+        shell: powershell
+        run: |
+          $script = @'
+          import py_compile
+          import subprocess
+          import sys
+          
+          files = subprocess.check_output(["git", "ls-files", "*.py"], text=True).splitlines()
+          failed = []
+          for path in files:
+              try:
+                  py_compile.compile(path, doraise=True)
+              except Exception as exc:
+                  failed.append((path, str(exc)))
+          
+          print(f"TOTAL_PY={len(files)}")
+          print(f"FAILED={len(failed)}")
+          for path, err in failed:
+              print(f"FAIL {path}: {err}")
+          
+          sys.exit(1 if failed else 0)
+          '@
+          $script | python -
+
+      - name: PowerShell Parse Check (Windows PowerShell)
+        shell: powershell
+        run: |
+          $files = git ls-files "*.ps1"
+          $bad = 0
+          foreach ($f in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $f), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors -and $errors.Count -gt 0) {
+              $bad += $errors.Count
+              foreach ($e in $errors) {
+                Write-Host "FAIL ${f}: $($e.Message)"
+              }
+            }
+          }
+          Write-Host "TOTAL_PS1=$($files.Count)"
+          Write-Host "TOTAL_BAD=$bad"
+          if ($bad -gt 0) { exit 1 }
+
+      - name: PowerShell Parse Check (pwsh)
+        shell: powershell
+        run: |
+          $script = @'
+          $files = git ls-files "*.ps1"
+          $bad = 0
+          foreach ($f in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $f), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors -and $errors.Count -gt 0) {
+              $bad += $errors.Count
+              foreach ($e in $errors) {
+                Write-Host "FAIL ${f}: $($e.Message)"
+              }
+            }
+          }
+          Write-Host "TOTAL_PS1=$($files.Count)"
+          Write-Host "TOTAL_BAD=$bad"
+          if ($bad -gt 0) { exit 1 }
+          '@
+          pwsh -NoProfile -Command $script
+
+      - name: Install UI Dependencies
+        shell: powershell
+        run: npm ci --prefix ui/sonia-avatar
+
+      - name: UI Build
+        shell: powershell
+        run: npm --prefix ui/sonia-avatar run build
+
+      - name: TypeScript Check
+        shell: powershell
+        run: npx --prefix ui/sonia-avatar tsc -p ui/sonia-avatar/tsconfig.json --noEmit
+
+      - name: Config Schema Validation
+        shell: powershell
+        run: |
+          $script = @'
+          import sys
+          sys.path.insert(0, 'services/shared')
+          from config_validator import SoniaConfig, ConfigValidationError
+          try:
+              cfg = SoniaConfig(
+                  config_path='config/sonia-config.json',
+                  schema_path='config/schemas/sonia-config.schema.json',
+              )
+              print(f"OK: version={cfg.version}, schema={cfg.schema_version}")
+          except ConfigValidationError as e:
+              print(f"FAIL: {e}")
+              sys.exit(1)
+          except Exception as e:
+              print(f"ERROR: {e}")
+              sys.exit(1)
+          '@
+          $script | python -
+
+      - name: Pytest Collect Integration
+        shell: powershell
+        run: python -m pytest --collect-only tests/integration -q
+
+      - name: Pytest Collect Services
+        shell: powershell
+        run: python -m pytest --collect-only services -q
+
+      - name: Launcher Contract (-TestOnly)
+        shell: powershell
+        run: |
+          $root = (Get-Location).Path
+          & .\start-sonia-stack.ps1 -Root "$root\" -SkipPreflight -TestOnly

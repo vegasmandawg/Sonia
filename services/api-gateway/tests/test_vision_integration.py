@@ -9,6 +9,7 @@ import asyncio
 import base64
 import json
 import pytest
+import os
 from io import BytesIO
 from pathlib import Path
 
@@ -400,8 +401,9 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_large_image_processing(self):
         """Test handling of large images."""
-        # Create large image
-        img = Image.new('RGB', (4096, 2160))
+        # Create incompressible large image (random pixels) to avoid PNG size collapse.
+        raw_pixels = os.urandom(4096 * 2160 * 3)
+        img = Image.frombytes('RGB', (4096, 2160), raw_pixels)
         buffer = BytesIO()
         img.save(buffer, format='PNG')
         large_image = buffer.getvalue()

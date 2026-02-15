@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS ledger_events (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_ledger_entity_id ON ledger_events(entity_id);
-CREATE INDEX idx_ledger_event_type ON ledger_events(event_type);
-CREATE INDEX idx_ledger_timestamp ON ledger_events(timestamp);
-CREATE INDEX idx_ledger_correlation ON ledger_events(correlation_id);
+CREATE INDEX IF NOT EXISTS idx_ledger_entity_id ON ledger_events(entity_id);
+CREATE INDEX IF NOT EXISTS idx_ledger_event_type ON ledger_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_ledger_timestamp ON ledger_events(timestamp);
+CREATE INDEX IF NOT EXISTS idx_ledger_correlation ON ledger_events(correlation_id);

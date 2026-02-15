@@ -126,6 +126,59 @@ async def write_turn_memories(
 # Retrieval helpers
 # ──────────────────────────────────────────────────────────────────────────────
 
+# ──────────────────────────────────────────────────────────────────────────────
+# V3 Retrieval Policy (M3)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class MemoryRetrievalPolicyV3:
+    """V3 retrieval policy with DB-level budget enforcement."""
+
+    def __init__(
+        self,
+        use_db_budget: bool = True,
+        context_char_budget: int = 7000,
+        exclude_redacted: bool = True,
+        limit: int = 10,
+        type_filters: Optional[List[str]] = None,
+    ):
+        self.use_db_budget = use_db_budget
+        self.context_char_budget = context_char_budget
+        self.exclude_redacted = exclude_redacted
+        self.limit = limit
+        self.type_filters = type_filters
+
+
+async def write_typed_memory(
+    memory_client: "MemoryClient",
+    memory_type: str,
+    subtype: str,
+    content: str,
+    metadata: Optional[Dict[str, Any]] = None,
+    valid_from: Optional[str] = None,
+    valid_until: Optional[str] = None,
+    correlation_id: str = "",
+) -> Dict[str, Any]:
+    """Helper for structured typed memory writes. Never raises."""
+    result = {"written": False, "memory_id": None, "conflicts": [], "errors": []}
+    try:
+        resp = await memory_client.store_typed(
+            memory_type=memory_type,
+            subtype=subtype,
+            content=content,
+            metadata=metadata,
+            valid_from=valid_from,
+            valid_until=valid_until,
+            correlation_id=correlation_id,
+        )
+        result["written"] = resp.get("status") == "stored"
+        result["memory_id"] = resp.get("id")
+        result["conflicts"] = resp.get("conflicts", [])
+    except MemoryClientError as exc:
+        result["errors"].append({"code": exc.code, "message": exc.message})
+        logger.warning("typed memory write failed: %s", exc)
+    return result
+
+
 async def retrieve_context(
     memory_client: MemoryClient,
     query: str,
