@@ -198,17 +198,33 @@ Test suites:
 - `tests/v32_perception/test_priority_routing.py` (8 tests)
 - `tests/v32_perception/test_confirmation_storm_integrity.py` (8 tests)
 
-### Phase 3: Epic C -- Memory Ops Governance (NOT STARTED)
+### Phase 3: Epic C -- Memory Ops Governance (COMPLETE)
 
-**Gates**: G22 NOT IMPLEMENTED, G23 NOT IMPLEMENTED
+**Commits**: 5 (b235edd..c8e30af)
+**Tests**: 30/30 PASS (0.23s)
+**Gates**: G22 PASS, G23 PASS
 
-Deferred to Phase 3. Scope:
-- Memory write proposal/approval/reject/retract primitives
-- Provenance chain for all memory mutation attempts
-- Replay integrity (deterministic ledger state)
-- Invariants: no silent writes, proposal requires approval, conflicts surfaced not merged
+Modules delivered:
+- `services/memory_ops/proposal_model.py` -- MemoryProposal envelope, 7-state FSM, strict transitions
+- `services/memory_ops/proposal_policy.py` -- risk tier classifier (auto_low / guarded_medium / guarded_high)
+- `services/memory_ops/proposal_queue.py` -- bounded queue (MAX_PENDING=50), one-shot decisions
+- `services/memory_ops/conflict_detector.py` -- 4 conflict types, explicit resolution required
+- `services/memory_ops/provenance.py` -- append-only governance audit chain, deterministic hash
+- `services/memory_ops/governance_pipeline.py` -- orchestrator (propose -> classify -> conflict -> queue -> decide -> apply)
+- `services/memory_ops/replay_engine.py` -- deterministic replay verifier, hash comparison
 
-### Gate Summary (as of bf43d2b)
+Test suites:
+- `tests/v32_memory_ops/test_proposal_governance.py` (16 tests)
+- `tests/v32_memory_ops/test_replay_determinism.py` (14 tests)
+
+Invariants enforced:
+- No silent writes (silent_write_count == 0)
+- Proposal requires approval for guarded tiers
+- Replay produces identical hashes for same input
+- Conflicts surfaced explicitly, never auto-merged
+- Append-only provenance with deterministic chain hash
+
+### Gate Summary (as of c8e30af)
 
 | Gate | Status | Tests |
 |------|--------|-------|
@@ -216,11 +232,11 @@ Deferred to Phase 3. Scope:
 | G19 | PASS | 12/12 |
 | G20 | PASS | 15/15 |
 | G21 | PASS | 8/8 |
-| G22 | NOT IMPLEMENTED | -- |
-| G23 | NOT IMPLEMENTED | -- |
+| G22 | PASS | 16/16 |
+| G23 | PASS | 14/14 |
 | G08 | KNOWN FAILURE | Requires live services (not a regression) |
 
-**Combined v3.2 floor**: 47/47 PASS in 0.25s
+**Combined v3.2 floor**: 77/77 PASS in 0.27s
 
 ---
 
