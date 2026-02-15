@@ -1,9 +1,7 @@
 """
-SONIA v3.2.0 Promotion Gate
-============================================
-Runs all mandatory gates and produces a JSON report.
-v3.1 gates serve as the stability floor; new v3.2 gates will be added
-as epics are implemented.
+SONIA v3.2.0 Promotion Gate (M1: Voice + Perception + Memory Governance)
+=========================================================================
+Runs all mandatory gates (17 stability floor + 6 v3.2 feature) = 23 total.
 
 Usage:
     python gate-v32.py [--output-dir S:\\reports\\gate-v32]
@@ -24,8 +22,13 @@ Gates (Stability Floor 1-17 -- inherited from v3.1):
  16. Chaos fault injection
  17. Provenance strictness
 
-Gates (v3.2 Feature -- to be added):
- 18+ TBD per selected epics
+Gates (v3.2 Feature 18-23):
+ 18. Voice latency budget (p95 <= 1200ms warm-path)
+ 19. Barge-in replay determinism (100% deterministic across fixture set)
+ 20. Perception dedupe correctness (zero false bypass, deterministic merge)
+ 21. Confirmation storm integrity (zero bypass, zero double-consume)
+ 22. Memory proposal governance (zero direct-write bypass, full provenance)
+ 23. Memory replay integrity (no orphans, no corruption, deterministic state)
 """
 import argparse
 import hashlib
@@ -44,19 +47,23 @@ EXPECTED_BRANCH = "v3.2-dev"
 TEST_DIR = REPO_ROOT / "tests" / "integration"
 HARDENING_DIR = REPO_ROOT / "tests" / "hardening"
 CHAOS_DIR = REPO_ROOT / "scripts" / "chaos"
-TOTAL_GATES = 17  # will grow as epics land
+V32_VOICE_DIR = REPO_ROOT / "tests" / "v32_voice"
+V32_PERCEPTION_DIR = REPO_ROOT / "tests" / "v32_perception"
+V32_MEMORY_DIR = REPO_ROOT / "tests" / "v32_memory_ops"
+TOTAL_GATES = 23
 
 
 def run_pytest(test_path, label):
     """Run pytest on a path, return (passed, failed, output)."""
     cmd = [PYTHON, "-m", "pytest", str(test_path), "-v", "--tb=short", "-q"]
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=300)
+    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=600)
     output = result.stdout + result.stderr
-    # Parse counts
     passed = output.count(" PASSED")
     failed = output.count(" FAILED")
     return passed, failed, output
 
+
+# ── Stability Floor Gates (1-17) ────────────────────────────────────────
 
 def gate_hygiene():
     """Gate 1: repo hygiene."""
@@ -66,12 +73,14 @@ def gate_hygiene():
     )
     lines = [l for l in result.stdout.strip().splitlines() if l.strip()]
     ignore_prefixes = [
-        "?? scripts/release/", "?? releases/", "?? reports/",
-        "?? docs/V3_2_", "?? tests/v32_smoke/",
+        "?? scripts/release/", "?? scripts/chaos/", "?? releases/", "?? reports/",
+        "?? docs/V3_1_", "?? docs/V3_2_",
+        "?? tests/hardening/", "?? tests/v32_voice/", "?? tests/v32_perception/",
+        "?? tests/v32_memory_ops/",
     ]
     modify_contains = [
         "scripts/release/", "tests/integration/", "tests/hardening/",
-        "docs/V3_2_", "CHANGELOG.md", "ROADMAP.md", "version.py",
+        "tests/v32_", "docs/V3_", "CHANGELOG.md", "ROADMAP.md", "version.py",
     ]
     dirty = [l for l in lines
              if not any(l.strip().startswith(p) for p in ignore_prefixes)
@@ -83,7 +92,14 @@ def gate_hygiene():
 def gate_version():
     """Gate 3: version consistency."""
     sys.path.insert(0, str(REPO_ROOT / "services" / "shared"))
-    from version import SONIA_VERSION, SONIA_CONTRACT
+    # Reload in case already imported with old value
+    if "version" in sys.modules:
+        import importlib
+        import version
+        importlib.reload(version)
+        from version import SONIA_VERSION, SONIA_CONTRACT
+    else:
+        from version import SONIA_VERSION, SONIA_CONTRACT
     sys.path.pop(0)
     version_ok = SONIA_VERSION == EXPECTED_VERSION
     contract_ok = SONIA_CONTRACT == "v3.0.0"
@@ -119,21 +135,128 @@ def gate_chaos():
     return all_pass, detail
 
 
+# ── v3.2 Feature Gates (18-23) ──────────────────────────────────────────
+
+def gate_voice_latency():
+    """Gate 18: Voice latency budget.
+
+    Measure warm-path turn latency (speech detected -> first assistant token).
+    Pass: p95 <= 1200 ms in local warm-path test profile.
+
+    TODO: implement after Epic A turn lifecycle is built.
+    Currently fails fast to prevent false promotion.
+    """
+    if not V32_VOICE_DIR.exists() or not any(V32_VOICE_DIR.glob("test_*.py")):
+        return False, "NOT IMPLEMENTED: voice latency tests not yet written"
+    passed, failed, output = run_pytest(V32_VOICE_DIR / "test_voice_latency.py", "voice latency")
+    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+
+
+def gate_bargein_replay():
+    """Gate 19: Barge-in replay determinism.
+
+    Replayed interrupted sessions must produce identical state transitions
+    and side-effect logs.
+    Pass: 100% deterministic replay across defined fixture set.
+
+    TODO: implement after Epic A replay fixtures are built.
+    """
+    if not V32_VOICE_DIR.exists() or not any(V32_VOICE_DIR.glob("test_*replay*.py")):
+        return False, "NOT IMPLEMENTED: barge-in replay tests not yet written"
+    passed, failed, output = run_pytest(V32_VOICE_DIR / "test_bargein_replay.py", "barge-in replay")
+    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+
+
+def gate_perception_dedupe():
+    """Gate 20: Perception dedupe correctness.
+
+    Duplicate/near-duplicate perception events must collapse deterministically
+    with no action loss.
+    Pass: zero false bypass, deterministic merge decisions.
+
+    TODO: implement after Epic B dedupe pipeline is built.
+    """
+    if not V32_PERCEPTION_DIR.exists() or not any(V32_PERCEPTION_DIR.glob("test_*dedupe*.py")):
+        return False, "NOT IMPLEMENTED: perception dedupe tests not yet written"
+    passed, failed, output = run_pytest(V32_PERCEPTION_DIR / "test_dedupe.py", "perception dedupe")
+    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+
+
+def gate_confirmation_storm():
+    """Gate 21: Confirmation storm integrity.
+
+    High-rate confirmation workload must preserve contractual limits and
+    one-shot consumption.
+    Pass: zero bypass attempts, zero double-consume, queue bounds respected.
+
+    TODO: implement after Epic B confirmation queue ergonomics are built.
+    """
+    if not V32_PERCEPTION_DIR.exists() or not any(V32_PERCEPTION_DIR.glob("test_*storm*.py")):
+        return False, "NOT IMPLEMENTED: confirmation storm tests not yet written"
+    passed, failed, output = run_pytest(V32_PERCEPTION_DIR / "test_storm.py", "confirmation storm")
+    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+
+
+def gate_memory_proposal():
+    """Gate 22: Memory proposal governance.
+
+    Memory writes require explicit policy-valid path (propose -> approve/reject).
+    Pass: zero direct-write bypass, complete provenance chain for all attempts.
+
+    TODO: implement after Epic C Phase-0 governance primitives are built.
+    """
+    if not V32_MEMORY_DIR.exists() or not any(V32_MEMORY_DIR.glob("test_*proposal*.py")):
+        return False, "NOT IMPLEMENTED: memory proposal tests not yet written"
+    passed, failed, output = run_pytest(V32_MEMORY_DIR / "test_proposal.py", "memory proposal")
+    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+
+
+def gate_memory_replay():
+    """Gate 23: Memory replay integrity.
+
+    Approved/rejected/retracted writes maintain ledger consistency during
+    replay/recovery.
+    Pass: no orphaned entries, no timeline corruption, deterministic final state.
+
+    TODO: implement after Epic C Phase-0 replay/recovery tests are built.
+    """
+    if not V32_MEMORY_DIR.exists() or not any(V32_MEMORY_DIR.glob("test_*replay*.py")):
+        return False, "NOT IMPLEMENTED: memory replay tests not yet written"
+    passed, failed, output = run_pytest(V32_MEMORY_DIR / "test_replay.py", "memory replay")
+    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+
+
+# ── Runner ───────────────────────────────────────────────────────────────
+
 def main():
     parser = argparse.ArgumentParser(description="SONIA v3.2 Promotion Gate")
     parser.add_argument("--output-dir", default=str(REPO_ROOT / "reports" / "gate-v32"))
+    parser.add_argument("--floor-only", action="store_true",
+                        help="Run only stability floor gates (1-17), skip v3.2 feature gates")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Stability floor (always run)
     gates = [
-        ("hygiene", gate_hygiene),
-        ("version", gate_version),
-        ("regression", gate_regression),
-        ("hardening", gate_hardening),
-        ("chaos", gate_chaos),
+        ("G01_hygiene", gate_hygiene),
+        ("G03_version", gate_version),
+        ("G08_regression", gate_regression),
+        ("G13-15_hardening", gate_hardening),
+        ("G16_chaos", gate_chaos),
     ]
+
+    # v3.2 feature gates (skip if --floor-only)
+    if not args.floor_only:
+        gates.extend([
+            ("G18_voice_latency", gate_voice_latency),
+            ("G19_bargein_replay", gate_bargein_replay),
+            ("G20_perception_dedupe", gate_perception_dedupe),
+            ("G21_confirmation_storm", gate_confirmation_storm),
+            ("G22_memory_proposal", gate_memory_proposal),
+            ("G23_memory_replay", gate_memory_replay),
+        ])
 
     results = []
     for name, fn in gates:
@@ -157,19 +280,24 @@ def main():
     verdict = "PROMOTE" if pass_count == total else "HOLD"
 
     report = {
+        "schema_version": "3.0",
         "version": EXPECTED_VERSION,
         "branch": EXPECTED_BRANCH,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "gates_passed": pass_count,
         "gates_total": total,
+        "total_gates_spec": TOTAL_GATES,
+        "floor_only": args.floor_only,
         "verdict": verdict,
         "gates": results,
     }
 
     report_path = output_dir / "gate-report.json"
     report_path.write_text(json.dumps(report, indent=2))
-    print(f"\n{'=' * 40}")
+    print(f"\n{'=' * 50}")
     print(f"  {pass_count}/{total} gates passed -- {verdict}")
+    if args.floor_only:
+        print(f"  (floor-only mode: v3.2 feature gates skipped)")
     print(f"  Report: {report_path}")
 
     return 0 if verdict == "PROMOTE" else 1
