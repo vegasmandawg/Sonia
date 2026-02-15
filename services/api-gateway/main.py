@@ -139,7 +139,7 @@ async def lifespan(a):
     except Exception as e:
         log_event({"level": "WARN", "service": "api-gateway", "event": "session_restore_failed", "reason": str(e)})
 
-    # M2: configure auth middleware
+    # M2: configure auth middleware (v3.5: default-on with SONIA_DEV_MODE bypass)
     auth_cfg = {}
     try:
         from config_validator import SoniaConfig as _SC
@@ -147,10 +147,25 @@ async def lifespan(a):
         auth_cfg = _c.get("auth")
     except Exception:
         pass
-    auth_enabled = auth_cfg.get("enabled", False)
+
+    import os as _os
+    dev_mode = _os.environ.get("SONIA_DEV_MODE", "").strip() == "1"
+    # Auth is ON by default. Only SONIA_DEV_MODE=1 disables it.
+    # Config "enabled" field is ignored in v3.5+; use env var for override.
+    auth_enabled = not dev_mode
+
+    if dev_mode:
+        log_event({
+            "level": "WARN", "service": "api-gateway",
+            "event": "auth_disabled_dev_mode",
+            "message": "WARNING: Auth disabled -- SONIA_DEV_MODE=1. Do not use in production.",
+            "env_var": "SONIA_DEV_MODE=1"
+        })
+
     if auth_enabled:
         exempt = set(auth_cfg.get("exempt_paths", []))
-        exempt.update({"/healthz", "/health", "/status", "/", "/docs", "/openapi.json", "/redoc"})
+        exempt.update({"/healthz", "/health", "/status", "/", "/docs", "/openapi.json", "/redoc",
+                       "/version", "/pragmas"})
         app.add_middleware(
             AuthMiddleware,
             enabled=True,
@@ -162,7 +177,14 @@ async def lifespan(a):
         )
         log_event({"level": "INFO", "service": "api-gateway", "event": "auth_enabled", "exempt_paths": len(exempt)})
     else:
-        log_event({"level": "INFO", "service": "api-gateway", "event": "auth_disabled"})
+        log_event({"level": "INFO", "service": "api-gateway", "event": "auth_disabled", "reason": "SONIA_DEV_MODE=1"})
+
+    # Store auth posture for visibility endpoints
+    app.state.auth_posture = {
+        "auth_enabled": auth_enabled,
+        "dev_mode": dev_mode,
+        "exempt_path_count": len(exempt) if auth_enabled else 0,
+    }
 
     # Stage 5 M2: initialize recovery subsystems
     breaker_registry = get_breaker_registry()
@@ -317,13 +339,15 @@ async def root():
 
 @app.get("/status")
 async def status():
-    """Status endpoint with detailed information."""
+    """Status endpoint with detailed information including auth posture."""
+    posture = getattr(app.state, "auth_posture", {"auth_enabled": False, "dev_mode": True})
     return {
         "service": "api-gateway",
         "status": "online",
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "version": SONIA_VERSION,
         "contract_version": SONIA_CONTRACT,
+        "auth_posture": posture,
     }
 
 

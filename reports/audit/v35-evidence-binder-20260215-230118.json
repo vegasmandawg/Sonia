@@ -1,0 +1,519 @@
+{
+  "evidence_binder": "v3.5_conservative_gap_closure",
+  "timestamp_utc": "20260215-230118",
+  "audit_artifacts": [
+    {
+      "file": "FINAL_SCORECARD-20260215-213441.json",
+      "size_bytes": 3188,
+      "sha256": "93a2099bdef3fb882a1f5a0d98d4ec571953696809ebb17ac3d93a605573892c"
+    },
+    {
+      "file": "FINAL_SCORECARD.md",
+      "size_bytes": 9615,
+      "sha256": "2c1b66cfa2d8bd6f36c1ae3b0da29c30fb23ceae8e1da78a2f889b4843816010"
+    },
+    {
+      "file": "FINAL_SUMMARY-20260215-213441.md",
+      "size_bytes": 4620,
+      "sha256": "84adb5ae120a06c68fc89e634af67e7a998371232c9b9546b8fc58097f6f6259"
+    },
+    {
+      "file": "README.md",
+      "size_bytes": 4811,
+      "sha256": "b74903e0e09570390f20ad897293044714260c1116e2020e5e11ef2bd0dd15ed"
+    },
+    {
+      "file": "audit-snapshot-manifest.json",
+      "size_bytes": 7158,
+      "sha256": "161b65680ba938afc6ad836b399f36a914704331dfb9eee6391231d7bf3f2758"
+    },
+    {
+      "file": "auth-posture-gate-20260215-223611.json",
+      "size_bytes": 829,
+      "sha256": "57779ad87d06b6e1eed4adf02fd8d107ed226e16ad6fe9b47d5471b083dee712"
+    },
+    {
+      "file": "auth-posture-gate-20260215-224457.json",
+      "size_bytes": 829,
+      "sha256": "c1e735e98814c15c67636bdac30a1239efda8f083f2d59283eb7ddf0c256de98"
+    },
+    {
+      "file": "auth-posture-gate-20260215-225621.json",
+      "size_bytes": 829,
+      "sha256": "450ed29e69e712668cea6798857f170bba517a1ae3681611a30c590e446919d5"
+    },
+    {
+      "file": "auth-posture-gate-20260215-225917.json",
+      "size_bytes": 829,
+      "sha256": "73bfc4ec2dd7e198f99873cff0776acf6191ca40806f80f9740bdfc412c91d3a"
+    },
+    {
+      "file": "backup-restore-drill-20260215-144850.json",
+      "size_bytes": 1547,
+      "sha256": "fda22d95331d8dcc1c5a4cbd7357945a69e3fd446d84b19dcd865ffd32e466a5"
+    },
+    {
+      "file": "backup-restore-drill-20260215-145225.json",
+      "size_bytes": 1549,
+      "sha256": "7a0d226f3d17e10b60dfe1995199062f34735b80ba9547960b7456c03f6a762b"
+    },
+    {
+      "file": "backup-restore-drill-20260215-153730.json",
+      "size_bytes": 1547,
+      "sha256": "bc1ec295a7c25a4e4d55c79c33ca34c8ceed9a49a909b413293e54e747436dc6"
+    },
+    {
+      "file": "backup-restore-drill-20260215-154042.json",
+      "size_bytes": 1549,
+      "sha256": "386da14e433844296726f9fba8fd5c8073071afd9664c94a49d9b7c7307b0815"
+    },
+    {
+      "file": "backup-restore-drill-20260215-165917.json",
+      "size_bytes": 1549,
+      "sha256": "c4e3f6a111258bd0c83a8265c4e8df4241c6f0dbe1219378f6e7c810635cb64d"
+    },
+    {
+      "file": "consolidated-preaudit-20260215-145225.json",
+      "size_bytes": 3715,
+      "sha256": "1f00c309d488e61569b1a801da189addebb9d0b8b9fbe791ce7392d6fbd826ef"
+    },
+    {
+      "file": "consolidated-preaudit-20260215-154042.json",
+      "size_bytes": 3715,
+      "sha256": "aeb95a19b0e6ed93506a2a055cfcc659e04a404148dc97adba434714b702ddd7"
+    },
+    {
+      "file": "consolidated-preaudit-20260215-165917.json",
+      "size_bytes": 3715,
+      "sha256": "d172e4fd3e8bc48580fdacb5857865fbcc85f514d7e2db86b5bdd6d023f3f071"
+    },
+    {
+      "file": "durability-verify-20260215-213441.json",
+      "size_bytes": 801,
+      "sha256": "550b3283a39cca38102e1b1a892b8647345ab7a3f35990df778e953916bae5fa"
+    },
+    {
+      "file": "fallback-behavior-20260215-224412.json",
+      "size_bytes": 1044,
+      "sha256": "78d7fd21f5525982a3d6f7e0fd3169283c4132d3760b6c92ae9b0139c5064795"
+    },
+    {
+      "file": "fallback-behavior-20260215-225710.json",
+      "size_bytes": 1044,
+      "sha256": "7c07f6ef2104c9a2cc898079c02e3578e8bc7ad60e043eb9f026a9d4a29ee667"
+    },
+    {
+      "file": "fallback-behavior-20260215-230006.json",
+      "size_bytes": 1044,
+      "sha256": "7fe073274799332c56379b438004b1fc620546cdc5fb70bfba1917eefc1483f4"
+    },
+    {
+      "file": "fullbuild-deps-20260215-213441.json",
+      "size_bytes": 1233,
+      "sha256": "fa97f4a86d5e53d3279ba47d9bbd5abb53a1340ad904867bf914f565bb4b1fc8"
+    },
+    {
+      "file": "fullbuild-preflight-20260215-213441.json",
+      "size_bytes": 517,
+      "sha256": "3ffcf055fab18b410c182e67bb78cace461035a3e7e81d344431096066788781"
+    },
+    {
+      "file": "incident-gate-20260215-143742.json",
+      "size_bytes": 1174,
+      "sha256": "6ff4505076177f0404be8c97d7e5958c959f060f551a788f91afc8f2a675299d"
+    },
+    {
+      "file": "incident-gate-20260215-145225.json",
+      "size_bytes": 1174,
+      "sha256": "2ab2f7e1514ee7add7ddc3a604810d4a1bbbb89cbec2c48d5f7966aa8b0cf31f"
+    },
+    {
+      "file": "incident-gate-20260215-153514.json",
+      "size_bytes": 1174,
+      "sha256": "a8ac40a74f09cea2b08a4b4640ecf2ee40d9f00717684518fff123efff2790d6"
+    },
+    {
+      "file": "incident-gate-20260215-154042.json",
+      "size_bytes": 1174,
+      "sha256": "c4fe404aeb92e51346e4b95124b8dc32a4f117f7d66fcfb044385fbe020f1513"
+    },
+    {
+      "file": "incident-gate-20260215-165822.json",
+      "size_bytes": 1174,
+      "sha256": "e2269b59032bc0e4f987ee46bcc76d917f73dc1ee3d84fe674e0f26586059cd2"
+    },
+    {
+      "file": "incident-gate-20260215-165917.json",
+      "size_bytes": 1174,
+      "sha256": "295ea81b8099d3d481227d28cf84efbaf65f99a5fff3ebd4fb8851f61c7713ce"
+    },
+    {
+      "file": "integration-critical-20260215-213441.json",
+      "size_bytes": 950,
+      "sha256": "cbe06ca90ff5a2728fb0b327af374e8aa39bc72b5359d652af7fb04fa1b88f49"
+    },
+    {
+      "file": "integration-live-delta-20260215-220444.json",
+      "size_bytes": 908,
+      "sha256": "63071df91fef9e2345cbc919fd0fc80cddda9d5898df0b0d5b6d0124f03789fa"
+    },
+    {
+      "file": "migration-verify-20260215-145006.json",
+      "size_bytes": 2155,
+      "sha256": "07d4524c6bcd14e568d211d59a56cf8e178d970161e88f8a045f179130b6887d"
+    },
+    {
+      "file": "migration-verify-20260215-145048.json",
+      "size_bytes": 2378,
+      "sha256": "60795940bd18e4ec8020ddcd8d499ea278d93381b58864ba92ff3e9f9ba9bc29"
+    },
+    {
+      "file": "migration-verify-20260215-145224.json",
+      "size_bytes": 2378,
+      "sha256": "4bfaab5b9ccb47a289405052a4a32ed561d6a5fa00aba9ad3380dbd003858f92"
+    },
+    {
+      "file": "migration-verify-20260215-153702.json",
+      "size_bytes": 2378,
+      "sha256": "5c300c27f9539bf5ddd6186cb807449373e0de4b58aff780ea62a0ac33506e1a"
+    },
+    {
+      "file": "migration-verify-20260215-153827.json",
+      "size_bytes": 2378,
+      "sha256": "a9bd1ee3d95bb8c6283ef14252811ab4b5fe5684b5274d762752b7905f562658"
+    },
+    {
+      "file": "migration-verify-20260215-153918.json",
+      "size_bytes": 2378,
+      "sha256": "21bcb5eaedc0fe8960d443a95eedcfe8d4c0a37a284c53d8af44464dbe5de4f8"
+    },
+    {
+      "file": "migration-verify-20260215-154041.json",
+      "size_bytes": 2378,
+      "sha256": "16da42e89303faf0663302b6161d0d4b55d66e7769d046a1fc490d4faef0873b"
+    },
+    {
+      "file": "migration-verify-20260215-165916.json",
+      "size_bytes": 2378,
+      "sha256": "1c9a8647ca134dc8e3a0c7a23de68a3d240739981ad6b4146dbbf798d27728e1"
+    },
+    {
+      "file": "migration-verify-20260215-213441.json",
+      "size_bytes": 450,
+      "sha256": "6356d0e9d4ee2c324aac8ea57ee80abc05390805ae15ac6438da3eacc9e3482f"
+    },
+    {
+      "file": "pragma-health-20260215-213545.json",
+      "size_bytes": 363,
+      "sha256": "72f3beb12c16c1cb540ee81c9a0ab53672727d5a4205f22d640d7cb720b288a3"
+    },
+    {
+      "file": "pragma-health-20260215-213620.json",
+      "size_bytes": 431,
+      "sha256": "aa2643135efca9c83e140ba790f12c29ab51d461217011428c22ebad19c52ce9"
+    },
+    {
+      "file": "pragma-health-20260215-224534.json",
+      "size_bytes": 431,
+      "sha256": "2923b2ff404bbc53d7253c410a05af04287c9d49fc3cf764b81c58020c326ab9"
+    },
+    {
+      "file": "pragma-health-20260215-225621.json",
+      "size_bytes": 431,
+      "sha256": "c8c9c2b7cd8305ae93fc56eccbce03df0e17e6bed8578aff9900e96fdb368d49"
+    },
+    {
+      "file": "pragma-health-20260215-225822.json",
+      "size_bytes": 431,
+      "sha256": "e3d281eae0785a7042a877c3f638de9d62092b98dafcb99c69872e9db93fca79"
+    },
+    {
+      "file": "rate-limiter-gate-20260215-145117.json",
+      "size_bytes": 1096,
+      "sha256": "9168cda910acedc912d9f236cfbc3695a42f29410f367b1d0948a7cfc8627a96"
+    },
+    {
+      "file": "rate-limiter-gate-20260215-153519.json",
+      "size_bytes": 1096,
+      "sha256": "6388e6149721cc5a46d957bef5e38b3cc68e1fe57d40839e867539ba77e82c2c"
+    },
+    {
+      "file": "rate-limiter-gate-20260215-165822.json",
+      "size_bytes": 1096,
+      "sha256": "e238602fbe1aaac63b6f37a46edca69752458075de1229339ad898bc1a410441"
+    },
+    {
+      "file": "redaction-verification-20260215-143634.json",
+      "size_bytes": 2808,
+      "sha256": "0576f7b9a00b3f16ff7b9cf118975cbc69d5985f5707f0fb42ced8674c0f8578"
+    },
+    {
+      "file": "redaction-verification-20260215-143734.json",
+      "size_bytes": 5034,
+      "sha256": "f8223cce213ab7c50c51cbd16eebdf0c14f674958ffc2a0a06525704dbedb065"
+    },
+    {
+      "file": "redaction-verification-20260215-145156.json",
+      "size_bytes": 5034,
+      "sha256": "2999e505c3ba12105c161f34dab6bd7f9de67928a6b71b04f6343cbb6d8214bc"
+    },
+    {
+      "file": "redaction-verification-20260215-153825.json",
+      "size_bytes": 5034,
+      "sha256": "939b8b3cfe470097d75f1890c988a3074e4e3bf1a9fe6afc4c60e07c28c0db78"
+    },
+    {
+      "file": "redaction-verification-20260215-153916.json",
+      "size_bytes": 5034,
+      "sha256": "dfaf2e37d727fc24da13bfb3fe08f6d3b5f6d1028b2334965518669d002169f8"
+    },
+    {
+      "file": "redaction-verification-20260215-154013.json",
+      "size_bytes": 5034,
+      "sha256": "3dce582ab9bf5e78b8e92bcae9bb49f25b5713d4f12b866c2c6f4fec987ceea6"
+    },
+    {
+      "file": "redaction-verification-20260215-165848.json",
+      "size_bytes": 5034,
+      "sha256": "99f72c02bfa4c7d76bbed6a82e07baab283d2ad9210d7d82c0feebb3c8822227"
+    },
+    {
+      "file": "remediation-log-20260215-213441.md",
+      "size_bytes": 2013,
+      "sha256": "6ce26cf1eb24796abba373ecafa35dbc877ef24068951aad09e5a65dfb2a81d9"
+    },
+    {
+      "file": "runbook-headings-20260215-213545.json",
+      "size_bytes": 321,
+      "sha256": "16ee52575fbdbdd33d023e5ad073ad2450adc626763c12f75439713a400f56be"
+    },
+    {
+      "file": "runbook-headings-20260215-213620.json",
+      "size_bytes": 321,
+      "sha256": "02b5c39a3c532f09f00f6dc94a27047dfa0d03cf802a6a67fdeaf9ad94ef0eba"
+    },
+    {
+      "file": "runbook-headings-20260215-224534.json",
+      "size_bytes": 321,
+      "sha256": "3823a54e8a7234dc047b08e1fa9de58b57130d17355e1af57c169697ea9f5ff2"
+    },
+    {
+      "file": "runbook-headings-20260215-225621.json",
+      "size_bytes": 321,
+      "sha256": "b500e70d5439af8fae18d56b57eb88b45f74dd9e9dc86b7d4d59af9ada5afc4a"
+    },
+    {
+      "file": "runbook-headings-20260215-225822.json",
+      "size_bytes": 321,
+      "sha256": "647282b84772946f7ac9f210445197fbec4eff6080235c32156e220f3fbbd7a5"
+    },
+    {
+      "file": "secret-scan-20260215-143602.json",
+      "size_bytes": 766,
+      "sha256": "728d41ab9feaa72f19b8e213c86aef239f51a1e1ff146019834e68a9422e93bc"
+    },
+    {
+      "file": "secret-scan-20260215-145130.json",
+      "size_bytes": 766,
+      "sha256": "84eb49e18c8542d695d886b8be310ad3da1014bbd8d901b1064cd02725b07039"
+    },
+    {
+      "file": "secret-scan-20260215-153504.json",
+      "size_bytes": 766,
+      "sha256": "dd0c23f9b9d3d3ca6b8c199e0346945467ee69400d4df60c0d041ad55ca53954"
+    },
+    {
+      "file": "secret-scan-20260215-153947.json",
+      "size_bytes": 766,
+      "sha256": "fda3d0144143a21e589255069826a6f4516080a6e9a075ae312522acb116bfa4"
+    },
+    {
+      "file": "secret-scan-20260215-165822.json",
+      "size_bytes": 766,
+      "sha256": "157156d2194d6fa2e9cea79b6a849b63cb8259f8f164745d1c018d7adcc639a8"
+    },
+    {
+      "file": "traceability-gate-20260215-144851.json",
+      "size_bytes": 9037,
+      "sha256": "8db82f783473d6ec0774748a2cace32695d2b951aa39e5515ff8c03a194d70d8"
+    },
+    {
+      "file": "traceability-gate-20260215-145125.json",
+      "size_bytes": 8889,
+      "sha256": "1da329a95a0644fc90e07ce99b37c083e8bece4fc934bb5be9d568f644637ff3"
+    },
+    {
+      "file": "traceability-gate-20260215-145225.json",
+      "size_bytes": 8889,
+      "sha256": "97ea8dc08e288cd38c688f6a9ae4bf1d53bba9824d3cd50e8e28aefc7ffcecc8"
+    },
+    {
+      "file": "traceability-gate-20260215-153509.json",
+      "size_bytes": 8889,
+      "sha256": "e164595fa4e6abb52ad26908b00ae16baab7035dc52bb9b1c7f560bab8815116"
+    },
+    {
+      "file": "traceability-gate-20260215-154042.json",
+      "size_bytes": 8889,
+      "sha256": "1ddd68fa86c04ccb07c6db9d21497d65e77c8b79066fc603fecf1b0e2c9cb661"
+    },
+    {
+      "file": "traceability-gate-20260215-165822.json",
+      "size_bytes": 8889,
+      "sha256": "985162a26bdd6dae53dad6a4d5cc27523373638254ab0c0a5ff1130e20a87513"
+    },
+    {
+      "file": "traceability-gate-20260215-165917.json",
+      "size_bytes": 8889,
+      "sha256": "d13625c17f935aa73d56449acc475d371dea81fc64daadff9ada6b207cbf3168"
+    },
+    {
+      "file": "unit-test-layer-20260215-224221.json",
+      "size_bytes": 1659,
+      "sha256": "4f649b7c24601267fea0c87bbf84875972983234c44e68566bb6fcf8d71f8941"
+    },
+    {
+      "file": "unit-test-layer-20260215-224500.json",
+      "size_bytes": 1659,
+      "sha256": "6c242f01619ab649aa077e25d9488c266bfc73be2913f11732241582ab16fbc7"
+    },
+    {
+      "file": "unit-test-layer-20260215-225622.json",
+      "size_bytes": 1659,
+      "sha256": "747133565e5e700096643d99b7bc04a3495cfc2b4dc080e5f2267dae65731959"
+    },
+    {
+      "file": "unit-test-layer-20260215-225918.json",
+      "size_bytes": 1659,
+      "sha256": "add9ae63ab94c443d8f694b4c3775fa0c8f5f1a309e5e2490f2e80b3cc45b8e3"
+    },
+    {
+      "file": "v35-gate-matrix-20260215-225621.json",
+      "size_bytes": 1471,
+      "sha256": "8fc8d9f08761174b9118a87b4f1a58abe668e48ddaaabd03412d15b906d9ecbb"
+    },
+    {
+      "file": "v35-gate-matrix-20260215-225822.json",
+      "size_bytes": 1462,
+      "sha256": "62ce775dee02a516a5bc57660bee65b6153904a8d11cde711572e4b663283bd4"
+    }
+  ],
+  "source_hashes": [
+    {
+      "file": "services/api-gateway/main.py",
+      "sha256": "7ec6beee97e69214e171206368917eabaaf53cc4a4508efe353e1ddafbb949b8"
+    },
+    {
+      "file": "services/api-gateway/clients/router_client.py",
+      "sha256": "f832de66a7f53ecbd41507cdf230bc55e9bda09884769065c48c27e4c57ce67e"
+    },
+    {
+      "file": "services/shared/rate_limiter.py",
+      "sha256": "3f1e86893f39436196e1af1cb787a21757e736ae995e80dcd20186ab1f2dc6e3"
+    },
+    {
+      "file": "services/shared/log_redaction.py",
+      "sha256": "c45b0db197e1d7f49dd76b3778a1f22ad327d91959934c7f12000758685987bc"
+    },
+    {
+      "file": "services/api-gateway/tool_policy.py",
+      "sha256": "0d0c77809e7fd013528c95a65e8d7e7a007b1003a5153d3499985a47fc795442"
+    },
+    {
+      "file": "services/api-gateway/turn_quality.py",
+      "sha256": "6a831491cfd970a3698c92c8024f3ce80a31629ce58d3d090eb6a783fc8d98a8"
+    }
+  ],
+  "test_hashes": [
+    {
+      "file": "tests\\unit\\test_auth_posture.py",
+      "sha256": "9e5a39ddfde04828b7bf7d2162fbf1eb7f68c8bf4a628ea63c063e0a356d5d17"
+    },
+    {
+      "file": "tests\\unit\\test_fallback_behavior.py",
+      "sha256": "b2907c72740e69e81834b649511958cbb37288353fe9ca0c4348ef22c93ac4a7"
+    },
+    {
+      "file": "tests\\unit\\test_log_redaction.py",
+      "sha256": "07ece94e1e1e1344716cd541936af9aa36711da2365ed77d428f5a355477e257"
+    },
+    {
+      "file": "tests\\unit\\test_rate_limiter.py",
+      "sha256": "4e76cdb94597c16779ece29c2ceb6a5ea76742e973b9d9cb35d9b2232b644502"
+    },
+    {
+      "file": "tests\\unit\\test_tool_policy.py",
+      "sha256": "9f07f54751880c75f03e0db4d8ce00e2a1b10459dcda67c115b92d0567eb910d"
+    },
+    {
+      "file": "tests\\unit\\test_turn_quality.py",
+      "sha256": "3ff0145cb17047995b133cfa29288e64ba39c98456a3ca9f8ef4a1ccebb37f17"
+    }
+  ],
+  "gate_hashes": [
+    {
+      "file": "scripts\\gates\\_fullbuild_finalize.py",
+      "sha256": "4339447caa60a58001917356b909ca075287f70e541d6beab7f3af00251a5e69"
+    },
+    {
+      "file": "scripts\\gates\\_fullbuild_preflight.py",
+      "sha256": "77ed68c5db74c6dfc81d58144e16d6a79a7ba1734049093617f5dfa093b3a194"
+    },
+    {
+      "file": "scripts\\gates\\_live_delta_finalize.py",
+      "sha256": "f691e13a741ad9d115a00184b1e2b5eb37e64f450301829a76a7e044ea6a58fe"
+    },
+    {
+      "file": "scripts\\gates\\_runbook_pragma_gates.py",
+      "sha256": "cc04d17e311ab60b04c3964f83f3979d2d0325a1273869a15b9ccc5723ac63f1"
+    },
+    {
+      "file": "scripts\\gates\\_v35_evidence_binder.py",
+      "sha256": "9d5d2f1a3203aae5fef8a5da090782d655c77a36e387a0079959c12d3bfc7076"
+    },
+    {
+      "file": "scripts\\gates\\_v35_gate_matrix.py",
+      "sha256": "ec7d3fc092d9848a4f56f851fb2d5b8682fa68fdb81f64865ea250a095f0b2ed"
+    },
+    {
+      "file": "scripts\\gates\\auth-posture-gate.py",
+      "sha256": "e53c9c3f516f7060908cecc70ade1af0cfb202cce808f5045cb0b665b383f18f"
+    },
+    {
+      "file": "scripts\\gates\\backup-restore-drill.py",
+      "sha256": "52efabd4b4f616111ef5df8baa39b06bab73e957607024ebab471914c5b79b63"
+    },
+    {
+      "file": "scripts\\gates\\consolidated-preaudit.py",
+      "sha256": "0711769f04fe9db222d2cc5206475669dd1b87a9de95c7c5cf3d5bef74be9bd6"
+    },
+    {
+      "file": "scripts\\gates\\fallback-behavior-gate.py",
+      "sha256": "1d8d94bf80c37bd18b496bedcac61bf0c7ef15bb4daf70e1128b6ce7f182d7dd"
+    },
+    {
+      "file": "scripts\\gates\\incident-bundle-gate.py",
+      "sha256": "8549a0e88fe0c8455796d7370f0feedc1b86be0e86b5c127358f21fe3a0a926e"
+    },
+    {
+      "file": "scripts\\gates\\rate-limiter-gate.py",
+      "sha256": "7f26fe99837e67a6b892a29998bb33556a8ce6b63995b633632d16a8d2259a96"
+    },
+    {
+      "file": "scripts\\gates\\secret-scan-gate.py",
+      "sha256": "1bbf9f8ed09dd51368d3b5bda405fc59ea9b588972ef37440b0297a1ecda2d77"
+    },
+    {
+      "file": "scripts\\gates\\traceability-gate.py",
+      "sha256": "ac3785df9e6c249214eb2df77e146aa30e7127e6e2a65dfeb4d2fb561ebce759"
+    },
+    {
+      "file": "scripts\\gates\\unit-test-layer-gate.py",
+      "sha256": "f2c7aec05fd915df6cbd0e7f63dfb33d761d236c74bb2cb9d53352010089ab11"
+    }
+  ],
+  "total_artifacts": 79,
+  "total_source_files": 6,
+  "total_test_files": 6,
+  "total_gate_scripts": 15
+}

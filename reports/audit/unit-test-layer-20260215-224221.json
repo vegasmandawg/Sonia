@@ -1,0 +1,66 @@
+{
+  "gate": "unit_test_layer",
+  "timestamp_utc": "20260215-224221",
+  "passed": true,
+  "total_checks": 10,
+  "checks": [
+    {
+      "name": "file_exists:rate_limiter",
+      "passed": true,
+      "detail": "test_rate_limiter.py exists: True"
+    },
+    {
+      "name": "file_exists:log_redaction",
+      "passed": true,
+      "detail": "test_log_redaction.py exists: True"
+    },
+    {
+      "name": "file_exists:tool_policy",
+      "passed": true,
+      "detail": "test_tool_policy.py exists: True"
+    },
+    {
+      "name": "file_exists:turn_quality",
+      "passed": true,
+      "detail": "test_turn_quality.py exists: True"
+    },
+    {
+      "name": "all_unit_tests_pass",
+      "passed": true,
+      "detail": "======================= 70 passed, 3 warnings in 0.41s ========================",
+      "stdout": ""
+    },
+    {
+      "name": "min_tests:rate_limiter",
+      "passed": true,
+      "detail": "rate_limiter: 10 tests (min=5)"
+    },
+    {
+      "name": "min_tests:log_redaction",
+      "passed": true,
+      "detail": "log_redaction: 19 tests (min=5)"
+    },
+    {
+      "name": "min_tests:tool_policy",
+      "passed": true,
+      "detail": "tool_policy: 13 tests (min=5)"
+    },
+    {
+      "name": "min_tests:turn_quality",
+      "passed": true,
+      "detail": "turn_quality: 17 tests (min=5)"
+    },
+    {
+      "name": "auth_posture_tests_exist",
+      "passed": true,
+      "detail": "test_auth_posture.py exists: True"
+    }
+  ],
+  "modules_covered": [
+    "rate_limiter",
+    "log_redaction",
+    "tool_policy",
+    "turn_quality"
+  ],
+  "min_tests_per_module": 5
+}

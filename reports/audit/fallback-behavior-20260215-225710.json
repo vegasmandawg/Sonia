@@ -1,0 +1,38 @@
+{
+  "gate": "fallback_behavior",
+  "timestamp_utc": "20260215-225710",
+  "passed": true,
+  "checks": [
+    {
+      "name": "method_exists",
+      "passed": true,
+      "detail": "chat_with_fallback method in router_client.py: True"
+    },
+    {
+      "name": "deterministic_fallback",
+      "passed": true,
+      "detail": "Deterministic fallback response (fallback_used + model=fallback): True"
+    },
+    {
+      "name": "correlation_preserved",
+      "passed": true,
+      "detail": "Correlation ID preserved in fallback path: True"
+    },
+    {
+      "name": "unit_tests_exist",
+      "passed": true,
+      "detail": "test_fallback_behavior.py exists: True"
+    },
+    {
+      "name": "unit_tests_pass",
+      "passed": true,
+      "detail": "============================= 16 passed in 45.94s =============================",
+      "stdout": ""
+    },
+    {
+      "name": "broad_exception_handling",
+      "passed": true,
+      "detail": "Catches RouterClientError + generic exceptions: True"
+    }
+  ]
+}

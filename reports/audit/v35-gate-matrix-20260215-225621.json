@@ -1,0 +1,59 @@
+{
+  "matrix": "v3.5_gate_sweep",
+  "timestamp_utc": "20260215-225621",
+  "gates_passed": 4,
+  "gates_total": 9,
+  "all_pass": false,
+  "verdict": "BLOCK",
+  "results": [
+    {
+      "gate": "secret_scan",
+      "passed": false,
+      "detail": "Script not found: S:\\scripts\\gates\\secret_scan_gate.py"
+    },
+    {
+      "gate": "traceability",
+      "passed": false,
+      "detail": "Script not found: S:\\scripts\\gates\\traceability_gate.py"
+    },
+    {
+      "gate": "incident_bundle",
+      "passed": false,
+      "detail": "Script not found: S:\\scripts\\gates\\incident_bundle_gate.py"
+    },
+    {
+      "gate": "rate_limiter",
+      "passed": false,
+      "detail": "Script not found: S:\\scripts\\gates\\rate_limiter_gate.py"
+    },
+    {
+      "gate": "runbook_pragma",
+      "passed": true,
+      "detail": "[PASS] pragma_health -> S:\\reports\\audit\\pragma-health-20260215-225621.json",
+      "returncode": 0
+    },
+    {
+      "gate": "preaudit",
+      "passed": false,
+      "detail": "Script not found: S:\\scripts\\gates\\preaudit_gate.py"
+    },
+    {
+      "gate": "auth_posture",
+      "passed": true,
+      "detail": "PASS",
+      "returncode": 0
+    },
+    {
+      "gate": "unit_test_layer",
+      "passed": true,
+      "detail": "PASS",
+      "returncode": 0
+    },
+    {
+      "gate": "fallback_behavior",
+      "passed": true,
+      "detail": "PASS",
+      "returncode": 0
+    }
+  ]
+}

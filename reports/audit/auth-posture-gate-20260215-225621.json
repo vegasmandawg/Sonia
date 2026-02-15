@@ -1,0 +1,33 @@
+{
+  "gate": "auth_posture",
+  "timestamp_utc": "20260215-225621",
+  "passed": true,
+  "checks": [
+    {
+      "name": "code_default_on",
+      "passed": true,
+      "detail": "SONIA_DEV_MODE check: True, default-on logic: True"
+    },
+    {
+      "name": "startup_warning",
+      "passed": true,
+      "detail": "Dev mode warning log event: True"
+    },
+    {
+      "name": "posture_visibility",
+      "passed": true,
+      "detail": "Status endpoint exposes auth_posture: True"
+    },
+    {
+      "name": "unit_tests_exist",
+      "passed": true,
+      "detail": "test_auth_posture.py exists: True"
+    },
+    {
+      "name": "unit_tests_pass",
+      "passed": true,
+      "detail": "============================= 11 passed in 0.29s ==============================",
+      "stdout": ""
+    }
+  ]
+}
