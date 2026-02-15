@@ -136,7 +136,14 @@ def gateway_client():
     mock_memory = MagicMock()
     mock_memory.search = MagicMock(return_value={"results": [], "count": 0})
 
-    import main as gw_main
+    # Use importlib to explicitly load the gateway main, avoiding
+    # collision with memory-engine/main.py when both are on sys.path
+    import importlib.util
+    _gw_spec = importlib.util.spec_from_file_location(
+        "gw_main", str(GATEWAY_DIR / "main.py"))
+    gw_main = importlib.util.module_from_spec(_gw_spec)
+    sys.modules["gw_main"] = gw_main
+    _gw_spec.loader.exec_module(gw_main)
     # Patch clients dict
     if hasattr(gw_main, '_clients'):
         original_clients = gw_main._clients.copy() if gw_main._clients else {}

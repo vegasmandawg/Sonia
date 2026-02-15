@@ -248,8 +248,8 @@ class TestPerceptionTypedMemory:
         calls = mock_client.store_typed.call_args_list
         entity_call = [c for c in calls if "cat" in str(c)]
         assert len(entity_call) >= 1
-        # Parse the content arg
-        content = json.loads(entity_call[0].kwargs.get("content", entity_call[0][1][2] if len(entity_call[0][1]) > 2 else "{}"))
+        # Parse the content kwarg
+        content = json.loads(entity_call[0].kwargs.get("content", "{}"))
         assert content["subject"] == "cat"
         assert content["predicate"] == "detected_in_scene"
         assert content["object"] == "scene_ent"
