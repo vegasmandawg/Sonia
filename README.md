@@ -1,8 +1,8 @@
 # Sonia Stack
 
-**Version**: v2.8.0 GA (Deterministic Operations)
-**Date**: 2026-02-09
-**Branch**: `master` (merged from v2.8-dev)
+**Version**: v3.3.0-dev (In Development)
+**Date**: 2026-02-15
+**Branch**: `master` (merged from v3.3-dev)
 
 ---
 
@@ -58,15 +58,17 @@ Invoke-WebRequest http://127.0.0.1:7000/healthz
 
 | Version | Tag | Highlights |
 |---------|-----|------------|
+| v3.3.0-dev | (in development) | Memory Ledger Ops v2, Recovery + Incident Tooling, Perception Privacy Hardening |
+| v3.2.0 | `v3.2.0` | Voice Session Quality, Turn Determinism, Perception → Confirmation Ergonomics, Memory Ops Governance |
+| v3.1.0 | `v3.1.0` | Stabilization Baseline: hardening test suite (39 tests), chaos fault-injection scripts, 17-gate promotion |
+| v3.0.0 | `v3.0.0` | API Contract + Perception Bridge: SONIA_CONTRACT v3.0.0, identity model, typed memory ledger |
+| v2.9.0 | `v2.9.0` | System Closure: model routing, EVA supervision, hybrid memory |
 | v2.8.0 | `v2.8.0` | Deterministic operations: model routing cancellation, memory budget, perception gate, operator UX |
-| v2.7.0 | `v2.7.0` | Companion runtime integration: voice turn router, UI stream |
-| v2.6.0 | `v2.6.0` | Companion experience layer: persona, vision presence, embodiment UI |
-| v2.5.0 | `v2.5.0` | GA: reliability hardening, observability, recovery drills |
 
 ## Testing
 
 ```powershell
-# Run all integration tests (590 tests)
+# Run all integration tests
 S:\envs\sonia-core\python.exe -W ignore -m pytest S:\tests\integration\ -v
 ```
 
@@ -81,6 +83,7 @@ S:\envs\sonia-core\python.exe -W ignore -m pytest S:\tests\integration\ -v
 
 ---
 
-**Last Updated**: 2026-02-09
-**Tests**: 590 integration tests, all passing
+**Last Updated**: 2026-02-15
+**Current Version**: v3.3.0-dev
+**Contract Version**: v3.0.0
 **Services**: 6 active + 2 foundation
