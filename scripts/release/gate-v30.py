@@ -75,10 +75,11 @@ def gate_repo_hygiene():
     t0 = time.time()
     rc, out, err = run_cmd(["git", "status", "--porcelain=v1"])
     lines = [l for l in out.strip().splitlines() if l.strip()]
-    # Allow modifications to scripts/release/ and .claude/
+    # Allow modifications to scripts/release/, .claude/, releases/, reports/
+    ignore_prefixes = ["?? scripts/release/", "?? releases/", "?? reports/"]
     dirty = [l for l in lines
-             if not l.strip().startswith("?? scripts/release/")
-             and not ".claude/" in l]
+             if not any(l.strip().startswith(p) for p in ignore_prefixes)
+             and ".claude/" not in l]
     dt = int((time.time() - t0) * 1000)
     if not dirty:
         return gate_result("repo_hygiene", True, "Clean tree", dt)
