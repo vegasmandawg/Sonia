@@ -1,0 +1,25 @@
+{
+  "schema_version": "3.0",
+  "version": "3.3.0-dev",
+  "branch": "epic/recovery-incident-tooling",
+  "timestamp": "2026-02-15T06:11:37.144650+00:00",
+  "epic": "B",
+  "gates": [
+    {
+      "gate": "G26_restore_integrity",
+      "passed": true,
+      "detail": "13 passed, 0 failed (threshold: 12)"
+    },
+    {
+      "gate": "G27_incident_triage",
+      "passed": true,
+      "detail": "13 passed, 0 failed (threshold: 10)"
+    }
+  ],
+  "delta_total": 26,
+  "delta_failed": 0,
+  "floor_inherited": 77,
+  "epic_a_inherited": 30,
+  "combined_total": 133,
+  "verdict": "PASS"
+}

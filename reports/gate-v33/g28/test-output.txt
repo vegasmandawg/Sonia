@@ -1,0 +1,25 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.14, pytest-8.4.2, pluggy-1.6.0 -- S:\envs\sonia-core\python.exe
+cachedir: .pytest_cache
+rootdir: S:\
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-0.25.3, typeguard-4.4.4
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None
+collecting ... collected 14 items
+
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_initial_state_is_clear PASSED [  7%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_clear_to_active_transition PASSED [ 14%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_active_to_suspended_transition PASSED [ 21%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_suspended_to_clear_only PASSED [ 28%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_full_state_cycle PASSED [ 35%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_invalid_transition_rejected PASSED [ 42%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_normalizer_deterministic_dedupe_key PASSED [ 50%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_normalizer_invalid_source_defaults_to_fusion PASSED [ 57%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_envelope_content_hash_stability PASSED [ 64%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_malformed_envelope_missing_fields_defaults PASSED [ 71%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_gate_require_confirmation_always_pending PASSED [ 78%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_gate_risk_classification_complete PASSED [ 85%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_gate_max_pending_enforced PASSED [ 92%]
+tests/v33_perception/test_privacy_boundary.py::TestPrivacyBoundary::test_gate_bypass_attempt_tracked PASSED [100%]
+
+============================= 14 passed in 0.23s ==============================

@@ -41,7 +41,7 @@ V32_MEMORY_DIR = REPO_ROOT / "tests" / "v32_memory_ops"
 V33_TEST_DIRS = {}
 
 FLOOR_GATE_COUNT = 6   # G18-G23
-DELTA_GATE_COUNT = 0   # incremented as gates are wired
+DELTA_GATE_COUNT = 6   # G24, G25 (Epic A) + G26, G27 (Epic B) + G28, G29 (Epic C)
 TOTAL_GATES = FLOOR_GATE_COUNT + DELTA_GATE_COUNT
 
 
@@ -174,31 +174,69 @@ def gate_memory_replay():
     return fl == 0 and p >= 14, f"{p} passed, {fl} failed"
 
 
-# -- v3.3 Delta Gates (placeholder) ----------------------------------------
+# -- v3.3 Delta Gates -------------------------------------------------------
 
-# def gate_g24():
-#     """G24: TBD — wire when Epic A is defined."""
-#     pass
+V33_MEMORY_DIR = REPO_ROOT / "tests" / "v33_memory_ops"
 
-# def gate_g25():
-#     """G25: TBD — wire when Epic A is defined."""
-#     pass
 
-# def gate_g26():
-#     """G26: TBD — wire when Epic B is defined."""
-#     pass
+def gate_g24():
+    """G24: Ledger edit governance + contract compatibility (>=16 tests)."""
+    f = V33_MEMORY_DIR / "test_ledger_edit_governance.py"
+    if not f.exists():
+        return False, "NOT IMPLEMENTED: test_ledger_edit_governance.py not found"
+    p, fl, _ = run_pytest(f, "G24 ledger edit governance")
+    return fl == 0 and p >= 16, f"{p} passed, {fl} failed"
 
-# def gate_g27():
-#     """G27: TBD — wire when Epic B is defined."""
-#     pass
 
-# def gate_g28():
-#     """G28: TBD — wire when Epic C is defined."""
-#     pass
+def gate_g25():
+    """G25: Redaction + provenance slicing + governance non-bypass (>=14 tests)."""
+    f = V33_MEMORY_DIR / "test_redaction_provenance.py"
+    if not f.exists():
+        return False, "NOT IMPLEMENTED: test_redaction_provenance.py not found"
+    p, fl, _ = run_pytest(f, "G25 redaction provenance")
+    return fl == 0 and p >= 14, f"{p} passed, {fl} failed"
 
-# def gate_g29():
-#     """G29: TBD — wire when Epic C is defined."""
-#     pass
+
+V33_RECOVERY_DIR = REPO_ROOT / "tests" / "v33_recovery"
+
+
+def gate_g26():
+    """G26: Restore integrity + recovery state machine (>=12 tests)."""
+    f = V33_RECOVERY_DIR / "test_restore_integrity.py"
+    if not f.exists():
+        return False, "NOT IMPLEMENTED: test_restore_integrity.py not found"
+    p, fl, _ = run_pytest(f, "G26 restore integrity")
+    return fl == 0 and p >= 12, f"{p} passed, {fl} failed"
+
+
+def gate_g27():
+    """G27: Incident triage + bundle integrity (>=10 tests)."""
+    f = V33_RECOVERY_DIR / "test_incident_triage.py"
+    if not f.exists():
+        return False, "NOT IMPLEMENTED: test_incident_triage.py not found"
+    p, fl, _ = run_pytest(f, "G27 incident triage")
+    return fl == 0 and p >= 10, f"{p} passed, {fl} failed"
+
+
+V33_PERCEPTION_DIR = REPO_ROOT / "tests" / "v33_perception"
+
+
+def gate_g28():
+    """G28: Privacy boundary enforcement + state machine (>=12 tests)."""
+    f = V33_PERCEPTION_DIR / "test_privacy_boundary.py"
+    if not f.exists():
+        return False, "NOT IMPLEMENTED: test_privacy_boundary.py not found"
+    p, fl, _ = run_pytest(f, "G28 privacy boundary")
+    return fl == 0 and p >= 12, f"{p} passed, {fl} failed"
+
+
+def gate_g29():
+    """G29: Zero-frame + confirmation hardening (>=10 tests)."""
+    f = V33_PERCEPTION_DIR / "test_zero_frame_confirmation.py"
+    if not f.exists():
+        return False, "NOT IMPLEMENTED: test_zero_frame_confirmation.py not found"
+    p, fl, _ = run_pytest(f, "G29 zero-frame confirmation")
+    return fl == 0 and p >= 10, f"{p} passed, {fl} failed"
 
 
 # -- Runner ----------------------------------------------------------------
@@ -224,9 +262,16 @@ def main():
         ("G23_memory_replay", gate_memory_replay),
     ]
 
-    # v3.3 delta gates (add here as epics are defined)
+    # v3.3 delta gates
     if not args.floor_only:
-        pass  # gates.extend([("G24_xxx", gate_g24), ...])
+        gates.extend([
+            ("G24_ledger_edit", gate_g24),
+            ("G25_redaction_provenance", gate_g25),
+            ("G26_restore_integrity", gate_g26),
+            ("G27_incident_triage", gate_g27),
+            ("G28_privacy_boundary", gate_g28),
+            ("G29_zero_frame_confirmation", gate_g29),
+        ])
 
     results = []
     for name, fn in gates:

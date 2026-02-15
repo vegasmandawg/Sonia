@@ -1,0 +1,98 @@
+{
+  "schema_version": "3.0",
+  "version": "3.3.0-dev",
+  "branch": "v3.3-dev",
+  "timestamp": "2026-02-15T06:29:36.898326+00:00",
+  "gates_passed": 14,
+  "gates_total": 14,
+  "inherited_floor": 77,
+  "delta_gates_wired": 6,
+  "floor_only": false,
+  "verdict": "PROMOTE",
+  "gates": [
+    {
+      "gate": "G00_version",
+      "passed": true,
+      "detail": "version=3.3.0-dev contract=v3.0.0",
+      "duration_s": 0.0
+    },
+    {
+      "gate": "FLOOR_v32_77",
+      "passed": true,
+      "detail": "77 passed, 0 failed (floor: 77)",
+      "duration_s": 0.742
+    },
+    {
+      "gate": "G18_voice_latency",
+      "passed": true,
+      "detail": "4 passed, 0 failed",
+      "duration_s": 0.633
+    },
+    {
+      "gate": "G19_bargein_replay",
+      "passed": true,
+      "detail": "20 passed, 0 failed",
+      "duration_s": 1.918
+    },
+    {
+      "gate": "G20_perception_dedupe",
+      "passed": true,
+      "detail": "15 passed, 0 failed",
+      "duration_s": 1.261
+    },
+    {
+      "gate": "G21_confirmation_storm",
+      "passed": true,
+      "detail": "8 passed, 0 failed",
+      "duration_s": 0.631
+    },
+    {
+      "gate": "G22_memory_proposal",
+      "passed": true,
+      "detail": "16 passed, 0 failed",
+      "duration_s": 0.636
+    },
+    {
+      "gate": "G23_memory_replay",
+      "passed": true,
+      "detail": "14 passed, 0 failed",
+      "duration_s": 0.635
+    },
+    {
+      "gate": "G24_ledger_edit",
+      "passed": true,
+      "detail": "16 passed, 0 failed",
+      "duration_s": 0.669
+    },
+    {
+      "gate": "G25_redaction_provenance",
+      "passed": true,
+      "detail": "14 passed, 0 failed",
+      "duration_s": 0.637
+    },
+    {
+      "gate": "G26_restore_integrity",
+      "passed": true,
+      "detail": "13 passed, 0 failed",
+      "duration_s": 0.749
+    },
+    {
+      "gate": "G27_incident_triage",
+      "passed": true,
+      "detail": "13 passed, 0 failed",
+      "duration_s": 0.734
+    },
+    {
+      "gate": "G28_privacy_boundary",
+      "passed": true,
+      "detail": "14 passed, 0 failed",
+      "duration_s": 0.633
+    },
+    {
+      "gate": "G29_zero_frame_confirmation",
+      "passed": true,
+      "detail": "10 passed, 0 failed",
+      "duration_s": 0.643
+    }
+  ]
+}

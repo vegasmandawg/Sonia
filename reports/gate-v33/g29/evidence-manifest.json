@@ -1,0 +1,13 @@
+{
+  "gate": "G29",
+  "title": "Zero-Frame + Confirmation Hardening",
+  "timestamp": "2026-02-15T06:28:14.066167+00:00",
+  "tests_passed": 10,
+  "tests_failed": 0,
+  "verdict": "PASS",
+  "files": {
+    "test_zero_frame_confirmation.py": "67d99d4a0aa0c117b637d1c1c5fada659b2a6e94695b4355c9e1c5941fdd3d96",
+    "zero_frame_enforcer.py": "62a6d678799ef11a58194700f958656c8799d069948f0cc172a6ead52c30d698",
+    "test-output.txt": "d2f92ca84864948ae56cb251e2df095722bf00b5dc4cf9ecd64eea9cd9682ab0"
+  }
+}

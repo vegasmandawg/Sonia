@@ -1,0 +1,24 @@
+{
+  "schema_version": "3.0",
+  "version": "3.3.0-dev",
+  "branch": "epic/memory-ledger-v2",
+  "timestamp": "2026-02-15T05:47:52.652721+00:00",
+  "epic": "A",
+  "gates": [
+    {
+      "gate": "G24_ledger_edit",
+      "passed": true,
+      "detail": "16 passed, 0 failed (threshold: 16)"
+    },
+    {
+      "gate": "G25_redaction_provenance",
+      "passed": true,
+      "detail": "14 passed, 0 failed (threshold: 14)"
+    }
+  ],
+  "delta_total": 30,
+  "delta_failed": 0,
+  "floor_inherited": 77,
+  "combined_total": 107,
+  "verdict": "PASS"
+}
