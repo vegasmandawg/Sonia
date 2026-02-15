@@ -1,0 +1,25 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.14, pytest-8.4.2, pluggy-1.6.0 -- S:\envs\sonia-core\python.exe
+cachedir: .pytest_cache
+rootdir: S:\
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-0.25.3, typeguard-4.4.4
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None
+collecting ... collected 14 items
+
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_unauthorized_actor_cannot_apply PASSED [  7%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_missing_approval_blocks_apply PASSED [ 14%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_redaction_requires_governed_path PASSED [ 21%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_conflict_resolution_requires_explicit_choice PASSED [ 28%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_correlation_on_every_side_effect PASSED [ 35%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_replay_bypass_attempt_blocked PASSED [ 42%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_concurrent_proposal_deterministic_winner PASSED [ 50%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_retrieval_includes_provenance_pointer PASSED [ 57%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_retrieval_marks_no_provenance_when_none PASSED [ 64%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_provenance_slice_by_memory_type_deterministic PASSED [ 71%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_evidence_chain_intact_after_retraction PASSED [ 78%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_trace_record_immutability_after_apply PASSED [ 85%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_provenance_slice_by_time_window_deterministic PASSED [ 92%]
+tests/v33_memory_ops/test_redaction_provenance.py::TestRedactionProvenance::test_silent_write_count_zero_invariant PASSED [100%]
+
+============================= 14 passed in 0.23s ==============================

@@ -1,0 +1,10 @@
+{
+  "gate": "G25",
+  "timestamp": "2026-02-15T05:48:02.806735+00:00",
+  "files": {
+    "tests/v33_memory_ops/test_redaction_provenance.py": "7e47ebe61d64f57220112b48a1ae158ed950b9d97510cf8ef30e490d2e479eb1",
+    "services/memory_ops/redaction_engine.py": "b87b66e9c8ca3458cd470d56a61f50d9b9759ee5268ef47f6f6d12b8c9e837d2",
+    "services/memory_ops/provenance_slicer.py": "b14214a80c0cbb60e130783ed0f8b73a43cb3eda38e67985b29fb111255edb32",
+    "reports/gate-v33/g25/test-output.txt": "e2fe4d59dbfe0d82c5b76e8792b7dd3abbd05b6798dfa308202a95ad7712a4ca"
+  }
+}

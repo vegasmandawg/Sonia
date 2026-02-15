@@ -1,0 +1,27 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.14, pytest-8.4.2, pluggy-1.6.0 -- S:\envs\sonia-core\python.exe
+cachedir: .pytest_cache
+rootdir: S:\
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-0.25.3, typeguard-4.4.4
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None
+collecting ... collected 16 items
+
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_proposal_schema_backward_compatible PASSED [  6%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_ledger_record_schema_version_pinned PASSED [ 12%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_proposal_state_enum_compatibility PASSED [ 18%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_legacy_record_ingestion_compatibility PASSED [ 25%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_serialization_roundtrip_stability PASSED [ 31%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_migration_noop_idempotence PASSED [ 37%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_migration_rollback_viability PASSED [ 43%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_unknown_optional_fields_tolerant_parsing PASSED [ 50%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_strict_rejection_of_breaking_removals PASSED [ 56%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_edit_requires_governed_path PASSED [ 62%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_double_apply_rejected PASSED [ 68%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_rejected_proposal_cannot_be_applied PASSED [ 75%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_replay_produces_identical_ledger_hash PASSED [ 81%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_conflict_on_contradictory_edits PASSED [ 87%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_conflict_resolution_records_full_audit_chain PASSED [ 93%]
+tests/v33_memory_ops/test_ledger_edit_governance.py::TestLedgerEditGovernance::test_replay_under_concurrent_ordering_stable PASSED [100%]
+
+============================= 16 passed in 0.27s ==============================
