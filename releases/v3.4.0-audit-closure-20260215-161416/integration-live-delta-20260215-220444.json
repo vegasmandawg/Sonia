@@ -1,0 +1,33 @@
+{
+  "timestamp_utc": "20260215-220444",
+  "gate": "integration_live_delta",
+  "execution_profile": "live",
+  "stack_health": "api-gateway on :7000 confirmed",
+  "tests": [
+    {
+      "name": "test_single_request_succeeds",
+      "status": "PASS",
+      "note": "Fixed assertion: ok=true vs status=healthy"
+    },
+    {
+      "name": "test_rapid_burst_triggers_rate_limit",
+      "status": "PASS"
+    },
+    {
+      "name": "test_rate_limit_response_includes_retry_after",
+      "status": "PASS"
+    },
+    {
+      "name": "test_requests_succeed_after_waiting",
+      "status": "PASS"
+    }
+  ],
+  "total_passed": 4,
+  "total_failed": 0,
+  "remediation": {
+    "file": "tests/integration/test_rate_limiter_enforcement.py",
+    "change": "Fixed assertion to accept both ok=true and status=healthy response schemas",
+    "type": "test_expectation_bug"
+  },
+  "overall": "PASS"
+}

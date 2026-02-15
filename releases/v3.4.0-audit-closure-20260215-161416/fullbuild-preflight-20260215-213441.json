@@ -1,0 +1,27 @@
+{
+  "timestamp_utc": "20260215-213441",
+  "root": "S:\\",
+  "branch": "v3.4-dev",
+  "commit": "0c7fb6e3ae3413facb30cedf575cb5329a4ab494",
+  "tag": "v3.4.0-audit",
+  "python_version": "3.11.14",
+  "dirs_required": [
+    "services",
+    "scripts",
+    "tests",
+    "reports",
+    "docs",
+    "config"
+  ],
+  "dirs_present": [
+    "services",
+    "scripts",
+    "tests",
+    "reports",
+    "docs",
+    "config"
+  ],
+  "dirs_missing": [],
+  "forbidden_path_check": "PASS",
+  "root_valid": true
+}

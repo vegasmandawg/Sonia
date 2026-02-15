@@ -1,0 +1,66 @@
+{
+  "gate": "consolidated-preaudit",
+  "timestamp": "2026-02-15T21:40:42.221549+00:00",
+  "gates_total": 8,
+  "gates_passed": 8,
+  "overall": "PASS",
+  "gates": [
+    {
+      "gate": "secret_scan",
+      "passed": true,
+      "exit_code": 0,
+      "stdout_tail": "=== SONIA Secret Scan Gate ===\nScanning: S:\\services\n\nFiles scanned: 185\nFiles excluded: 9\nCritical findings: 0\nWarnings (test/example values): 0\nErrors: 0\n\nReport: S:\\reports\\audit\\secret-scan-20260215-153947.json\n\nPASS: No hardcoded secrets detected.",
+      "stderr_tail": ""
+    },
+    {
+      "gate": "redaction_verify",
+      "passed": true,
+      "exit_code": 0,
+      "stdout_tail": "============================= test session starts =============================\ncollected 10 items\n\ntests\\integration\\test_log_redaction_verification.py ..........          [100%]\n\n============================= 10 passed in 26.07s ============================="
+    },
+    {
+      "gate": "migration_verify",
+      "passed": true,
+      "exit_code": 0,
+      "stdout_tail": "============================= test session starts =============================\ncollected 6 items\n\ntests\\integration\\test_migration_idempotency.py ......                   [100%]\n\n============================= 6 passed in 27.71s =============================="
+    },
+    {
+      "gate": "backup_restore_drill",
+      "passed": true,
+      "exit_code": 0,
+      "stdout_tail": "=== SONIA Backup-Restore Drill ===\n\n  [PASS] create_test_db\n  [PASS] backup\n  [PASS] verify_integrity\n  [PASS] restore_and_verify\n  [PASS] restored_db_journal_mode\n\n  RPO target: 24h\n  RTO target: 60s\n  Observed total: 94ms\n  RTO met: True\n  Drill hash: 3a637b45414f706e39b0cbb96f1392de695207ac13ac7d7de03fffa824ab50a6\n\nReport: S:\\reports\\audit\\backup-restore-drill-20260215-154042.json\n\nPASS: Backup-restore drill completed successfully.",
+      "stderr_tail": ""
+    },
+    {
+      "gate": "incident_bundle",
+      "passed": true,
+      "exit_code": 0,
+      "stdout_tail": "=== SONIA Incident Bundle Gate ===\n\n[PASS] export_script_exists\n      Export script found: S:\\scripts\\export-incident-bundle.ps1\n[PASS] output_directory_writable\n      Output directory writable: S:\\incidents\n[PASS] artifact_types_defined\n      Artifact validation criteria defined: logs, config, health, git, summary.json\n[PASS] existing_bundles_valid\n      Found 0 bundles\n\nReport: S:\\reports\\audit\\incident-gate-20260215-154042.json\n\nPASS: Incident bundle infrastructure validated.",
+      "stderr_tail": ""
+    },
+    {
+      "gate": "control_traceability",
+      "passed": true,
+      "exit_code": 0,
+      "stdout_tail": "\n  [PASS] U02_retention_policy\n  [PASS] U03_encryption\n  [PASS] U04_restore_procedure\n  [PASS] U05_restore_drill\n  [PASS] U06_rpo_rto\n  [PASS] V01_severity_classification\n  [PASS] V02_export_tooling\n  [PASS] W01_deployment_guide\n  [PASS] W02_operations_runbook\n  [PASS] W03_security_model\n  [PASS] W04_privacy_model\n  [PASS] W05_troubleshooting\n  [PASS] W06_backup_recovery\n\n33/33 controls verified\nReport: S:\\reports\\audit\\traceability-gate-20260215-154042.json\n\nPASS: Control traceability verified.",
+      "stderr_tail": ""
+    },
+    {
+      "gate": "runbook_headings",
+      "passed": true,
+      "docs_checked": 6,
+      "missing": null
+    },
+    {
+      "gate": "pragma_health",
+      "passed": true,
+      "pragmas": {
+        "journal_mode": "wal",
+        "synchronous": 1,
+        "foreign_keys": 1,
+        "busy_timeout": 5000
+      }
+    }
+  ],
+  "manifest_sha256": "b536710ed50c2098aea84091f3f96990883e7334e9fa5a7e46ac651b6d46a568"
+}

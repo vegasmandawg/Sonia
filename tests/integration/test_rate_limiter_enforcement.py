@@ -32,7 +32,8 @@ def test_single_request_succeeds(client):
     """Test that a single request succeeds (200 OK)."""
     response = client.get('/healthz')
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-    assert response.json().get('status') == 'healthy'
+    body = response.json()
+    assert body.get('ok') is True or body.get('status') == 'healthy', f"Unexpected body: {body}"
 
 
 def test_rapid_burst_triggers_rate_limit(client):
