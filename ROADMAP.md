@@ -1,10 +1,46 @@
-# Sonia Development Roadmap
+# SONIA Development Roadmap
 
-Strategic vision for Sonia evolution from v1.0.0 through v2.0.0+.
+## Released
 
-## Phase Timeline
+### v3.0.0 GA (2026-02-14)
+- GA tag: `v3.0.0`
+- RC tag: `v3.0.0-rc1`
+- Release commit: `3bf3e64`
+- Promotion gate: 12/12 PASS
+- Regression: 112 tests PASS
+- Release bundle: `S:\releases\v3.0.0\`
+- Milestone docs:
+  - `docs/V3_M1_CONTRACT.md`
+  - `docs/V3_M2_IDENTITY.md`
+  - `docs/V3_M3_MEMORY_LEDGER.md`
+  - `docs/V3_M4_PERCEPTION_BRIDGE.md`
 
-### ✅ Phase 0-H (v1.0.0) - Foundation [COMPLETE]
+## Completed in v3.0
+- M1-M4 delivery complete
+- Perception memory bridge integrated
+- Repo hygiene hardening (`.gitignore`, quarantine workflow)
+- Release gate automation (`scripts/release/gate-v30.py`)
+- Artifact tolerance fix for gate stability
+
+## v3.1-dev Focus (Post-GA)
+1. GA hardening follow-ups only (no regressions to v3.0 behavior contracts)
+2. Extended soak profiles (duration + concurrency envelopes)
+3. Incident bundle validation under fault injection
+4. Recovery drills across service supervisor states
+5. Gate expansion (`gate-v31.py`) with stricter reproducibility checks
+6. Backlog triage: classify all deferred items as `blocker`, `hardening`, or `feature`
+
+## Entry Criteria for v3.1 Work
+- `main` includes release merge commit
+- `v3.1-dev` branch created and protected
+- Version set to `3.1.0-dev`
+- CI target switched to v3.1 gate script
+
+---
+
+## Legacy Phase Timeline
+
+### Phase 0-H (v1.0.0) - Foundation [COMPLETE]
 **Status**: Complete - Feb 8, 2026
 
 - Core microservices architecture
