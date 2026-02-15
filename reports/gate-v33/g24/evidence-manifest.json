@@ -1,0 +1,10 @@
+{
+  "gate": "G24",
+  "timestamp": "2026-02-15T05:48:02.806735+00:00",
+  "files": {
+    "tests/v33_memory_ops/test_ledger_edit_governance.py": "bbfcc61d91be12f641ff63a66c7293208b39d6df9850d621c6f5025628eea7f6",
+    "services/memory_ops/ledger_editor.py": "0185850be11dd82a08c84ac497e8d33163568df5bd72fc46eaeb6c5ff057a4a3",
+    "services/memory_ops/export_import.py": "896adf2b5d120939c1eb7c6883ad1dd3fc605341cb62b886b2dcb23d9b453d45",
+    "reports/gate-v33/g24/test-output.txt": "2818b0c922626483b591848d102c779f5faf7e4c650826763802e2ed60b4e8bf"
+  }
+}
