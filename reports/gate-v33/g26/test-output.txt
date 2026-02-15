@@ -1,0 +1,24 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.14, pytest-8.4.2, pluggy-1.6.0 -- S:\envs\sonia-core\python.exe
+cachedir: .pytest_cache
+rootdir: S:\
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-0.25.3, typeguard-4.4.4
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None
+collecting ... collected 13 items
+
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_supervisor_unreachable_to_recovering_to_healthy PASSED [  7%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_supervisor_degraded_to_unreachable_transition PASSED [ 15%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_maintenance_mode_blocks_interpretation PASSED [ 23%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_maintenance_mode_preserves_service_states PASSED [ 30%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_dependency_graph_no_circular_refs PASSED [ 38%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_degraded_dependency_does_not_deadlock_recovery PASSED [ 46%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_breaker_reset_restores_closed_state PASSED [ 53%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_breaker_state_hash_deterministic_after_reset PASSED [ 61%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_failure_classification_deterministic PASSED [ 69%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_non_retryable_classes_never_retry PASSED [ 76%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_health_dep_degraded_after_threshold PASSED [ 84%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_health_dep_recovers_after_successes PASSED [ 92%]
+tests/v33_recovery/test_restore_integrity.py::TestRestoreIntegrity::test_post_recovery_invariants_all_zero PASSED [100%]
+
+============================= 13 passed in 0.24s ==============================
