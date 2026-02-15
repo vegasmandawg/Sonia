@@ -44,7 +44,7 @@ HARDENING_DIR = REPO_ROOT / "tests" / "hardening"
 CHAOS_DIR = REPO_ROOT / "scripts" / "chaos"
 OUTPUT_DIR_DEFAULT = REPO_ROOT / "reports" / "gate-v31"
 
-EXPECTED_VERSION = "3.1.0-dev"
+EXPECTED_VERSION = "3.1.0"
 EXPECTED_BRANCH = "v3.1-dev"
 
 TEST_FILES = {
@@ -299,7 +299,7 @@ from core.provenance import ProvenanceTracker
 from perception_action_gate import PerceptionActionGate, ConfirmationBypassError
 from version import SONIA_VERSION
 
-assert SONIA_VERSION == "3.1.0-dev", f"Version mismatch: {SONIA_VERSION}"
+assert SONIA_VERSION == "3.1.0", f"Version mismatch: {SONIA_VERSION}"
 print("CLEAN_ROOM_OK")
 """
     rc, out, err = run_cmd([PYTHON, "-c", check_code], timeout=30)
