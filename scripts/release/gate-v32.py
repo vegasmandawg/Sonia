@@ -55,11 +55,22 @@ TOTAL_GATES = 23
 
 def run_pytest(test_path, label):
     """Run pytest on a path, return (passed, failed, output)."""
-    cmd = [PYTHON, "-m", "pytest", str(test_path), "-v", "--tb=short", "-q"]
+    import re
+    cmd = [PYTHON, "-m", "pytest", str(test_path), "-v", "--tb=short"]
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=600)
     output = result.stdout + result.stderr
+    # Count per-test PASSED/FAILED lines (verbose output)
     passed = output.count(" PASSED")
     failed = output.count(" FAILED")
+    # Fallback: parse summary line "X passed" / "X failed" if per-test count is 0
+    if passed == 0:
+        m = re.search(r"(\d+) passed", output)
+        if m:
+            passed = int(m.group(1))
+    if failed == 0:
+        m = re.search(r"(\d+) failed", output)
+        if m:
+            failed = int(m.group(1))
     return passed, failed, output
 
 
@@ -142,14 +153,13 @@ def gate_voice_latency():
 
     Measure warm-path turn latency (speech detected -> first assistant token).
     Pass: p95 <= 1200 ms in local warm-path test profile.
-
-    TODO: implement after Epic A turn lifecycle is built.
-    Currently fails fast to prevent false promotion.
+    Test file: test_latency_budget_g18.py (4 tests).
     """
-    if not V32_VOICE_DIR.exists() or not any(V32_VOICE_DIR.glob("test_*.py")):
-        return False, "NOT IMPLEMENTED: voice latency tests not yet written"
-    passed, failed, output = run_pytest(V32_VOICE_DIR / "test_voice_latency.py", "voice latency")
-    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+    test_file = V32_VOICE_DIR / "test_latency_budget_g18.py"
+    if not test_file.exists():
+        return False, "NOT IMPLEMENTED: test_latency_budget_g18.py not found"
+    passed, failed, output = run_pytest(test_file, "voice latency G18")
+    return failed == 0 and passed >= 4, f"{passed} passed, {failed} failed"
 
 
 def gate_bargein_replay():
@@ -158,13 +168,18 @@ def gate_bargein_replay():
     Replayed interrupted sessions must produce identical state transitions
     and side-effect logs.
     Pass: 100% deterministic replay across defined fixture set.
-
-    TODO: implement after Epic A replay fixtures are built.
+    Test files: test_replay_determinism.py (5) + test_bargein_cancel_semantics.py (7).
     """
-    if not V32_VOICE_DIR.exists() or not any(V32_VOICE_DIR.glob("test_*replay*.py")):
-        return False, "NOT IMPLEMENTED: barge-in replay tests not yet written"
-    passed, failed, output = run_pytest(V32_VOICE_DIR / "test_bargein_replay.py", "barge-in replay")
-    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+    replay_file = V32_VOICE_DIR / "test_replay_determinism.py"
+    bargein_file = V32_VOICE_DIR / "test_bargein_cancel_semantics.py"
+    if not replay_file.exists() or not bargein_file.exists():
+        return False, "NOT IMPLEMENTED: replay/barge-in test files not found"
+    # Run both: replay determinism verifies hash stability, barge-in verifies cancel semantics
+    p1, f1, o1 = run_pytest(replay_file, "replay determinism")
+    p2, f2, o2 = run_pytest(bargein_file, "barge-in cancel")
+    total_passed = p1 + p2
+    total_failed = f1 + f2
+    return total_failed == 0 and total_passed >= 12, f"{total_passed} passed, {total_failed} failed"
 
 
 def gate_perception_dedupe():

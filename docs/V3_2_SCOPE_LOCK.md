@@ -124,6 +124,41 @@ release(v3.2-m1): milestone bundle + hash manifest + reports
 
 ---
 
+## Epic A: Strict Transition Matrix
+
+State x Event -> (Next State, Commands). Any cell marked `--` is an illegal
+transition that the reducer absorbs with `EmitDiagnostic`.
+
+| Current State | TURN_STARTED | ASR_PARTIAL | ASR_FINAL | MODEL_FIRST_TOKEN | MODEL_STREAM_ENDED | TTS_STARTED | TTS_CHUNK | TTS_ENDED | BARGE_IN_REQUESTED | CANCEL_REQUESTED | CANCEL_ACK | TURN_TIMEOUT | TURN_FAILED |
+|---------------|-------------|-------------|-----------|-------------------|-------------------|-------------|-----------|-----------|-------------------|-----------------|------------|-------------|-------------|
+| **IDLE** | LISTENING [StartASR] | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- |
+| **LISTENING** | -- | LISTENING | THINKING [StartModel] | -- | -- | -- | -- | -- | -- | -- | -- | ABORTED | ERROR |
+| **THINKING** | -- | -- | -- | SPEAKING [StartTTS] | -- | -- | -- | -- | INTERRUPTING [CancelModel] | -- | -- | ABORTED | ERROR |
+| **SPEAKING** | -- | -- | -- | -- | SPEAKING | SPEAKING | SPEAKING | COMPLETED | INTERRUPTING [CancelTTS] | -- | -- | ABORTED | ERROR |
+| **INTERRUPTING** | -- | absorb | absorb | absorb | absorb | absorb | absorb | absorb | absorb | CANCELLING | CANCELLING | ABORTED | ERROR |
+| **CANCELLING** | LISTENING [re-entry] | absorb | absorb | absorb | absorb | absorb | absorb | absorb | absorb | absorb | absorb (ack) | ABORTED | ERROR |
+| **COMPLETED** | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag |
+| **ABORTED** | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag |
+| **ERROR** | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag | absorb+diag |
+
+**Key**:
+- `[CommandName]` = command emitted as side-effect intent
+- `absorb` = event consumed silently (stale during transition)
+- `absorb+diag` = terminal state absorbs with `EmitDiagnostic` command
+- `--` = illegal transition, raises or absorbs depending on context
+
+**Determinism rules** (8 invariants, all enforced in `turn_reducer.py`):
+1. Strictly monotonic `seq` -- reject if `event.seq <= snapshot.seq`
+2. Pure function -- `reduce_turn(snapshot, event) -> (snapshot, commands)`, no I/O
+3. Commands are intent declarations, not executed in reducer
+4. Idempotent command execution via composite key `session:turn:seq:command_name`
+5. Terminal states (COMPLETED, ABORTED, ERROR) absorb all subsequent events
+6. Barge-in always routes through INTERRUPTING -> CANCELLING -> LISTENING
+7. Cancel token is one-shot: request once, consume once per (session_id, turn_id)
+8. `deterministic_hash()` excludes wall-clock, includes state/seq/terminal/reason/flags
+
+---
+
 ## Entry Criteria
 
 - [x] `v3.2-dev` branch off `v3.1.0` tag
