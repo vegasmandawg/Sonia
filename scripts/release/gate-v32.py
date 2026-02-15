@@ -187,14 +187,18 @@ def gate_perception_dedupe():
 
     Duplicate/near-duplicate perception events must collapse deterministically
     with no action loss.
-    Pass: zero false bypass, deterministic merge decisions.
-
-    TODO: implement after Epic B dedupe pipeline is built.
+    Pass: zero false bypass, deterministic merge decisions, stable replay hashes.
+    Test files: test_dedupe_correctness.py (7) + test_priority_routing.py (8).
     """
-    if not V32_PERCEPTION_DIR.exists() or not any(V32_PERCEPTION_DIR.glob("test_*dedupe*.py")):
-        return False, "NOT IMPLEMENTED: perception dedupe tests not yet written"
-    passed, failed, output = run_pytest(V32_PERCEPTION_DIR / "test_dedupe.py", "perception dedupe")
-    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+    dedupe_file = V32_PERCEPTION_DIR / "test_dedupe_correctness.py"
+    routing_file = V32_PERCEPTION_DIR / "test_priority_routing.py"
+    if not dedupe_file.exists() or not routing_file.exists():
+        return False, "NOT IMPLEMENTED: dedupe/routing test files not found"
+    p1, f1, o1 = run_pytest(dedupe_file, "dedupe correctness")
+    p2, f2, o2 = run_pytest(routing_file, "priority routing")
+    total_passed = p1 + p2
+    total_failed = f1 + f2
+    return total_failed == 0 and total_passed >= 15, f"{total_passed} passed, {total_failed} failed"
 
 
 def gate_confirmation_storm():
@@ -203,13 +207,13 @@ def gate_confirmation_storm():
     High-rate confirmation workload must preserve contractual limits and
     one-shot consumption.
     Pass: zero bypass attempts, zero double-consume, queue bounds respected.
-
-    TODO: implement after Epic B confirmation queue ergonomics are built.
+    Test file: test_confirmation_storm_integrity.py (8 tests).
     """
-    if not V32_PERCEPTION_DIR.exists() or not any(V32_PERCEPTION_DIR.glob("test_*storm*.py")):
-        return False, "NOT IMPLEMENTED: confirmation storm tests not yet written"
-    passed, failed, output = run_pytest(V32_PERCEPTION_DIR / "test_storm.py", "confirmation storm")
-    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+    storm_file = V32_PERCEPTION_DIR / "test_confirmation_storm_integrity.py"
+    if not storm_file.exists():
+        return False, "NOT IMPLEMENTED: test_confirmation_storm_integrity.py not found"
+    passed, failed, output = run_pytest(storm_file, "confirmation storm G21")
+    return failed == 0 and passed >= 8, f"{passed} passed, {failed} failed"
 
 
 def gate_memory_proposal():
