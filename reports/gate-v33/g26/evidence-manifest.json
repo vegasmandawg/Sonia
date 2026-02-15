@@ -1,0 +1,10 @@
+{
+  "gate": "G26",
+  "timestamp": "2026-02-15T06:11:37.145650+00:00",
+  "files": {
+    "tests/v33_recovery/test_restore_integrity.py": "69bf65b2c9b6aa4b61a07fec3e290228c057bc6e92c14638f7194bf5bf1da8e9",
+    "services/eva-os/restore_verifier.py": "745a8c905eb7296ee4c42193d0ed231d95e379b2dffc42acfa8d27e766aa2d1a",
+    "services/eva-os/operator_drill.py": "b628f0a6b3e723915aa56832ed5d4389502b8c45a7b341a94d37bfefcb491606",
+    "reports/gate-v33/g26/test-output.txt": "a5072bc3d852643be22dc0924943d321e93d9ca4ebdce95124bb08fb601eaf88"
+  }
+}
