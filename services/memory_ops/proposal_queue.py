@@ -117,6 +117,10 @@ class ProposalQueue:
         if proposal is None:
             return {"status": "error", "reason": "proposal_not_found"}
 
+        # Check for expired before double-decision (expired is a distinct error)
+        if proposal.state == ProposalState.EXPIRED:
+            return {"status": "error", "reason": "proposal_expired"}
+
         # Check for double-decision
         if proposal_id in self._decisions:
             self._stats["double_decision_attempts"] += 1
@@ -125,10 +129,6 @@ class ProposalQueue:
                 "reason": "double_decision_rejected",
                 "prior_decision": self._decisions[proposal_id],
             }
-
-        # Check for expired
-        if proposal.state == ProposalState.EXPIRED:
-            return {"status": "error", "reason": "proposal_expired"}
 
         try:
             old_state = proposal.transition(

@@ -221,13 +221,13 @@ def gate_memory_proposal():
 
     Memory writes require explicit policy-valid path (propose -> approve/reject).
     Pass: zero direct-write bypass, complete provenance chain for all attempts.
-
-    TODO: implement after Epic C Phase-0 governance primitives are built.
+    Test file: test_proposal_governance.py (16 tests).
     """
-    if not V32_MEMORY_DIR.exists() or not any(V32_MEMORY_DIR.glob("test_*proposal*.py")):
-        return False, "NOT IMPLEMENTED: memory proposal tests not yet written"
-    passed, failed, output = run_pytest(V32_MEMORY_DIR / "test_proposal.py", "memory proposal")
-    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+    gov_file = V32_MEMORY_DIR / "test_proposal_governance.py"
+    if not gov_file.exists():
+        return False, "NOT IMPLEMENTED: test_proposal_governance.py not found"
+    passed, failed, output = run_pytest(gov_file, "memory proposal governance G22")
+    return failed == 0 and passed >= 16, f"{passed} passed, {failed} failed"
 
 
 def gate_memory_replay():
@@ -236,13 +236,13 @@ def gate_memory_replay():
     Approved/rejected/retracted writes maintain ledger consistency during
     replay/recovery.
     Pass: no orphaned entries, no timeline corruption, deterministic final state.
-
-    TODO: implement after Epic C Phase-0 replay/recovery tests are built.
+    Test file: test_replay_determinism.py (14 tests).
     """
-    if not V32_MEMORY_DIR.exists() or not any(V32_MEMORY_DIR.glob("test_*replay*.py")):
-        return False, "NOT IMPLEMENTED: memory replay tests not yet written"
-    passed, failed, output = run_pytest(V32_MEMORY_DIR / "test_replay.py", "memory replay")
-    return failed == 0 and passed >= 1, f"{passed} passed, {failed} failed"
+    replay_file = V32_MEMORY_DIR / "test_replay_determinism.py"
+    if not replay_file.exists():
+        return False, "NOT IMPLEMENTED: test_replay_determinism.py not found"
+    passed, failed, output = run_pytest(replay_file, "memory replay determinism G23")
+    return failed == 0 and passed >= 14, f"{passed} passed, {failed} failed"
 
 
 # ── Runner ───────────────────────────────────────────────────────────────
