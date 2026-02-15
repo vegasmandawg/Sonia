@@ -259,3 +259,4 @@ sensible defaults. Existing consumers must not break.
 |------|--------|
 | 2026-02-14 | M0 scaffold: scope lock created, gate-v33.py scaffolded, version bumped to 3.3.0-dev |
 | 2026-02-14 | M0 LOCKED: epics A/B/C defined, G24-G29 specified with binary criteria, risk register + promotion criteria finalized |
+| 2026-02-15 | Epic A COMPLETE: G24 (16/16), G25 (14/14), 30 delta tests green, 77 floor intact, 107 combined. Modules: ledger_editor, redaction_engine, provenance_slicer, export_import |
