@@ -41,7 +41,7 @@ V32_MEMORY_DIR = REPO_ROOT / "tests" / "v32_memory_ops"
 V33_TEST_DIRS = {}
 
 FLOOR_GATE_COUNT = 6   # G18-G23
-DELTA_GATE_COUNT = 0   # incremented as gates are wired
+DELTA_GATE_COUNT = 2   # G24, G25 (Epic A)
 TOTAL_GATES = FLOOR_GATE_COUNT + DELTA_GATE_COUNT
 
 
@@ -174,15 +174,28 @@ def gate_memory_replay():
     return fl == 0 and p >= 14, f"{p} passed, {fl} failed"
 
 
-# -- v3.3 Delta Gates (placeholder) ----------------------------------------
+# -- v3.3 Delta Gates -------------------------------------------------------
 
-# def gate_g24():
-#     """G24: TBD — wire when Epic A is defined."""
-#     pass
+V33_MEMORY_DIR = REPO_ROOT / "tests" / "v33_memory_ops"
 
-# def gate_g25():
-#     """G25: TBD — wire when Epic A is defined."""
-#     pass
+
+def gate_g24():
+    """G24: Ledger edit governance + contract compatibility (>=16 tests)."""
+    f = V33_MEMORY_DIR / "test_ledger_edit_governance.py"
+    if not f.exists():
+        return False, "NOT IMPLEMENTED: test_ledger_edit_governance.py not found"
+    p, fl, _ = run_pytest(f, "G24 ledger edit governance")
+    return fl == 0 and p >= 16, f"{p} passed, {fl} failed"
+
+
+def gate_g25():
+    """G25: Redaction + provenance slicing + governance non-bypass (>=14 tests)."""
+    f = V33_MEMORY_DIR / "test_redaction_provenance.py"
+    if not f.exists():
+        return False, "NOT IMPLEMENTED: test_redaction_provenance.py not found"
+    p, fl, _ = run_pytest(f, "G25 redaction provenance")
+    return fl == 0 and p >= 14, f"{p} passed, {fl} failed"
+
 
 # def gate_g26():
 #     """G26: TBD — wire when Epic B is defined."""
@@ -224,9 +237,12 @@ def main():
         ("G23_memory_replay", gate_memory_replay),
     ]
 
-    # v3.3 delta gates (add here as epics are defined)
+    # v3.3 delta gates
     if not args.floor_only:
-        pass  # gates.extend([("G24_xxx", gate_g24), ...])
+        gates.extend([
+            ("G24_ledger_edit", gate_g24),
+            ("G25_redaction_provenance", gate_g25),
+        ])
 
     results = []
     for name, fn in gates:
