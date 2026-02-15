@@ -41,7 +41,7 @@ V32_MEMORY_DIR = REPO_ROOT / "tests" / "v32_memory_ops"
 V33_TEST_DIRS = {}
 
 FLOOR_GATE_COUNT = 6   # G18-G23
-DELTA_GATE_COUNT = 4   # G24, G25 (Epic A) + G26, G27 (Epic B)
+DELTA_GATE_COUNT = 6   # G24, G25 (Epic A) + G26, G27 (Epic B) + G28, G29 (Epic C)
 TOTAL_GATES = FLOOR_GATE_COUNT + DELTA_GATE_COUNT
 
 
@@ -218,13 +218,25 @@ def gate_g27():
     return fl == 0 and p >= 10, f"{p} passed, {fl} failed"
 
 
-# def gate_g28():
-#     """G28: TBD — wire when Epic C is defined."""
-#     pass
+V33_PERCEPTION_DIR = REPO_ROOT / "tests" / "v33_perception"
 
-# def gate_g29():
-#     """G29: TBD — wire when Epic C is defined."""
-#     pass
+
+def gate_g28():
+    """G28: Privacy boundary enforcement + state machine (>=12 tests)."""
+    f = V33_PERCEPTION_DIR / "test_privacy_boundary.py"
+    if not f.exists():
+        return False, "NOT IMPLEMENTED: test_privacy_boundary.py not found"
+    p, fl, _ = run_pytest(f, "G28 privacy boundary")
+    return fl == 0 and p >= 12, f"{p} passed, {fl} failed"
+
+
+def gate_g29():
+    """G29: Zero-frame + confirmation hardening (>=10 tests)."""
+    f = V33_PERCEPTION_DIR / "test_zero_frame_confirmation.py"
+    if not f.exists():
+        return False, "NOT IMPLEMENTED: test_zero_frame_confirmation.py not found"
+    p, fl, _ = run_pytest(f, "G29 zero-frame confirmation")
+    return fl == 0 and p >= 10, f"{p} passed, {fl} failed"
 
 
 # -- Runner ----------------------------------------------------------------
@@ -257,6 +269,8 @@ def main():
             ("G25_redaction_provenance", gate_g25),
             ("G26_restore_integrity", gate_g26),
             ("G27_incident_triage", gate_g27),
+            ("G28_privacy_boundary", gate_g28),
+            ("G29_zero_frame_confirmation", gate_g29),
         ])
 
     results = []
