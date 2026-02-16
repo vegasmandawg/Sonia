@@ -1,0 +1,418 @@
+{
+  "run_id": "v4.0-dual-pass-20260216-071012",
+  "scorer_type": "standard",
+  "version": "4.0.0-dev",
+  "scale": "0-20 per section",
+  "sections": {
+    "A": {
+      "label": "Governance & Process",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "B": {
+      "label": "Architecture & Design",
+      "score": 19,
+      "max": 20,
+      "reason": "missing bonus: release_manifest_present",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "C": {
+      "label": "Code Quality",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "D": {
+      "label": "Configuration Mgmt",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "E": {
+      "label": "Deployment & Release",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "F": {
+      "label": "API Design",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "G": {
+      "label": "Error Handling",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "H": {
+      "label": "Logging & Monitoring",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "I": {
+      "label": "Auth & Authorization",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "J": {
+      "label": "Data Management",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "K": {
+      "label": "Performance",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "L": {
+      "label": "Testing Strategy",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "M": {
+      "label": "Data Stores",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "N": {
+      "label": "Observability",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "O": {
+      "label": "Operational Readiness",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "P": {
+      "label": "Security Controls",
+      "score": 19,
+      "max": 20,
+      "reason": "missing bonus: release_manifest_present",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "Q": {
+      "label": "Privacy & Data",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "R": {
+      "label": "Dependency Mgmt",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "S": {
+      "label": "CI/CD & Automation",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "T": {
+      "label": "Documentation Quality",
+      "score": 19,
+      "max": 20,
+      "reason": "missing bonus: release_manifest_present",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "U": {
+      "label": "Backup & Recovery",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "V": {
+      "label": "Incident Response",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "W": {
+      "label": "Operations Docs",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "X": {
+      "label": "Release Management",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    },
+    "Y": {
+      "label": "Compliance & Audit",
+      "score": 20,
+      "max": 20,
+      "reason": "all evidence checks satisfied",
+      "evidence": [
+        "S:\\reports\\audit\\coverage-completeness-gate-20260216-010715.json",
+        "S:\\reports\\audit\\data-durability-gate-20260216-010715.json",
+        "S:\\reports\\audit\\deduction-sweep-gate-20260216-010715.json",
+        "S:\\reports\\audit\\test-strategy-gate-20260216-010715.json",
+        "S:\\reports\\audit\\v4.0-baseline\\gate-matrix-v40-20260216-070016.json",
+        "S:\\reports\\audit\\v40-e1-gate-20260216-062719.json",
+        "S:\\reports\\audit\\v40-e2-gate-20260216-064434.json",
+        "S:\\reports\\audit\\v40-e3-gate-20260216-070001.json"
+      ]
+    }
+  },
+  "total": 497,
+  "percent": 99.4,
+  "floor_98_pass": true,
+  "notes": [
+    "Scoring uses v4.0 gate-matrix schema v7.0 evidence",
+    "3 epic gates (E1+E2+E3) contribute to section requirements",
+    "Closed deduction sections protected when all 3 epic gates pass",
+    "Unit floor: 613, observed: 622/622",
+    "Inherited gates: 32/32, delta gates: 3/3, evidence gates: 1/1"
+  ]
+}

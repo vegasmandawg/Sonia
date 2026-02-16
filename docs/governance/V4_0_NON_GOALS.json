@@ -1,0 +1,45 @@
+{
+  "$schema": "sonia-non-goals-v1",
+  "version": "4.0.0-dev",
+  "created": "2026-02-16",
+  "inherited_from": "3.9.0",
+  "non_goals": [
+    {
+      "id": "NG-01",
+      "name": "CI/CD platform integration",
+      "reason": "Out of scope for local-first development model",
+      "since": "3.7.0"
+    },
+    {
+      "id": "NG-02",
+      "name": "Database replication/PITR",
+      "reason": "SQLite-based memory engine does not require replication",
+      "since": "3.7.0"
+    },
+    {
+      "id": "NG-03",
+      "name": "Enterprise SSO/RBAC",
+      "reason": "Single-operator system, identity is local-only",
+      "since": "3.7.0"
+    },
+    {
+      "id": "NG-04",
+      "name": "Load testing at scale",
+      "reason": "Desktop-class deployment, not multi-tenant",
+      "since": "3.7.0"
+    },
+    {
+      "id": "NG-05",
+      "name": "GDPR right-to-deletion",
+      "reason": "Personal-use system, no third-party data subjects",
+      "since": "3.7.0"
+    },
+    {
+      "id": "NG-06",
+      "name": "mypy/pylint/black in CI",
+      "reason": "Linting enforced via gate checks, no CI runner",
+      "since": "3.7.0"
+    }
+  ],
+  "review_policy": "Non-goals inherited from previous versions. New non-goals may be added during v4.0 planning. Removal requires explicit justification in changelog."
+}

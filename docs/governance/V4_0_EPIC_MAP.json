@@ -1,0 +1,153 @@
+{
+  "$schema": "sonia-epic-map-v1",
+  "version": "4.0.0-dev",
+  "created": "2026-02-16",
+  "locked": "2026-02-16",
+  "status": "LOCKED",
+  "success_targets": {
+    "gates_total": 37,
+    "unit_test_floor": 613,
+    "unit_test_target": 628,
+    "dual_pass_floor": 490,
+    "inter_pass_gap_max": 6,
+    "zero_deterministic_failures": true
+  },
+  "inherited_floor": {
+    "gates": 33,
+    "unit_tests": 523,
+    "standard_score": 496,
+    "conservative_score": 496,
+    "source_version": "3.9.0"
+  },
+  "epics": [
+    {
+      "id": "E1",
+      "name": "Session & Memory Governance Hardening",
+      "description": "Deterministic session isolation, cross-session memory leak prevention, policy-driven memory mutation controls, stronger redaction lineage",
+      "status": "LOCKED",
+      "branch": "v4.0-e1-session-memory",
+      "gate_file": "v40-epic1-gate.py",
+      "gate_checks": 10,
+      "gate_check_themes": [
+        "session namespace isolation",
+        "persona memory silo boundaries",
+        "mutation authorization paths",
+        "redaction replay integrity",
+        "memory version conflict handling",
+        "retention policy enforcement",
+        "import/export safety invariants",
+        "audit trail completeness",
+        "incident snapshot memory fields",
+        "deterministic rerun parity"
+      ],
+      "test_budget": {
+        "minimum": 30,
+        "target": 36,
+        "floor_enforced": true
+      },
+      "sections_targeted": ["H", "J", "Q", "W", "A"],
+      "artifact_contract": {
+        "gate_report": "reports/audit/v40-e1-gate-<ts>.json",
+        "test_report": "reports/audit/v40-e1-tests-<ts>.json",
+        "summary": "reports/audit/v40-e1-summary-<ts>.md"
+      }
+    },
+    {
+      "id": "E2",
+      "name": "Recovery, Incident Lineage, Determinism",
+      "description": "Restore path integrity, DLQ replay determinism, incident lineage completeness, retry/fallback reproducibility",
+      "status": "LOCKED",
+      "branch": "v4.0-e2-recovery-lineage",
+      "gate_file": "v40-epic2-gate.py",
+      "gate_checks": 10,
+      "gate_check_themes": [
+        "restore preconditions",
+        "post-restore verification",
+        "DLQ dry-run/real-run divergence controls",
+        "breaker state transitions deterministic",
+        "retry taxonomy completeness",
+        "fallback contract consistency",
+        "incident bundle artifact completeness",
+        "correlation lineage continuity",
+        "rollback script readiness",
+        "reproducibility hash stability"
+      ],
+      "test_budget": {
+        "minimum": 30,
+        "target": 34,
+        "floor_enforced": true
+      },
+      "sections_targeted": ["O", "N", "V", "M", "T"],
+      "artifact_contract": {
+        "gate_report": "reports/audit/v40-e2-gate-<ts>.json",
+        "test_report": "reports/audit/v40-e2-tests-<ts>.json",
+        "summary": "reports/audit/v40-e2-summary-<ts>.md"
+      }
+    },
+    {
+      "id": "E3",
+      "name": "Runtime QoS, Contract Fidelity, Release Discipline",
+      "description": "Budget enforcement under load, contract conformance, coverage/test strategy enforcement, release evidence completeness",
+      "status": "LOCKED",
+      "branch": "v4.0-e3-runtime-qos",
+      "gate_file": "v40-epic3-gate.py",
+      "gate_checks": 10,
+      "gate_check_themes": [
+        "latency budget invariants",
+        "output token budget invariants",
+        "sustained-load profile thresholds",
+        "contract field completeness",
+        "trace propagation continuity",
+        "config schema strict validation",
+        "code quality policy enforcement",
+        "automation coverage proof",
+        "test-strategy completeness",
+        "release package integrity hooks"
+      ],
+      "test_budget": {
+        "minimum": 30,
+        "target": 35,
+        "floor_enforced": true
+      },
+      "sections_targeted": ["K", "L", "S", "C", "D"],
+      "artifact_contract": {
+        "gate_report": "reports/audit/v40-e3-gate-<ts>.json",
+        "test_report": "reports/audit/v40-e3-tests-<ts>.json",
+        "summary": "reports/audit/v40-e3-summary-<ts>.md"
+      }
+    }
+  ],
+  "cross_cutting": {
+    "evidence_integrity": {
+      "gate_file": "v40-evidence-integrity-gate.py",
+      "description": "Non-bypassable final verifier: all required artifacts exist, hash manifest completeness, artifact timestamp consistency, no orphan reports in final bundle",
+      "test_budget": {
+        "minimum": 10,
+        "target": 15,
+        "floor_enforced": true
+      }
+    }
+  },
+  "merge_choreography": {
+    "order": [
+      "v4.0-e1-session-memory -> v4.0-dev (--no-ff, full matrix after merge)",
+      "v4.0-e2-recovery-lineage -> v4.0-dev (--no-ff, full matrix after merge)",
+      "v4.0-e3-runtime-qos -> v4.0-dev (--no-ff, full matrix after merge)"
+    ],
+    "parallel_divergence": false,
+    "note": "No parallel long-lived divergence unless explicit integration sync points are added"
+  },
+  "program_artifacts": {
+    "gate_matrix": "reports/audit/gate-matrix-v40-<ts>.json",
+    "standard_scorer": "reports/audit/v4.0-standard-<ts>.json",
+    "conservative_scorer": "reports/audit/v4.0-conservative-<ts>.json",
+    "dualpass_diff": "reports/audit/v4.0-dualpass-diff-<ts>.json",
+    "ga_closure": "docs/audit_snapshots/V4_0_GA_CLOSURE.md"
+  },
+  "rules": {
+    "no_feature_merge_without_gate_ownership": true,
+    "no_feature_merge_without_test_targets": true,
+    "per_pass_floor_mandatory": true,
+    "release_v39x_hotfix_only": true
+  }
+}

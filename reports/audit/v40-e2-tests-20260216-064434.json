@@ -1,0 +1,11 @@
+{
+  "version": "4.0.0-dev",
+  "epic": "E2",
+  "timestamp": "2026-02-16T06:44:34.175292+00:00",
+  "test_file": "test_recovery_governance.py",
+  "tests_passed": 35,
+  "tests_total": 35,
+  "total_suite": 590,
+  "inherited": 555,
+  "delta": 35
+}

@@ -1,0 +1,13 @@
+{
+  "version": "4.0.0-dev",
+  "epic": "E1",
+  "timestamp": "2026-02-16T06:27:19.450994+00:00",
+  "test_file": "tests/unit/test_session_governance.py",
+  "passed": 32,
+  "failed": 0,
+  "total": 32,
+  "duration_s": 0.3,
+  "budget_minimum": 30,
+  "budget_target": 36,
+  "budget_met": true
+}

@@ -11,7 +11,7 @@
 | Tag | Commit | Description |
 |-----|--------|-------------|
 | v3.9.0-rc1 | 224fbae | Evidence freeze on v3.9-dev |
-| v3.9.0 | (GA merge to main) | Final GA tag on main |
+| v3.9.0 | eef3818 | GA merge to main (--no-ff) |
 
 ## Dual-Pass Scores
 
@@ -65,13 +65,13 @@
 ## Branch Topology
 
 ```
-main (v3.8.0) ---> main (v3.9.0 GA merge --no-ff)
-  \                 /
-   v3.9-dev -------+
-     \   \          |
-      E1  E2       release/v3.9.x (hotfix branch)
-                    |
-                    v4.0-dev (next development cycle)
+main (015eb68 v3.8.0) ---> main (eef3818 v3.9.0 GA --no-ff)
+  \                        /
+   v3.9-dev (ba9db78) ----+
+     \   \                 |
+      E1  E2              release/v3.9.x (hotfix/security only)
+                           |
+                           v4.0-dev (4077320, scope lock committed)
 ```
 
 ## Epic Summary
