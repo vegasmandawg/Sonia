@@ -1,0 +1,9 @@
+{
+  "version": "4.0.0",
+  "gates_passed": 37,
+  "gates_total": 37,
+  "class_a": 32,
+  "class_b": 3,
+  "class_c": 1,
+  "verdict": "PROMOTE"
+}

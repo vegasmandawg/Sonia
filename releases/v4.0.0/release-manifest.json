@@ -1,0 +1,86 @@
+{
+  "version": "4.0.0",
+  "release_date": "2026-02-16T07:11:07Z",
+  "git_tag": "v4.0.0",
+  "gate_schema": "v7.0",
+  "gates_passed": 37,
+  "gates_total": 37,
+  "unit_tests": 622,
+  "dual_pass": {
+    "standard": 497,
+    "conservative": 497,
+    "gap": 0,
+    "verdict": "PROMOTE"
+  },
+  "epics": {
+    "E1": {
+      "name": "Session & Memory Governance",
+      "gate": "10/10",
+      "tests": 32
+    },
+    "E2": {
+      "name": "Recovery, Incident Lineage, Determinism",
+      "gate": "10/10",
+      "tests": 35
+    },
+    "E3": {
+      "name": "Runtime QoS, Contract Fidelity, Release",
+      "gate": "10/10",
+      "tests": 32
+    }
+  },
+  "artifact_checksums": {
+    "gate-matrix": {
+      "path": "reports/audit/v4.0-baseline/gate-matrix-v40-20260216-070016.json",
+      "sha256": "9d40e869d6c83a4b5dc060403070513cbafb06b1c42c80319b3acaaaa7dc3926"
+    },
+    "dual-pass-standard": {
+      "path": "reports/audit/v4.0-dualpass-standard-20260216-071012.json",
+      "sha256": "72a87d90d77dccbb69556ad29922eeab586a48494ef02d85ba904a12629a0937"
+    },
+    "dual-pass-conservative": {
+      "path": "reports/audit/v4.0-dualpass-conservative-20260216-071012.json",
+      "sha256": "f2efcdc4f18c3cbac7c329c135830d7443ec8b84a14c6d844c69beb3f16d47d5"
+    },
+    "dual-pass-diff": {
+      "path": "reports/audit/v4.0-dualpass-diff-20260216-071012.json",
+      "sha256": "54cd16ffdc3c4ecea101c5799797152dd9192437ed1e2c03389ed0b211cbf072"
+    },
+    "e1-gate": {
+      "path": "reports/audit/v40-e1-gate-20260216-062719.json",
+      "sha256": "32b1ed8ce3257e118d7ebaba2dfc061c3c027cbfa49d133efe3e75a1c0fb4668"
+    },
+    "e2-gate": {
+      "path": "reports/audit/v40-e2-gate-20260216-064434.json",
+      "sha256": "7da70d7d5e7fa0bd389b37ca5773363d3ae4057c5a3ac3f859c4c40161dcf423"
+    },
+    "e3-gate": {
+      "path": "reports/audit/v40-e3-gate-20260216-070001.json",
+      "sha256": "744959a9d2d4b6513c147fb441b0b5a45c9cece193edb43e6d116a5bca857a50"
+    },
+    "e1-tests": {
+      "path": "reports/audit/v40-e1-tests-20260216-062719.json",
+      "sha256": "a5a692df5f303ff3c3df57a967fb9050df2c9a1005eb2285a2fa6a06e754b441"
+    },
+    "e2-tests": {
+      "path": "reports/audit/v40-e2-tests-20260216-064434.json",
+      "sha256": "d0713b1400315b804cc0e54d75450ac3f78ca5e0720700a5eba1e499f0329bc4"
+    },
+    "e3-tests": {
+      "path": "reports/audit/v40-e3-tests-20260216-070001.json",
+      "sha256": "48cbec9b12348de7b9f8cec290f29e0e6f20fcd2713c941dafedd6b4cf01f79f"
+    },
+    "session-governance": {
+      "path": "services/api-gateway/session_governance.py",
+      "sha256": "f90630a4e0deb5b3f1636c45e281c842202932c2addf192118f692f9456b7d37"
+    },
+    "recovery-governance": {
+      "path": "services/api-gateway/recovery_governance.py",
+      "sha256": "877bbb6bb2802c3224545fe50b343a4affa9e47267593809b5e8352448947d8d"
+    },
+    "runtime-governance": {
+      "path": "services/api-gateway/runtime_governance.py",
+      "sha256": "a3c09b8b2cff4e2f3d60744064449373c27ebfe129a3d0f3641eabfda7a83361"
+    }
+  }
+}
