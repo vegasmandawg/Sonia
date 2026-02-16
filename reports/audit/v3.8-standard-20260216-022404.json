@@ -1,0 +1,145 @@
+{
+  "scorer": "standard",
+  "version": "3.8.0-dev",
+  "timestamp": "2026-02-16T02:24:04.985865+00:00",
+  "contract": "docs/SCORER_CONTRACT.md",
+  "non_goals": [
+    "CI/CD platform integration",
+    "database replication/PITR",
+    "enterprise SSO/RBAC",
+    "load testing at scale",
+    "GDPR right-to-deletion",
+    "mypy/pylint/black in CI"
+  ],
+  "total": 493,
+  "max": 500,
+  "percentage": 98.6,
+  "floor_met": true,
+  "sections": {
+    "A": {
+      "score": 20,
+      "name": "Governance & Process",
+      "rationale": "6/6 governance artifacts present; scope lock + scorer contract added for v3.8"
+    },
+    "B": {
+      "score": 20,
+      "name": "Architecture & Design",
+      "rationale": "8 services with main.py, 7 stage docs, shared lib + event envelope"
+    },
+    "C": {
+      "score": 17,
+      "name": "Code Quality",
+      "rationale": "pre-commit + bandit configured; no mypy/pylint (non-goal)"
+    },
+    "D": {
+      "score": 19,
+      "name": "Configuration Mgmt",
+      "rationale": "2/3 config artifacts; secret-scan gate active"
+    },
+    "E": {
+      "score": 20,
+      "name": "Deployment & Release",
+      "rationale": "DEPLOYMENT.md present, 11 release scripts, 15 release bundles"
+    },
+    "F": {
+      "score": 20,
+      "name": "API Design",
+      "rationale": "5 schema files, version module present"
+    },
+    "G": {
+      "score": 20,
+      "name": "Error Handling",
+      "rationale": "4/4 error handling artifacts; recovery_policy + retry_taxonomy + circuit breaker"
+    },
+    "H": {
+      "score": 20,
+      "name": "Logging & Monitoring",
+      "rationale": "JSONL logger + log redaction + redaction unit tests"
+    },
+    "I": {
+      "score": 20,
+      "name": "Auth & Authorization",
+      "rationale": "5/5 auth artifacts; posture gate + surface gate + rate limiter + unit tests"
+    },
+    "J": {
+      "score": 17,
+      "name": "Data Management",
+      "rationale": "db.py with WAL, migration idempotency tests; no rollback migration (non-goal)"
+    },
+    "K": {
+      "score": 20,
+      "name": "Performance",
+      "rationale": "5/5 perf artifacts; runtime_qos + output_budget + soak scripts + perf gate"
+    },
+    "L": {
+      "score": 20,
+      "name": "Testing Strategy",
+      "rationale": "299 unit tests, 16 unit test files, 56 integration test files"
+    },
+    "M": {
+      "score": 20,
+      "name": "Data Stores",
+      "rationale": "WAL pragmas, backup module, backup drill gate; SQLite (non-goal: no replication)"
+    },
+    "N": {
+      "score": 20,
+      "name": "Observability",
+      "rationale": "4/4 observability artifacts; healthz + incident bundle + diagnostics + state backup"
+    },
+    "O": {
+      "score": 20,
+      "name": "Operational Readiness",
+      "rationale": "Runbook + troubleshooting docs present"
+    },
+    "P": {
+      "score": 20,
+      "name": "Security Controls",
+      "rationale": "4/4 security artifacts; secret scan + policy enforcement + tool policy + tests"
+    },
+    "Q": {
+      "score": 20,
+      "name": "Privacy & Data",
+      "rationale": "Privacy model doc + log redaction gate"
+    },
+    "R": {
+      "score": 20,
+      "name": "Dependency Mgmt",
+      "rationale": "Frozen requirements + dependency lock with SHA-256"
+    },
+    "S": {
+      "score": 20,
+      "name": "CI/CD & Automation",
+      "rationale": "31 gate scripts (CI substitute); no CI platform (non-goal)"
+    },
+    "T": {
+      "score": 20,
+      "name": "Documentation Quality",
+      "rationale": "49 doc files in docs/"
+    },
+    "U": {
+      "score": 20,
+      "name": "Backup & Recovery",
+      "rationale": "4/4 backup artifacts; restore integrity gate + backup drill"
+    },
+    "V": {
+      "score": 20,
+      "name": "Incident Response",
+      "rationale": "4/4 incident artifacts; lineage gate + DLQ replay policy (v3.7)"
+    },
+    "W": {
+      "score": 20,
+      "name": "Operations Docs",
+      "rationale": "6/6 ops docs present"
+    },
+    "X": {
+      "score": 20,
+      "name": "Release Management",
+      "rationale": "8 release manifests with SHA-256; integrity gate present"
+    },
+    "Y": {
+      "score": 20,
+      "name": "Compliance & Audit",
+      "rationale": "Control traceability + gate; 455 audit artifacts"
+    }
+  }
+}

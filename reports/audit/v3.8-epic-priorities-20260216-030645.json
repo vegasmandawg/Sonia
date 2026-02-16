@@ -1,0 +1,256 @@
+{
+  "version": "3.8.0-dev",
+  "timestamp": "2026-02-16T03:06:45.626394+00:00",
+  "candidates": [
+    {
+      "section": "J",
+      "name": "Data Management",
+      "standard": 17,
+      "conservative": 15,
+      "floor_gap": 0,
+      "target_gap": 3,
+      "variance": 2,
+      "priority_index": 10
+    },
+    {
+      "section": "C",
+      "name": "Code Quality",
+      "standard": 17,
+      "conservative": 16,
+      "floor_gap": 0,
+      "target_gap": 2,
+      "variance": 1,
+      "priority_index": 6
+    },
+    {
+      "section": "S",
+      "name": "CI/CD & Automation",
+      "standard": 20,
+      "conservative": 18,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 2,
+      "priority_index": 4
+    },
+    {
+      "section": "D",
+      "name": "Configuration Mgmt",
+      "standard": 19,
+      "conservative": 18,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 1,
+      "priority_index": 2
+    },
+    {
+      "section": "K",
+      "name": "Performance",
+      "standard": 20,
+      "conservative": 19,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 1,
+      "priority_index": 2
+    },
+    {
+      "section": "L",
+      "name": "Testing Strategy",
+      "standard": 20,
+      "conservative": 19,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 1,
+      "priority_index": 2
+    },
+    {
+      "section": "M",
+      "name": "Data Stores",
+      "standard": 20,
+      "conservative": 19,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 1,
+      "priority_index": 2
+    },
+    {
+      "section": "N",
+      "name": "Observability",
+      "standard": 20,
+      "conservative": 19,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 1,
+      "priority_index": 2
+    },
+    {
+      "section": "O",
+      "name": "Operational Readiness",
+      "standard": 20,
+      "conservative": 19,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 1,
+      "priority_index": 2
+    },
+    {
+      "section": "Q",
+      "name": "Privacy & Data",
+      "standard": 20,
+      "conservative": 19,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 1,
+      "priority_index": 2
+    },
+    {
+      "section": "T",
+      "name": "Documentation Quality",
+      "standard": 20,
+      "conservative": 19,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 1,
+      "priority_index": 2
+    },
+    {
+      "section": "W",
+      "name": "Operations Docs",
+      "standard": 20,
+      "conservative": 19,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 1,
+      "priority_index": 2
+    },
+    {
+      "section": "A",
+      "name": "Governance & Process",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "B",
+      "name": "Architecture & Design",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "E",
+      "name": "Deployment & Release",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "F",
+      "name": "API Design",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "G",
+      "name": "Error Handling",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "H",
+      "name": "Logging & Monitoring",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "I",
+      "name": "Auth & Authorization",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "P",
+      "name": "Security Controls",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "R",
+      "name": "Dependency Mgmt",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "U",
+      "name": "Backup & Recovery",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "V",
+      "name": "Incident Response",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "X",
+      "name": "Release Management",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    },
+    {
+      "section": "Y",
+      "name": "Compliance & Audit",
+      "standard": 20,
+      "conservative": 20,
+      "floor_gap": 0,
+      "target_gap": 0,
+      "variance": 0,
+      "priority_index": 0
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "version": "3.8.0-dev",
+  "locked_at": "2026-02-16T02:30:00Z",
+  "contract": "docs/SCORER_CONTRACT.md",
+  "scope_lock": "docs/V3_8_SCOPE_LOCK.md",
+  "epics": {
+    "epic_1": {
+      "name": "Data Quality & Schema Governance",
+      "sections": ["J", "C", "D"],
+      "aggregate_priority": 18,
+      "requirements": {
+        "min_new_gates": 2,
+        "gate_names": ["schema-validation-gate.py", "data-migration-gate.py"],
+        "min_checks_per_gate": 6,
+        "min_new_tests": 20,
+        "artifact_outputs": "reports/audit/",
+        "projected_conservative_uplift": {
+          "J": {"from": 15, "to": 18, "delta": 3},
+          "C": {"from": 16, "to": 18, "delta": 2},
+          "D": {"from": 18, "to": 19, "delta": 1}
+        },
+        "rationale": "J at 15 is the floor boundary. C has the second-highest target gap. Both share schema/validation architecture affinity."
+      },
+      "branch": "v3.8-epic1"
+    },
+    "epic_2": {
+      "name": "Automation & Observability Hardening",
+      "sections": ["S", "K", "N", "L"],
+      "aggregate_priority": 10,
+      "requirements": {
+        "min_new_gates": 2,
+        "gate_names": ["automation-coverage-gate.py", "trace-propagation-gate.py"],
+        "min_checks_per_gate": 6,
+        "min_new_tests": 20,
+        "artifact_outputs": "reports/audit/",
+        "projected_conservative_uplift": {
+          "S": {"from": 18, "to": 19, "delta": 1},
+          "K": {"from": 19, "to": 20, "delta": 1},
+          "N": {"from": 19, "to": 20, "delta": 1},
+          "L": {"from": 19, "to": 20, "delta": 1}
+        },
+        "rationale": "S has the highest variance (2) outside Epic 1. K, N, L share operational instrumentation affinity and each need +1 for ceiling."
+      },
+      "branch": "v3.8-epic2"
+    }
+  },
+  "release_acceptance": {
+    "inherited_gates_pass": {
+      "required": true,
+      "count": 24,
+      "fail_fast": true,
+      "description": "All 24 inherited baseline gates must PASS"
+    },
+    "delta_gates_pass": {
+      "required": true,
+      "count": 4,
+      "description": "All 4 v3.8 delta gates must PASS"
+    },
+    "unit_tests_pass": {
+      "required": true,
+      "floor": 299,
+      "expected_new": 40,
+      "description": "All unit tests PASS (>=299 inherited + >=40 new)"
+    },
+    "evidence_bundle": {
+      "required": true,
+      "sha256_manifest": true,
+      "description": "Evidence bundle with SHA-256 manifest in releases/v3.8.0/"
+    },
+    "dual_pass_standard": {
+      "required": true,
+      "floor_pct": 78,
+      "floor_points": 390,
+      "description": "Standard scorer >= 78% (390/500)"
+    },
+    "dual_pass_conservative": {
+      "required": true,
+      "floor_pct": 78,
+      "floor_points": 390,
+      "description": "Conservative scorer >= 78% (390/500)"
+    },
+    "section_floor": {
+      "required": true,
+      "min_per_section": 15,
+      "both_passes": true,
+      "description": "No section below 15/20 on either pass"
+    }
+  }
+}
