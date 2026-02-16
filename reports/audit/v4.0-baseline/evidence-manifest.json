@@ -1,0 +1,17 @@
+{
+  "schema": "sonia-evidence-manifest-v1",
+  "version": "4.0.0-dev",
+  "timestamp": "2026-02-16T05:46:09.515971+00:00",
+  "type": "baseline_evidence_pack",
+  "description": "v4.0 M0 baseline evidence - inherited floor validation from v3.9.0 GA",
+  "files": {
+    "gate-matrix-v40-baseline-20260216-053612.json": {
+      "sha256": "abfd31f205765d0b6f8cd8e6bda9f917190e36c348af778d0b9d2b4fdd073150",
+      "size_bytes": 26568
+    },
+    "unit-summary-v40-baseline-20260216-053612.json": {
+      "sha256": "c9a59c7d264c2807707f3e8d512efc4a509f8243f9625536a552480f6e98185f",
+      "size_bytes": 474
+    }
+  }
+}

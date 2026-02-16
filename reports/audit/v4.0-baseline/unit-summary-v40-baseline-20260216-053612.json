@@ -1,0 +1,18 @@
+{
+  "version": "4.0.0-dev",
+  "timestamp": "2026-02-16T05:36:12Z",
+  "runner": "gate-v39.py (baseline re-validation on v4.0-dev)",
+  "python": "3.11.14",
+  "test_root": "S:\\tests\\unit",
+  "passed": 523,
+  "failed": 0,
+  "total": 523,
+  "duration_s": 47.565,
+  "verdict": "PASS",
+  "inherited_floor": 523,
+  "breakdown": {
+    "inherited_from_v39": 523,
+    "v40_delta": 0
+  },
+  "note": "Baseline freeze: all 523 tests from v3.9.0 GA pass on v4.0-dev"
+}
