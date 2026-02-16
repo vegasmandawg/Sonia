@@ -1,0 +1,9 @@
+{
+  "version": "4.1.0-dev",
+  "epic": "E1",
+  "timestamp": "2026-02-16T15:07:56.755155+00:00",
+  "gate_file": "v41-epic1-provenance-gate.py",
+  "checks_passed": 10,
+  "checks_total": 10,
+  "verdict": "PASS"
+}

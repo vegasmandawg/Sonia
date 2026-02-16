@@ -1,0 +1,16 @@
+{
+  "version": "4.1.0-dev",
+  "epic": "E1",
+  "timestamp": "2026-02-16T15:07:56.755155+00:00",
+  "test_files": [
+    "test_provenance_registry.py",
+    "test_lineage_mapper.py",
+    "test_evidence_integrity.py",
+    "test_epic1_governance_closure.py"
+  ],
+  "tests_passed": 36,
+  "tests_total": 36,
+  "total_suite": 658,
+  "inherited": 622,
+  "delta": 36
+}
