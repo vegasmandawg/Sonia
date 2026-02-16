@@ -67,3 +67,47 @@ class TestContract:
         s = _script(preconds=())
         checks = validate_rollback_contract(s)
         assert any(c.name == "has_preconditions" and c.verdict == RollbackVerdict.FAIL for c in checks)
+
+
+# --- E3 negative-path tests ---
+
+class TestNegativePaths:
+    def test_registry_empty_all_support_dry_run(self):
+        reg = RollbackScriptRegistry()
+        assert reg.all_support_dry_run()
+
+    def test_registry_get_missing_returns_none(self):
+        reg = RollbackScriptRegistry()
+        assert reg.get("nonexistent") is None
+
+    def test_fingerprint_deterministic(self):
+        s = _script()
+        assert s.fingerprint() == s.fingerprint()
+        assert len(s.fingerprint()) == 64
+
+    def test_different_scripts_different_fingerprints(self):
+        s1 = _script(sid="rb-001")
+        s2 = _script(sid="rb-002")
+        assert s1.fingerprint() != s2.fingerprint()
+
+    def test_dry_run_output_hash_static_method(self):
+        from rollback_determinism import DryRunOutput
+        h1 = DryRunOutput.compute_hash(["a", "b"], ["c"])
+        h2 = DryRunOutput.compute_hash(["a", "b"], ["c"])
+        assert h1 == h2
+        h3 = DryRunOutput.compute_hash(["a"], ["c"])
+        assert h1 != h3
+
+    def test_contract_all_fail_no_dry_run_no_preconds(self):
+        s = RollbackScript("rb-bad", "rollback", "bad.ps1", "1.0.0", False, ())
+        checks = validate_rollback_contract(s)
+        fails = [c for c in checks if c.verdict == RollbackVerdict.FAIL]
+        assert len(fails) >= 2
+
+    def test_multiple_scripts_mixed_dry_run(self):
+        reg = RollbackScriptRegistry()
+        reg.register(_script("rb-001", dry=True))
+        reg.register(_script("rb-002", dry=False))
+        reg.register(_script("rb-003", dry=True))
+        assert not reg.all_support_dry_run()
+        assert reg.scripts_without_dry_run() == ["rb-002"]
