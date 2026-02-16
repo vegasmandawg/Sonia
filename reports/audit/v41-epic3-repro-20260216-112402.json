@@ -1,0 +1,8 @@
+{
+  "epic": "E3",
+  "gate": "v41-epic3-repro-gate",
+  "checks": 10,
+  "passed": 10,
+  "verdict": "PASS",
+  "timestamp": "20260216-112402"
+}
