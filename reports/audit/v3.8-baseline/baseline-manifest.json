@@ -1,0 +1,31 @@
+{
+  "version": "3.8.0-dev",
+  "type": "baseline-snapshot",
+  "timestamp": "2026-02-16T01:57:48.484173+00:00",
+  "files": {
+    "SCORER_CONTRACT.md": {
+      "sha256": "12de6770078ee2f84d9a41239d1a900890bbdb3e21cd05eede3cf8c6d867866c",
+      "size": 5020
+    },
+    "V3_8_SCOPE_LOCK.md": {
+      "sha256": "3ced55aad838957756b7bbabf90a1bf3f975e48cc000a5bee1cdee0f7fe9f05b",
+      "size": 4844
+    },
+    "v37-gate-matrix.json": {
+      "sha256": "30af65bd72a50e918a4c750fa6632de61028f58b15ab3c90520a50fe796b287c",
+      "size": 2057
+    },
+    "v37-release-manifest.json": {
+      "sha256": "f1583d422c987cdc89d0c20149fd518a82826deb3ee1053fd47d5391ff634ec3",
+      "size": 938
+    },
+    "v37-scorecard.md": {
+      "sha256": "89f01e3b894e0e7bc03563703ee4a7b6d3cd0734af1c44bdff48064dbc8e4922",
+      "size": 16531
+    },
+    "v37-unit-summary.json": {
+      "sha256": "ddb90e471e3a24aee390514ac665f84916aad6484cbfcce0a686bf50f036475f",
+      "size": 1245
+    }
+  }
+}

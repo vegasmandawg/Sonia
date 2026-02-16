@@ -1,0 +1,103 @@
+{
+  "timestamp": "20260215-193732",
+  "total": 24,
+  "passed": 23,
+  "gates": [
+    {
+      "gate": "auth-posture-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "auth-surface-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "backup-restore-drill.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "cleanroom-parity-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "consolidated-preaudit.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "drill-determinism-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "fallback-behavior-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "incident-bundle-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "incident-completeness-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "incident-lineage-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "memory-silo-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "output-budget-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "perf-budget-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "policy-enforcement-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "rate-limiter-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "recovery-determinism-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "regression-guard-gate.py",
+      "verdict": "ERROR"
+    },
+    {
+      "gate": "release-integrity-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "restore-integrity-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "runtime-qos-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "secret-scan-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "session-isolation-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "traceability-gate.py",
+      "verdict": "PASS"
+    },
+    {
+      "gate": "unit-test-layer-gate.py",
+      "verdict": "PASS"
+    }
+  ]
+}

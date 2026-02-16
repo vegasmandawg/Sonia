@@ -1,0 +1,191 @@
+{
+  "schema_version": "5.0",
+  "version": "3.8.0-dev",
+  "branch": "v3.8-dev",
+  "timestamp": "2026-02-16T02:04:08.761041+00:00",
+  "gates_passed": 24,
+  "gates_total": 25,
+  "inherited_floor": 24,
+  "inherited_unit_test_floor": 299,
+  "unit_tests_passed": 299,
+  "unit_tests_failed": 0,
+  "delta_gates_wired": 0,
+  "floor_only": true,
+  "verdict": "HOLD",
+  "gates": [
+    {
+      "gate": "UNIT_TEST_FLOOR",
+      "passed": true,
+      "detail": "299 passed, 0 failed (floor: 299)",
+      "duration_s": 47.154
+    },
+    {
+      "gate": "auth-posture-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.689,
+      "category": "inherited"
+    },
+    {
+      "gate": "auth-surface-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.694,
+      "category": "inherited"
+    },
+    {
+      "gate": "backup-restore-drill.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.139,
+      "category": "inherited"
+    },
+    {
+      "gate": "cleanroom-parity-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.037,
+      "category": "inherited"
+    },
+    {
+      "gate": "consolidated-preaudit.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 55.275,
+      "category": "inherited"
+    },
+    {
+      "gate": "drill-determinism-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.823,
+      "category": "inherited"
+    },
+    {
+      "gate": "fallback-behavior-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 46.598,
+      "category": "inherited"
+    },
+    {
+      "gate": "incident-bundle-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.036,
+      "category": "inherited"
+    },
+    {
+      "gate": "incident-completeness-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.027,
+      "category": "inherited"
+    },
+    {
+      "gate": "incident-lineage-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.73,
+      "category": "inherited"
+    },
+    {
+      "gate": "memory-silo-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.646,
+      "category": "inherited"
+    },
+    {
+      "gate": "output-budget-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.663,
+      "category": "inherited"
+    },
+    {
+      "gate": "perf-budget-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.031,
+      "category": "inherited"
+    },
+    {
+      "gate": "policy-enforcement-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.722,
+      "category": "inherited"
+    },
+    {
+      "gate": "rate-limiter-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.033,
+      "category": "inherited"
+    },
+    {
+      "gate": "recovery-determinism-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.662,
+      "category": "inherited"
+    },
+    {
+      "gate": "regression-guard-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 155.016,
+      "category": "inherited"
+    },
+    {
+      "gate": "release-integrity-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.05,
+      "category": "inherited"
+    },
+    {
+      "gate": "restore-integrity-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.685,
+      "category": "inherited"
+    },
+    {
+      "gate": "runtime-qos-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.666,
+      "category": "inherited"
+    },
+    {
+      "gate": "secret-scan-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.104,
+      "category": "inherited"
+    },
+    {
+      "gate": "session-isolation-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.654,
+      "category": "inherited"
+    },
+    {
+      "gate": "traceability-gate.py",
+      "passed": true,
+      "detail": "PASS",
+      "duration_s": 0.039,
+      "category": "inherited"
+    },
+    {
+      "gate": "unit-test-layer-gate.py",
+      "passed": false,
+      "detail": "FAIL: FAIL",
+      "duration_s": 48.95,
+      "category": "inherited"
+    }
+  ]
+}

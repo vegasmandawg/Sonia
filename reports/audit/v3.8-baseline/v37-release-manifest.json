@@ -1,0 +1,30 @@
+{
+  "version": "3.7.0",
+  "timestamp": "20260215-193732",
+  "files": {
+    "changelog.json": {
+      "sha256": "91080a07d2b8c86255f8f8035fc0ffb56279723844107a40762af8a58f63acc3",
+      "size": 1074
+    },
+    "dependency-lock.json": {
+      "sha256": "5cc5b026f35590761b4ef580360d7227931f3992d4a271fbbcbf887d418a4509",
+      "size": 3402
+    },
+    "FINAL_SCORECARD.md": {
+      "sha256": "89f01e3b894e0e7bc03563703ee4a7b6d3cd0734af1c44bdff48064dbc8e4922",
+      "size": 16531
+    },
+    "gate-matrix.json": {
+      "sha256": "30af65bd72a50e918a4c750fa6632de61028f58b15ab3c90520a50fe796b287c",
+      "size": 2057
+    },
+    "requirements-frozen.txt": {
+      "sha256": "24330beab15a8acd931d8a1cbdd11b7ab196927c383732b8fce316f90eee3d1a",
+      "size": 1478
+    },
+    "unit-test-summary.json": {
+      "sha256": "ddb90e471e3a24aee390514ac665f84916aad6484cbfcce0a686bf50f036475f",
+      "size": 1245
+    }
+  }
+}

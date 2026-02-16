@@ -1,0 +1,6 @@
+{
+  "timestamp": "20260215-193732",
+  "summary": "299 passed, 3 warnings in 46.65s",
+  "returncode": 0,
+  "test_output": "........................................................................ [ 24%]\n........................................................................ [ 48%]\n........................................................................ [ 72%]\n........................................................................ [ 96%]\n...........                                                              [100%]\n============================== warnings summary ===============================\ntests/unit/test_turn_quality.py::TestBuildAnnotations::test_defaults\ntests/unit/test_turn_quality.py::TestBuildAnnotations::test_custom_values\ntests/unit/test_turn_quality.py::TestBuildAnnotations::test_returns_dict\n  S:\\tests\\unit\\..\\..\\services\\api-gateway\\turn_quality.py:68: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/\n    ).dict()\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n299 passed, 3 warnings in 46.65s\n"
+}
