@@ -1,0 +1,40 @@
+{
+  "version": "4.1.0-dev",
+  "schema": "epic_map_v2",
+  "epics": {
+    "E1": {
+      "name": "Governance Provenance Deepening",
+      "focus": "policy provenance, control lineage, immutable evidence joins",
+      "gate_file": "v41-epic1-provenance-gate.py",
+      "test_budget": 30,
+      "governance_module": "provenance_governance.py",
+      "status": "planned"
+    },
+    "E2": {
+      "name": "Fault/Recovery Determinism Under Stress",
+      "focus": "chaos cases, replay determinism, restore invariants at scale",
+      "gate_file": "v41-epic2-chaos-recovery-gate.py",
+      "test_budget": 30,
+      "governance_module": "chaos_recovery_governance.py",
+      "status": "planned"
+    },
+    "E3": {
+      "name": "Reproducible Release + Cleanroom Parity",
+      "focus": "deterministic rebuild parity, release artifact verification, rollback drills",
+      "gate_file": "v41-epic3-repro-gate.py",
+      "test_budget": 30,
+      "governance_module": "repro_release_governance.py",
+      "status": "planned"
+    }
+  },
+  "cross_epic": {
+    "evidence_gate": "v41-evidence-integrity-gate.py",
+    "evidence_checks": 5
+  },
+  "inherited": {
+    "from_version": "4.0.0",
+    "gates": 37,
+    "tests": 622,
+    "dual_pass_score": 500
+  }
+}
