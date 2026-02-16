@@ -73,3 +73,51 @@ class TestParse:
 
     def test_parse_empty_returns_none(self):
         assert parse_requirements_line("") is None
+
+    def test_parse_flag_line_skipped(self):
+        assert parse_requirements_line("-e .") is None
+
+
+# --- E3 negative-path tests ---
+
+class TestNegativePaths:
+    def test_unpinned_dep_detection_multiple(self):
+        fds = FrozenDependencySet()
+        fds.add(DependencyEntry("a", "1.0", ">=1.0"))
+        fds.add(DependencyEntry("b", "2.0", "~=2.0"))
+        fds.add(DependencyEntry("c", "3.0", "==3.0"))
+        unpinned = fds.unpinned_deps()
+        assert "a" in unpinned
+        assert "b" in unpinned
+        assert "c" not in unpinned
+
+    def test_lock_hash_mismatch_after_modification(self):
+        fds = FrozenDependencySet()
+        fds.add(DependencyEntry("requests", "2.31.0", "==2.31.0"))
+        h1 = fds.compute_lock_hash()
+        fds.add(DependencyEntry("flask", "3.0.0", "==3.0.0"))
+        h2 = fds.compute_lock_hash()
+        assert h1 != h2
+        assert not fds.verify_lock_hash(h1)
+
+    def test_empty_set_still_hashable(self):
+        fds = FrozenDependencySet()
+        assert fds.all_pinned() is True
+        assert len(fds.compute_lock_hash()) == 64
+
+    def test_not_equals_spec_detected(self):
+        d = DependencyEntry("pkg", "1.0", "!=1.0")
+        assert d.is_fully_pinned() is False
+
+    def test_star_spec_detected(self):
+        d = DependencyEntry("pkg", "1.0", "*")
+        assert d.is_fully_pinned() is False
+
+    def test_lock_reproducibility(self):
+        """Two identical sets produce the same lock hash."""
+        fds1 = FrozenDependencySet()
+        fds2 = FrozenDependencySet()
+        for fds in [fds1, fds2]:
+            fds.add(DependencyEntry("a", "1.0", "==1.0"))
+            fds.add(DependencyEntry("b", "2.0", "==2.0"))
+        assert fds1.compute_lock_hash() == fds2.compute_lock_hash()
