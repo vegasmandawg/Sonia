@@ -1,0 +1,158 @@
+{
+  "standard_total": 500,
+  "conservative_total": 500,
+  "gap": 0,
+  "per_section": [
+    {
+      "section": "A: Test Floor & Regression",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "B: Gate Matrix Integrity",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "C: Epic 1 Provenance",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "D: Epic 2 Chaos Recovery",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "E: Epic 3 Reproducible Release",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "F: Class A Gates (inherited)",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "G: Class B Gates (delta)",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "H: Class C Gates (evidence)",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "I: Deterministic Failures",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "J: Scope Lock Compliance",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "K: Provenance Registry",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "L: Evidence Integrity",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "M: Chaos Policy",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "N: Restore Policy",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "O: Replay Policy",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "P: Incident Lineage",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "Q: Determinism Report",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "R: Reproducible Build Policy",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "S: Cleanroom Parity",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "T: Release Manifest Policy",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "U: Rollback Determinism",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "V: Release Lineage",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "W: Test Budget",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "X: Gate Schema Compliance",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "Y: Release Readiness",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    }
+  ],
+  "timestamp": "20260216-115718"
+}
