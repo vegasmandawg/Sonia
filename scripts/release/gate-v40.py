@@ -27,6 +27,7 @@ Hardening:
 import argparse
 import json
 import os
+import random
 import re
 import subprocess
 import sys
@@ -94,9 +95,9 @@ INHERITED_UNIT_TEST_FLOOR = 523
 # ---- Class B: v4.0 delta gates (epic-owned) ----------------------------------
 
 CLASS_B_GATES = [
-    ("v40-epic1-gate.py", "gates", "v4.0 Epic 1 (placeholder)"),
-    ("v40-epic2-gate.py", "gates", "v4.0 Epic 2 (placeholder)"),
-    ("v40-epic3-gate.py", "gates", "v4.0 Epic 3 (placeholder)"),
+    ("v40-epic1-gate.py", "gates", "E1: Session & Memory Governance"),
+    ("v40-epic2-gate.py", "gates", "E2: Recovery, Incident Lineage, Determinism"),
+    ("v40-epic3-gate.py", "gates", "E3: Runtime QoS, Contract Fidelity, Release"),
 ]
 
 CLASS_B_COUNT = len(CLASS_B_GATES)
@@ -148,7 +149,19 @@ def _classify_failure(returncode, stdout, stderr, always_retry=False):
     return FailureClass.DETERMINISTIC, False
 
 
-# ---- Subprocess execution with retry ----------------------------------------
+# ---- Subprocess execution with retry + backoff jitter -----------------------
+
+# Backoff jitter range for retry delay (seconds).  Randomized to reduce
+# thundering-herd contention when many gates run sequentially and hit the
+# same subprocess resources (pytest, sqlite, file I/O).
+RETRY_BASE_DELAY = 2.0
+RETRY_JITTER_MAX = 1.5  # delay = base + uniform(0, jitter_max)
+
+
+def _backoff_delay():
+    """Return a randomized retry delay to de-correlate concurrent retries."""
+    return RETRY_BASE_DELAY + random.uniform(0, RETRY_JITTER_MAX)
+
 
 def _run_gate_once(gate_path):
     """Execute a gate script once, return (returncode, stdout, stderr, elapsed)."""
@@ -169,8 +182,38 @@ def _run_gate_once(gate_path):
         return -2, "", f"ERROR: {e}", elapsed
 
 
+def _extract_detail(combined):
+    """Pull check-count detail from gate output, or default to PASS."""
+    m = re.search(r"(\d+)\s*/\s*(\d+)\s*checks?\s*PASS", combined)
+    return f"{m.group(1)}/{m.group(2)} checks PASS" if m else "PASS"
+
+
+def _attempt_record(rc, stdout, stderr, elapsed):
+    """Build a compact attempt log dict (preserved in both-attempt evidence)."""
+    return {
+        "returncode": rc,
+        "stdout_tail": (stdout or "")[-400:],
+        "stderr_tail": (stderr or "")[-400:],
+        "elapsed_s": elapsed,
+    }
+
+
 def run_gate_script(gate_file, search_dir, always_retry=False):
-    """Run a gate script with retry logic. Returns a rich result dict."""
+    """Run a gate script with controlled retry + backoff jitter.
+
+    Retry policy:
+      - If always_retry=True (Class A inherited gates), any non-zero exit
+        triggers one retry after randomized backoff.
+      - Otherwise, only ambiguous failures (empty output, deprecation noise,
+        timeout-like messages) trigger retry.
+      - Both attempt logs are preserved in the result for audit.
+
+    Classification:
+      - transient_fail: retry succeeded (PASS_WITH_RETRY)
+      - deterministic_fail: retry also failed, or failure is unambiguous
+      - timeout: subprocess exceeded 600s hard limit
+      - not_found: gate script does not exist on disk
+    """
     gate_path = search_dir / gate_file
     if not gate_path.exists():
         return {
@@ -178,6 +221,7 @@ def run_gate_script(gate_file, search_dir, always_retry=False):
             "detail": f"gate script not found: {gate_path}",
             "failure_class": FailureClass.NOT_FOUND,
             "attempts": 0,
+            "attempt_log": [],
             "stdout": "",
             "stderr": "",
             "cwd": str(REPO_ROOT),
@@ -188,18 +232,18 @@ def run_gate_script(gate_file, search_dir, always_retry=False):
 
     start_time = datetime.now(timezone.utc).isoformat()
 
-    # Attempt 1
+    # ---- Attempt 1 ----
     rc, stdout, stderr, elapsed = _run_gate_once(gate_path)
+    attempt1 = _attempt_record(rc, stdout, stderr, elapsed)
     combined = stdout + stderr
 
     if rc == 0:
-        m = re.search(r"(\d+)\s*/\s*(\d+)\s*checks?\s*PASS", combined)
-        detail = f"{m.group(1)}/{m.group(2)} checks PASS" if m else "PASS"
         return {
             "passed": True,
-            "detail": detail,
+            "detail": _extract_detail(combined),
             "failure_class": None,
             "attempts": 1,
+            "attempt_log": [attempt1],
             "stdout": stdout[-500:],
             "stderr": stderr[-500:],
             "cwd": str(REPO_ROOT),
@@ -208,32 +252,31 @@ def run_gate_script(gate_file, search_dir, always_retry=False):
             "end_time": datetime.now(timezone.utc).isoformat(),
         }
 
-    # Classify and maybe retry
+    # ---- Classify and decide retry ----
     fail_class, should_retry = _classify_failure(rc, stdout, stderr, always_retry)
 
     if should_retry:
-        time.sleep(2)
+        # Backoff with jitter to reduce subprocess contention
+        jitter_delay = _backoff_delay()
+        time.sleep(jitter_delay)
+
+        # ---- Attempt 2 ----
         rc2, stdout2, stderr2, elapsed2 = _run_gate_once(gate_path)
+        attempt2 = _attempt_record(rc2, stdout2, stderr2, elapsed2)
         combined2 = stdout2 + stderr2
 
         if rc2 == 0:
-            m = re.search(r"(\d+)\s*/\s*(\d+)\s*checks?\s*PASS", combined2)
-            detail = f"{m.group(1)}/{m.group(2)} checks PASS" if m else "PASS"
             return {
                 "passed": True,
-                "detail": f"PASS_WITH_RETRY: {detail}",
+                "detail": f"PASS_WITH_RETRY: {_extract_detail(combined2)}",
                 "failure_class": FailureClass.TRANSIENT,
                 "attempts": 2,
-                "retry_evidence": {
-                    "attempt1_rc": rc,
-                    "attempt1_stdout_tail": stdout[-300:],
-                    "attempt1_stderr_tail": stderr[-300:],
-                    "attempt1_elapsed_s": elapsed,
-                },
+                "attempt_log": [attempt1, attempt2],
+                "retry_delay_s": round(jitter_delay, 3),
                 "stdout": stdout2[-500:],
                 "stderr": stderr2[-500:],
                 "cwd": str(REPO_ROOT),
-                "duration_s": elapsed + elapsed2,
+                "duration_s": round(elapsed + jitter_delay + elapsed2, 3),
                 "start_time": start_time,
                 "end_time": datetime.now(timezone.utc).isoformat(),
             }
@@ -245,21 +288,17 @@ def run_gate_script(gate_file, search_dir, always_retry=False):
                 "detail": f"FAIL (confirmed after retry): {last[:200]}",
                 "failure_class": FailureClass.DETERMINISTIC,
                 "attempts": 2,
-                "retry_evidence": {
-                    "attempt1_rc": rc,
-                    "attempt1_stdout_tail": stdout[-300:],
-                    "attempt1_stderr_tail": stderr[-300:],
-                    "attempt1_elapsed_s": elapsed,
-                },
+                "attempt_log": [attempt1, attempt2],
+                "retry_delay_s": round(jitter_delay, 3),
                 "stdout": stdout2[-500:],
                 "stderr": stderr2[-500:],
                 "cwd": str(REPO_ROOT),
-                "duration_s": elapsed + elapsed2,
+                "duration_s": round(elapsed + jitter_delay + elapsed2, 3),
                 "start_time": start_time,
                 "end_time": datetime.now(timezone.utc).isoformat(),
             }
 
-    # Deterministic failure (no retry)
+    # ---- Deterministic failure (no retry warranted) ----
     lines = combined.strip().split("\n")
     last = lines[-1] if lines else "unknown failure"
     return {
@@ -267,6 +306,7 @@ def run_gate_script(gate_file, search_dir, always_retry=False):
         "detail": f"FAIL: {last[:200]}",
         "failure_class": fail_class,
         "attempts": 1,
+        "attempt_log": [attempt1],
         "stdout": stdout[-500:],
         "stderr": stderr[-500:],
         "cwd": str(REPO_ROOT),
