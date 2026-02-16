@@ -1,0 +1,224 @@
+{
+  "version": "3.9.0-dev",
+  "timestamp": "2026-02-16T05:18:30.769249+00:00",
+  "standard_total": 496,
+  "conservative_total": 496,
+  "mean": 496.0,
+  "variance_points": 0,
+  "variance_pct": 0.0,
+  "v38_variance": 14,
+  "variance_improvement": 14,
+  "standard_floor_met": true,
+  "conservative_floor_met": true,
+  "both_floors_met": true,
+  "sections_below_15": [],
+  "top5_disagreements": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "per_section": [
+    {
+      "section": "A",
+      "name": "Governance & Process",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "B",
+      "name": "Architecture & Design",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "C",
+      "name": "Code Quality",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "D",
+      "name": "Configuration Mgmt",
+      "standard": 18,
+      "conservative": 18,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "E",
+      "name": "Deployment & Release",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "F",
+      "name": "API Design",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "G",
+      "name": "Error Handling",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "H",
+      "name": "Logging & Monitoring",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "I",
+      "name": "Auth & Authorization",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "J",
+      "name": "Data Management",
+      "standard": 19,
+      "conservative": 19,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "K",
+      "name": "Performance",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "L",
+      "name": "Testing Strategy",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "M",
+      "name": "Data Stores",
+      "standard": 19,
+      "conservative": 19,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "N",
+      "name": "Observability",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "O",
+      "name": "Operational Readiness",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "P",
+      "name": "Security Controls",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "Q",
+      "name": "Privacy & Data",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "R",
+      "name": "Dependency Mgmt",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "S",
+      "name": "CI/CD & Automation",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "T",
+      "name": "Documentation Quality",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "U",
+      "name": "Backup & Recovery",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "V",
+      "name": "Incident Response",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "W",
+      "name": "Operations Docs",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "X",
+      "name": "Release Management",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    },
+    {
+      "section": "Y",
+      "name": "Compliance & Audit",
+      "standard": 20,
+      "conservative": 20,
+      "delta": 0,
+      "abs_delta": 0
+    }
+  ]
+}

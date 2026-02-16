@@ -1,0 +1,227 @@
+{
+  "run_id": "v3.9-dual-pass-20260216-051159",
+  "version": "3.9.0-dev",
+  "standard_total": 496,
+  "conservative_total": 496,
+  "mean_total": 496.0,
+  "inter_pass_gap_points": 0,
+  "inter_pass_gap_pct": 0.0,
+  "dispersion_from_mean_points": 0.0,
+  "dispersion_from_mean_pct": 0.0,
+  "both_floor_78_pass": true,
+  "sections_below_15_conservative": [],
+  "top_5_disagreements": [
+    {
+      "section": "A",
+      "label": "Governance & Process",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "B",
+      "label": "Architecture & Design",
+      "standard": 19,
+      "conservative": 19,
+      "gap": 0
+    },
+    {
+      "section": "C",
+      "label": "Code Quality",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "D",
+      "label": "Configuration Mgmt",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "E",
+      "label": "Deployment & Release",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    }
+  ],
+  "all_section_gaps": [
+    {
+      "section": "A",
+      "label": "Governance & Process",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "B",
+      "label": "Architecture & Design",
+      "standard": 19,
+      "conservative": 19,
+      "gap": 0
+    },
+    {
+      "section": "C",
+      "label": "Code Quality",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "D",
+      "label": "Configuration Mgmt",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "E",
+      "label": "Deployment & Release",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "F",
+      "label": "API Design",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "G",
+      "label": "Error Handling",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "H",
+      "label": "Logging & Monitoring",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "I",
+      "label": "Auth & Authorization",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "J",
+      "label": "Data Management",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "K",
+      "label": "Performance",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "L",
+      "label": "Testing Strategy",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "M",
+      "label": "Data Stores",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "N",
+      "label": "Observability",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "O",
+      "label": "Operational Readiness",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "P",
+      "label": "Security Controls",
+      "standard": 19,
+      "conservative": 19,
+      "gap": 0
+    },
+    {
+      "section": "Q",
+      "label": "Privacy & Data",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "R",
+      "label": "Dependency Mgmt",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "S",
+      "label": "CI/CD & Automation",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "T",
+      "label": "Documentation Quality",
+      "standard": 19,
+      "conservative": 19,
+      "gap": 0
+    },
+    {
+      "section": "U",
+      "label": "Backup & Recovery",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "V",
+      "label": "Incident Response",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "W",
+      "label": "Operations Docs",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "X",
+      "label": "Release Management",
+      "standard": 20,
+      "conservative": 20,
+      "gap": 0
+    },
+    {
+      "section": "Y",
+      "label": "Compliance & Audit",
+      "standard": 19,
+      "conservative": 19,
+      "gap": 0
+    }
+  ]
+}
