@@ -1,0 +1,43 @@
+{
+  "epic": "E2",
+  "title": "Chaos Recovery Determinism at Scale",
+  "timestamp": "20260216-194618",
+  "test_files": [
+    {
+      "file": "tests/unit/test_chaos_profile_policy.py",
+      "tests": 11,
+      "passed": 11,
+      "failed": 0
+    },
+    {
+      "file": "tests/unit/test_restore_invariant_policy.py",
+      "tests": 12,
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "file": "tests/unit/test_replay_determinism_policy.py",
+      "tests": 11,
+      "passed": 11,
+      "failed": 0
+    },
+    {
+      "file": "tests/unit/test_retry_breaker_policy.py",
+      "tests": 18,
+      "passed": 18,
+      "failed": 0
+    },
+    {
+      "file": "tests/unit/test_incident_lineage_policy.py",
+      "tests": 12,
+      "passed": 12,
+      "failed": 0
+    }
+  ],
+  "total_tests": 64,
+  "total_passed": 64,
+  "total_failed": 0,
+  "negative_path_coverage": true,
+  "budget_met": true,
+  "budget_required": 30
+}
