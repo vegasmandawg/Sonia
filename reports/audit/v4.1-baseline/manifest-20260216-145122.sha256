@@ -1,0 +1,12 @@
+{
+  "docs/governance/V4_1_SCOPE_LOCK.md": "8facb221614f9e8a70e10588a5e0e78be6c683bfd3a7a55400c60d09e8b0562a",
+  "docs/governance/V4_1_EPIC_MAP.json": "7ecd224a58103bf66698acc1e2e16c3aa4c272275e433a9617caa77fd3cec873",
+  "docs/governance/V4_1_PROMOTION_CRITERIA.json": "2da68fb99bacf3011f661dcf5a5db1a32bdf073c86edd4b49bdb8ea8cb4e355a",
+  "docs/governance/V4_1_NON_GOALS.json": "611d333f6175c0fde906c7e646ef7fc280fb038eceff2e41a415b54bcf2c27f1",
+  "docs/governance/SCORER_CONTRACT_V41.md": "7b2d750631a5b9dfeaedf3c2ed0839efe2e30f2463025cad0fb0da5022b30a0e",
+  "scripts/release/gate-v41.py": "4c6d4a07d3b8464743f639e8d6796ec3edd2ae36798f6cfc95cf7e67c228cfeb",
+  "scripts/gates/v41-epic1-provenance-gate.py": "96b227d38d5f04ab5eaa05e145a11ca1fdbc3e64afc389b2493ff43556287b73",
+  "scripts/gates/v41-epic2-chaos-recovery-gate.py": "afb667ab1d561c7109d61370f6ee6cd7c0ff32d2c3bd79afafe5eda7e18755c5",
+  "scripts/gates/v41-epic3-repro-gate.py": "37c1e5c8c87acfed566ef075307c75774ebcc647477b92f00bac1fca6f055913",
+  "scripts/gates/v41-evidence-integrity-gate.py": "6b11fabe902f029e56df21dc36a9a5f5b860e9c320c4a2aadd4eaa3ab1da27dd"
+}

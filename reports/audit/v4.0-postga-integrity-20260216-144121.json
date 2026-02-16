@@ -1,0 +1,13 @@
+{
+  "version": "4.0.0",
+  "timestamp": "2026-02-16T14:41:21.933578+00:00",
+  "checks": {
+    "v4_0_0_rc1_resolves": true,
+    "v4_0_0_resolves": true,
+    "main_contains_ga": true,
+    "release_v40x_exists": true,
+    "release_manifest_exists": true
+  },
+  "all_pass": true,
+  "verdict": "PASS"
+}
