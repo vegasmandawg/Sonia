@@ -1,0 +1,46 @@
+{
+  "version": "4.2.0-dev",
+  "schema": "promotion-criteria-v2",
+  "criteria": {
+    "gate_matrix": {
+      "total": 45,
+      "inherited": 41,
+      "delta": 4,
+      "verdict_required": "PROMOTE",
+      "fail_fast_on_inherited": true
+    },
+    "test_suite": {
+      "floor": 753,
+      "ga_minimum": 843,
+      "delta_minimum": 90,
+      "failures_allowed": 0,
+      "deterministic_failures_allowed": 0
+    },
+    "dual_pass": {
+      "standard_floor": 495,
+      "conservative_floor": 495,
+      "max_gap": 6,
+      "min_section_score": 15,
+      "sections": 25,
+      "max_per_section": 20,
+      "total_max": 500
+    },
+    "epic_gates": {
+      "E1": {"checks_required": 10, "verdict": "PASS"},
+      "E2": {"checks_required": 10, "verdict": "PASS"},
+      "E3": {"checks_required": 10, "verdict": "PASS"}
+    },
+    "release_bundle": {
+      "manifest_required": true,
+      "sha256_hashes": true,
+      "evidence_frozen": true,
+      "changelog_required": true
+    }
+  },
+  "rules": [
+    "Inherited gates are fail-fast HOLD -- no regression allowed",
+    "No feature merge without gate ownership + test budget",
+    "Per-pass floor required (both scorers >=78%, no section <15)",
+    "All v4.1 governance modules frozen; extend only"
+  ]
+}

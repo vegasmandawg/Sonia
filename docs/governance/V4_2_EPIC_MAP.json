@@ -1,0 +1,45 @@
+{
+  "version": "4.2.0-dev",
+  "schema": "epic-map-v2",
+  "epics": {
+    "E1": {
+      "title": "TBD",
+      "branch": "v4.2-e1-tbd",
+      "gate": "scripts/gates/v42-epic1-gate.py",
+      "checks_required": 10,
+      "test_budget": 30,
+      "modules": [],
+      "status": "placeholder"
+    },
+    "E2": {
+      "title": "TBD",
+      "branch": "v4.2-e2-tbd",
+      "gate": "scripts/gates/v42-epic2-gate.py",
+      "checks_required": 10,
+      "test_budget": 30,
+      "modules": [],
+      "status": "placeholder"
+    },
+    "E3": {
+      "title": "TBD",
+      "branch": "v4.2-e3-tbd",
+      "gate": "scripts/gates/v42-epic3-gate.py",
+      "checks_required": 10,
+      "test_budget": 30,
+      "modules": [],
+      "status": "placeholder"
+    }
+  },
+  "inherited": {
+    "gates": 41,
+    "tests": 753,
+    "source_tag": "v4.1.0"
+  },
+  "targets": {
+    "total_gates": 45,
+    "total_tests_minimum": 843,
+    "dual_pass_floor": 495,
+    "max_gap": 6,
+    "deterministic_failures": 0
+  }
+}
