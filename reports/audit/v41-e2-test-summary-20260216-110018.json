@@ -1,0 +1,15 @@
+{
+  "epic": "E2",
+  "new_tests": 49,
+  "passed": 49,
+  "failed": 0,
+  "total_suite": 707,
+  "files": [
+    "test_chaos_policy.py",
+    "test_restore_policy.py",
+    "test_replay_policy.py",
+    "test_incident_lineage.py",
+    "test_epic2_determinism_closure.py"
+  ],
+  "timestamp": "20260216-110018"
+}

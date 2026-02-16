@@ -1,0 +1,247 @@
+{
+  "label": "Standard",
+  "total": 500,
+  "max": 500,
+  "sections": [
+    {
+      "section": "A: Test Floor & Regression",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] Unit test floor gate passes",
+        "  [OK] Zero test failures",
+        "  [OK] Tests >= 712 (GA threshold)",
+        "  [OK] Tests >= 750"
+      ]
+    },
+    {
+      "section": "B: Gate Matrix Integrity",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] 41/41 gates PROMOTE",
+        "  [OK] Schema version 8.0",
+        "  [OK] No HOLD reasons",
+        "  [OK] Fail-fast not triggered"
+      ]
+    },
+    {
+      "section": "C: Epic 1 Provenance",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] E1 verdict PASS",
+        "  [OK] E1 10/10 checks",
+        "  [OK] E1 gate file present"
+      ]
+    },
+    {
+      "section": "D: Epic 2 Chaos Recovery",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] E2 verdict PASS",
+        "  [OK] E2 10/10 checks",
+        "  [OK] E2 gate file present"
+      ]
+    },
+    {
+      "section": "E: Epic 3 Reproducible Release",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] E3 verdict PASS",
+        "  [OK] E3 10/10 checks",
+        "  [OK] E3 gate file present"
+      ]
+    },
+    {
+      "section": "F: Class A Gates (inherited)",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] 36 Class A gates present",
+        "  [OK] All Class A passed",
+        "  [OK] Inherited floor >= 622"
+      ]
+    },
+    {
+      "section": "G: Class B Gates (delta)",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] 3 Class B gates present",
+        "  [OK] All delta gates pass"
+      ]
+    },
+    {
+      "section": "H: Class C Gates (evidence)",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] 1 Class C gate present",
+        "  [OK] Evidence gate passes"
+      ]
+    },
+    {
+      "section": "I: Deterministic Failures",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] Zero deterministic failures",
+        "  [OK] Verdict is PROMOTE"
+      ]
+    },
+    {
+      "section": "J: Scope Lock Compliance",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] Scope lock document exists",
+        "  [OK] Scorer contract exists"
+      ]
+    },
+    {
+      "section": "K: Provenance Registry",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] provenance_registry.py exists",
+        "  [OK] lineage_mapper.py exists"
+      ]
+    },
+    {
+      "section": "L: Evidence Integrity",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] evidence_integrity.py exists",
+        "  [OK] provenance_reporter.py exists"
+      ]
+    },
+    {
+      "section": "M: Chaos Policy",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] chaos_policy.py exists",
+        "  [OK] E2 chaos checks pass"
+      ]
+    },
+    {
+      "section": "N: Restore Policy",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] restore_policy.py exists",
+        "  [OK] Restore tests in suite"
+      ]
+    },
+    {
+      "section": "O: Replay Policy",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] replay_policy.py exists",
+        "  [OK] Replay determinism verified"
+      ]
+    },
+    {
+      "section": "P: Incident Lineage",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] incident_lineage.py exists",
+        "  [OK] Lineage chain tests pass"
+      ]
+    },
+    {
+      "section": "Q: Determinism Report",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] determinism_report.py exists",
+        "  [OK] Rerun parity verified"
+      ]
+    },
+    {
+      "section": "R: Reproducible Build Policy",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] repro_build_policy.py exists",
+        "  [OK] E3 repro checks pass"
+      ]
+    },
+    {
+      "section": "S: Cleanroom Parity",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] cleanroom_parity.py exists",
+        "  [OK] Parity checker tests pass"
+      ]
+    },
+    {
+      "section": "T: Release Manifest Policy",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] release_manifest_policy.py exists",
+        "  [OK] Manifest completeness verified"
+      ]
+    },
+    {
+      "section": "U: Rollback Determinism",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] rollback_determinism.py exists",
+        "  [OK] Rollback dry-run deterministic"
+      ]
+    },
+    {
+      "section": "V: Release Lineage",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] release_lineage.py exists",
+        "  [OK] Lineage hash deterministic"
+      ]
+    },
+    {
+      "section": "W: Test Budget",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] E1 tests contributed (>=30)",
+        "  [OK] E2 tests contributed (>=30)",
+        "  [OK] E3 tests contributed (>=20)",
+        "  [OK] Total tests >= 750"
+      ]
+    },
+    {
+      "section": "X: Gate Schema Compliance",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] Schema v8.0 validated",
+        "  [OK] Gate telemetry present"
+      ]
+    },
+    {
+      "section": "Y: Release Readiness",
+      "score": 20,
+      "max": 20,
+      "details": [
+        "  [OK] All 41 gates pass",
+        "  [OK] All 3 epics pass",
+        "  [OK] Tests >= GA threshold",
+        "  [OK] Non-goals document exists"
+      ]
+    }
+  ],
+  "all_epics_pass": true,
+  "closed_deduction_active": true,
+  "timestamp": "20260216-115718"
+}

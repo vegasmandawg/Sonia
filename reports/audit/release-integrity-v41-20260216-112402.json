@@ -1,0 +1,9 @@
+{
+  "checker": "release_manifest_policy",
+  "manifest_complete": true,
+  "all_hashes_present": true,
+  "metadata_valid": true,
+  "dep_lock_verified": true,
+  "overall_pass": true,
+  "timestamp": "20260216-112402"
+}

@@ -1,0 +1,36 @@
+{
+  "version": "4.1.0-dev",
+  "schema": "promotion_criteria_v2",
+  "gates": {
+    "total": 41,
+    "class_a_inherited": 37,
+    "class_b_delta": 3,
+    "class_c_evidence": 1,
+    "fail_fast_on_inherited": true
+  },
+  "tests": {
+    "minimum_total": 712,
+    "inherited_floor": 622,
+    "delta_minimum": 90,
+    "zero_failures_required": true
+  },
+  "dual_pass": {
+    "standard_floor": 495,
+    "conservative_floor": 495,
+    "max_inter_pass_gap": 6,
+    "no_section_below": 15,
+    "scale": 500
+  },
+  "determinism": {
+    "deterministic_failures_allowed": 0,
+    "chaos_recovery_required": true,
+    "replay_parity_required": true
+  },
+  "release": {
+    "rc_tag_required": true,
+    "ga_tag_required": true,
+    "release_manifest_required": true,
+    "sha256_checksums_required": true,
+    "release_branch_required": true
+  }
+}

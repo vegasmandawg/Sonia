@@ -1,0 +1,40 @@
+{
+  "version": "4.1.0-dev",
+  "non_goals": [
+    {
+      "id": "NG-1",
+      "description": "Score chasing beyond 500/500 dual-pass",
+      "reason": "v4.0 achieved perfect score; v4.1 focuses on depth not breadth"
+    },
+    {
+      "id": "NG-2",
+      "description": "New service creation or new port allocation",
+      "reason": "Architecture is stable at 6 core services + orchestrator"
+    },
+    {
+      "id": "NG-3",
+      "description": "UI/frontend changes to companion experience layer",
+      "reason": "v2.8 companion layer is frozen"
+    },
+    {
+      "id": "NG-4",
+      "description": "Model provider SDK integration changes",
+      "reason": "v2.9 httpx-based routing is stable"
+    },
+    {
+      "id": "NG-5",
+      "description": "Modification of v4.0 governance modules (session, recovery, runtime)",
+      "reason": "These are frozen; v4.1 extends with new modules only"
+    },
+    {
+      "id": "NG-6",
+      "description": "Database migration or schema changes",
+      "reason": "Memory engine hybrid search layer is stable"
+    },
+    {
+      "id": "NG-7",
+      "description": "WebSocket protocol changes",
+      "reason": "Stream protocol is stable since v2.6"
+    }
+  ]
+}

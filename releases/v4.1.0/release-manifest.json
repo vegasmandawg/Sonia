@@ -1,0 +1,143 @@
+{
+  "commit": "3753211",
+  "conservative_score": 500,
+  "epics": {
+    "E1": {
+      "checks": "10/10",
+      "verdict": "PASS"
+    },
+    "E2": {
+      "checks": "10/10",
+      "verdict": "PASS"
+    },
+    "E3": {
+      "checks": "10/10",
+      "verdict": "PASS"
+    }
+  },
+  "file_count": 22,
+  "files": [
+    {
+      "file": "FINAL_SCORECARD.json",
+      "sha256": "16e94f327fadc87defee66d17812fe82a1fd107a25c7da1695dc10b9cbea765b",
+      "size": 634
+    },
+    {
+      "file": "FINAL_SCORECARD.md",
+      "sha256": "49ed9b0acf820c4ec4616f216a78fe19027ee570ab20aa7e9340854df7d2588f",
+      "size": 716
+    },
+    {
+      "file": "changelog.md",
+      "sha256": "36f1ccf78a476636c730599320f25a663463dd0dca14c405a79b0d94ad64ff83",
+      "size": 1675
+    },
+    {
+      "file": "dependency-lock.json",
+      "sha256": "5cc5b026f35590761b4ef580360d7227931f3992d4a271fbbcbf887d418a4509",
+      "size": 3402
+    },
+    {
+      "file": "env-snapshot.json",
+      "sha256": "2580d348619899d196b761dd753f7ac344a5933e5b5462e8258aa93326a23e1e",
+      "size": 138
+    },
+    {
+      "file": "gate-report.json",
+      "sha256": "626f6844b77f780c2013fb0fbbdb80a81d0b5b4632b227326107c17f2da5c9c0",
+      "size": 60405
+    },
+    {
+      "file": "requirements-frozen.txt",
+      "sha256": "24330beab15a8acd931d8a1cbdd11b7ab196927c383732b8fce316f90eee3d1a",
+      "size": 1478
+    },
+    {
+      "file": "evidence\\FINAL_SCORECARD.json",
+      "sha256": "16e94f327fadc87defee66d17812fe82a1fd107a25c7da1695dc10b9cbea765b",
+      "size": 634
+    },
+    {
+      "file": "evidence\\FINAL_SCORECARD.md",
+      "sha256": "49ed9b0acf820c4ec4616f216a78fe19027ee570ab20aa7e9340854df7d2588f",
+      "size": 716
+    },
+    {
+      "file": "evidence\\SCOPE_LOCK.md",
+      "sha256": "8facb221614f9e8a70e10588a5e0e78be6c683bfd3a7a55400c60d09e8b0562a",
+      "size": 1121
+    },
+    {
+      "file": "evidence\\SCORER_CONTRACT.md",
+      "sha256": "7b2d750631a5b9dfeaedf3c2ed0839efe2e30f2463025cad0fb0da5022b30a0e",
+      "size": 1234
+    },
+    {
+      "file": "evidence\\dualpass-conservative.json",
+      "sha256": "0e925f57d1dd5d1c58fb0fad62e0d75a4655df3fc9309dea1f934587e9d11963",
+      "size": 5946
+    },
+    {
+      "file": "evidence\\dualpass-diff.json",
+      "sha256": "8bb9e2f7262664d74085e948d1be161117736813f57d8b91082bc28c905203e7",
+      "size": 3263
+    },
+    {
+      "file": "evidence\\dualpass-standard.json",
+      "sha256": "892fb2f7a54a2131af304cc0a0a45804bce429a26bf68f55e1e80c1bc25559fe",
+      "size": 5942
+    },
+    {
+      "file": "evidence\\dualpass-summary.md",
+      "sha256": "5e8b6ba1818a3d97d1586928e500471899f8f65f2848875215dcbeb2f80027ac",
+      "size": 1676
+    },
+    {
+      "file": "evidence\\epic1-provenance-gate.json",
+      "sha256": "cb0252dfd1875d9b0bd22f26f98ccad69c1caefd46ea65e7f51fe8c9e22544e7",
+      "size": 216
+    },
+    {
+      "file": "evidence\\epic2-chaos-recovery-gate.json",
+      "sha256": "432a264788a55d7e53b235cba2ba8cb3c62aa05efb5f16f305cfd6f119d434ea",
+      "size": 155
+    },
+    {
+      "file": "evidence\\epic3-repro-gate.json",
+      "sha256": "f1bfe2646e78921decbaf76424c4a0e4a7ba1adf85d4eb86f1f9eb41f53442e7",
+      "size": 146
+    },
+    {
+      "file": "evidence\\evidence-manifest.json",
+      "sha256": "cd703dfa1f2ae87129c80cfc866af416f381070bd80a895fcb2faa962ba0295b",
+      "size": 3329
+    },
+    {
+      "file": "evidence\\evidence-manifest.sha256",
+      "sha256": "54ea5b5d96ff969e93b0baded54d144768e7dbf8eb48d203a3f6a978094bf68d",
+      "size": 64
+    },
+    {
+      "file": "evidence\\gate-matrix-preflight.json",
+      "sha256": "626f6844b77f780c2013fb0fbbdb80a81d0b5b4632b227326107c17f2da5c9c0",
+      "size": 60405
+    },
+    {
+      "file": "evidence\\unit-summary-preflight.json",
+      "sha256": "0cef948fe8454a3cc53143d3c302ed5889b59577adde9df553837ccacf16f0aa",
+      "size": 183
+    }
+  ],
+  "gap": 0,
+  "gates_passed": 41,
+  "gates_total": 41,
+  "python_env": "S:\\envs\\sonia-core",
+  "rc_tag": "v4.1.0-rc1",
+  "schema_version": "8.0",
+  "standard_score": 500,
+  "tag": "v4.1.0",
+  "tests_failed": 0,
+  "tests_passed": 753,
+  "timestamp": "20260216-115912",
+  "version": "4.1.0"
+}

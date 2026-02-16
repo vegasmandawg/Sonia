@@ -1,0 +1,8 @@
+{
+  "checker": "cleanroom_parity",
+  "artifacts_compared": 3,
+  "matched": 3,
+  "mismatched": [],
+  "overall_parity": true,
+  "timestamp": "20260216-112402"
+}

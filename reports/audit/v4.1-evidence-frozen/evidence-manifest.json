@@ -1,0 +1,85 @@
+{
+  "version": "4.1.0",
+  "frozen_at": "2026-02-16T11:57:47.871639",
+  "evidence_count": 13,
+  "entries": [
+    {
+      "file": "gate-matrix-preflight.json",
+      "sha256": "626f6844b77f780c2013fb0fbbdb80a81d0b5b4632b227326107c17f2da5c9c0",
+      "source": "S:\\reports\\audit\\gate-matrix-v41-phaseD-preflight-20260216-115136.json",
+      "size": 60405
+    },
+    {
+      "file": "unit-summary-preflight.json",
+      "sha256": "0cef948fe8454a3cc53143d3c302ed5889b59577adde9df553837ccacf16f0aa",
+      "source": "S:\\reports\\audit\\unit-summary-v41-phaseD-preflight-20260216-115136.json",
+      "size": 183
+    },
+    {
+      "file": "epic1-provenance-gate.json",
+      "sha256": "cb0252dfd1875d9b0bd22f26f98ccad69c1caefd46ea65e7f51fe8c9e22544e7",
+      "source": "S:\\reports\\audit\\v41-epic1-provenance-20260216-150756.json",
+      "size": 216
+    },
+    {
+      "file": "epic2-chaos-recovery-gate.json",
+      "sha256": "432a264788a55d7e53b235cba2ba8cb3c62aa05efb5f16f305cfd6f119d434ea",
+      "source": "S:\\reports\\audit\\v41-epic2-chaos-recovery-20260216-110018.json",
+      "size": 155
+    },
+    {
+      "file": "epic3-repro-gate.json",
+      "sha256": "f1bfe2646e78921decbaf76424c4a0e4a7ba1adf85d4eb86f1f9eb41f53442e7",
+      "source": "S:\\reports\\audit\\v41-epic3-repro-20260216-112402.json",
+      "size": 146
+    },
+    {
+      "file": "dualpass-standard.json",
+      "sha256": "892fb2f7a54a2131af304cc0a0a45804bce429a26bf68f55e1e80c1bc25559fe",
+      "source": "S:\\reports\\audit\\v4.1-baseline\\v4.1-standard-20260216-115718.json",
+      "size": 5942
+    },
+    {
+      "file": "dualpass-conservative.json",
+      "sha256": "0e925f57d1dd5d1c58fb0fad62e0d75a4655df3fc9309dea1f934587e9d11963",
+      "source": "S:\\reports\\audit\\v4.1-baseline\\v4.1-conservative-20260216-115718.json",
+      "size": 5946
+    },
+    {
+      "file": "dualpass-diff.json",
+      "sha256": "8bb9e2f7262664d74085e948d1be161117736813f57d8b91082bc28c905203e7",
+      "source": "S:\\reports\\audit\\v4.1-baseline\\v4.1-dualpass-diff-20260216-115718.json",
+      "size": 3263
+    },
+    {
+      "file": "dualpass-summary.md",
+      "sha256": "5e8b6ba1818a3d97d1586928e500471899f8f65f2848875215dcbeb2f80027ac",
+      "source": "S:\\reports\\audit\\v4.1-baseline\\v4.1-dualpass-summary-20260216-115718.md",
+      "size": 1676
+    },
+    {
+      "file": "FINAL_SCORECARD.json",
+      "sha256": "16e94f327fadc87defee66d17812fe82a1fd107a25c7da1695dc10b9cbea765b",
+      "source": "S:\\reports\\audit\\v4.1-baseline\\FINAL_SCORECARD-v41-20260216-115718.json",
+      "size": 634
+    },
+    {
+      "file": "FINAL_SCORECARD.md",
+      "sha256": "49ed9b0acf820c4ec4616f216a78fe19027ee570ab20aa7e9340854df7d2588f",
+      "source": "S:\\reports\\audit\\v4.1-baseline\\FINAL_SCORECARD-v41-20260216-115718.md",
+      "size": 716
+    },
+    {
+      "file": "SCOPE_LOCK.md",
+      "sha256": "8facb221614f9e8a70e10588a5e0e78be6c683bfd3a7a55400c60d09e8b0562a",
+      "source": "S:\\docs\\governance\\V4_1_SCOPE_LOCK.md",
+      "size": 1121
+    },
+    {
+      "file": "SCORER_CONTRACT.md",
+      "sha256": "7b2d750631a5b9dfeaedf3c2ed0839efe2e30f2463025cad0fb0da5022b30a0e",
+      "source": "S:\\docs\\governance\\SCORER_CONTRACT_V41.md",
+      "size": 1234
+    }
+  ]
+}
