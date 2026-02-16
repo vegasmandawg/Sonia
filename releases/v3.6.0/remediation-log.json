@@ -1,0 +1,50 @@
+{
+  "version": "3.6.0",
+  "baseline": {
+    "standard": 457,
+    "conservative": 406,
+    "version": "3.5.0"
+  },
+  "final": {
+    "standard": 489,
+    "conservative": 441,
+    "version": "3.6.0"
+  },
+  "conservative_deductions": [
+    {
+      "section": "C",
+      "deduction": -4,
+      "reason": "no mypy/pylint/black in CI gates"
+    },
+    {
+      "section": "M",
+      "deduction": -5,
+      "reason": "SQLite without replication/PITR"
+    },
+    {
+      "section": "S",
+      "deduction": -3,
+      "reason": "no CI/CD platform integration"
+    },
+    {
+      "section": "Q",
+      "deduction": -3,
+      "reason": "no GDPR right-to-deletion"
+    },
+    {
+      "section": "J",
+      "deduction": -4,
+      "reason": "no database migration tooling"
+    },
+    {
+      "section": "K",
+      "deduction": -3,
+      "reason": "no load testing at scale"
+    }
+  ],
+  "workstream_impact": {
+    "P1": "+8 conservative pts (auth surface + policy enforcement)",
+    "P2": "+12 conservative pts (restore integrity + drill determinism + incident completeness)",
+    "P3": "+15 conservative pts (perf budget + cleanroom parity + release integrity)"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "version": "3.6.0",
+  "tag": "v3.6.0",
+  "timestamp_utc": "2026-02-16T00:48:09Z",
+  "bundle_dir": "releases/v3.6.0",
+  "files": [
+    {
+      "path": "FINAL_SCORECARD.md",
+      "sha256": "89f01e3b894e0e7bc03563703ee4a7b6d3cd0734af1c44bdff48064dbc8e4922",
+      "size_bytes": 16531
+    },
+    {
+      "path": "changelog.json",
+      "sha256": "7d1a25bdce9c04fc9b96bf44270c363869e64893be4f0ff00b158ea760702a01",
+      "size_bytes": 2342
+    },
+    {
+      "path": "dependency-lock.json",
+      "sha256": "5cc5b026f35590761b4ef580360d7227931f3992d4a271fbbcbf887d418a4509",
+      "size_bytes": 3402
+    },
+    {
+      "path": "gate-matrix.json",
+      "sha256": "68877a3039a7e986b0978ea0bc31725a3b61b38377569d0009792245322d25b1",
+      "size_bytes": 2051
+    },
+    {
+      "path": "remediation-log.json",
+      "sha256": "0ca62d7b2e592adb3f3f294a53a6e409b2d68de63638af5aaf737441a4c57c71",
+      "size_bytes": 1200
+    },
+    {
+      "path": "requirements-frozen.txt",
+      "sha256": "24330beab15a8acd931d8a1cbdd11b7ab196927c383732b8fce316f90eee3d1a",
+      "size_bytes": 1478
+    },
+    {
+      "path": "unit-test-summary.json",
+      "sha256": "6fc73222571d9bb6b1b170747333c3f9676513581fdf4d8feb2a9c73f81c1ac9",
+      "size_bytes": 442
+    },
+    {
+      "path": "v36-conservative-score-20260216.json",
+      "sha256": "f5337c4ac30b277b55ab326ca22f79ca6e71e18742eaedc38578a3f57ea7db86",
+      "size_bytes": 3919
+    },
+    {
+      "path": "v36-standard-score-20260216.json",
+      "sha256": "cefcde7877254530ba79711465d8bf8196161b137329ac9deb7d3e4bb0401793",
+      "size_bytes": 4763
+    }
+  ],
+  "total_files": 9
+}

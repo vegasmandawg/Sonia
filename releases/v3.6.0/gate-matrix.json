@@ -1,0 +1,107 @@
+{
+  "timestamp_utc": "2026-02-16T00:48:09Z",
+  "total_gates": 25,
+  "all_pass": true,
+  "gates": [
+    {
+      "name": "_fullbuild_finalize",
+      "result": "PASS"
+    },
+    {
+      "name": "_fullbuild_preflight",
+      "result": "PASS"
+    },
+    {
+      "name": "_live_delta_finalize",
+      "result": "PASS"
+    },
+    {
+      "name": "_runbook_pragma_gates",
+      "result": "PASS"
+    },
+    {
+      "name": "_v35_evidence_binder",
+      "result": "PASS"
+    },
+    {
+      "name": "_v35_gate_matrix",
+      "result": "PASS"
+    },
+    {
+      "name": "_v36_day0_freeze",
+      "result": "PASS"
+    },
+    {
+      "name": "auth-posture-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "auth-surface-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "backup-restore-drill",
+      "result": "PASS"
+    },
+    {
+      "name": "cleanroom-parity-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "consolidated-preaudit",
+      "result": "PASS"
+    },
+    {
+      "name": "drill-determinism-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "fallback-behavior-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "incident-bundle-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "incident-completeness-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "perf-budget-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "policy-enforcement-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "rate-limiter-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "regression-guard-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "release-integrity-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "restore-integrity-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "secret-scan-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "traceability-gate",
+      "result": "PASS"
+    },
+    {
+      "name": "unit-test-layer-gate",
+      "result": "PASS"
+    }
+  ]
+}
