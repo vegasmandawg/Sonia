@@ -1,0 +1,90 @@
+{
+  "version": "3.8.0-dev",
+  "locked_at": "2026-02-16T02:45:00Z",
+  "baseline_scores": {
+    "standard": {
+      "J": 17, "C": 17, "D": 19, "S": 20, "K": 20, "N": 20, "L": 20,
+      "total": 493
+    },
+    "conservative": {
+      "J": 15, "C": 16, "D": 18, "S": 18, "K": 19, "N": 19, "L": 19,
+      "total": 479
+    }
+  },
+  "epics": {
+    "epic_1": {
+      "name": "Data Quality & Schema Governance",
+      "branch": "v3.8-e1-data-schema",
+      "sections": ["J", "C", "D"],
+      "target_deltas": {
+        "J": {"from": 15, "to": 18, "delta": 3},
+        "C": {"from": 16, "to": 18, "delta": 2},
+        "D": {"from": 18, "to": 19, "delta": 1}
+      },
+      "gates": [
+        {"name": "schema-validation-gate.py", "min_checks": 8},
+        {"name": "data-migration-gate.py", "min_checks": 8}
+      ],
+      "tests": {
+        "minimum": 20,
+        "target": 28,
+        "files": [
+          "tests/unit/test_config_schema.py",
+          "tests/unit/test_data_schema.py",
+          "tests/unit/test_migration_policy.py",
+          "tests/unit/test_code_quality.py"
+        ]
+      },
+      "artifacts": [
+        "reports/audit/schema-validation-gate-<ts>.json",
+        "reports/audit/data-migration-gate-<ts>.json",
+        "reports/audit/epic1-test-summary-<ts>.json"
+      ]
+    },
+    "epic_2": {
+      "name": "Automation & Observability Hardening",
+      "branch": "v3.8-e2-auto-observability",
+      "sections": ["S", "K", "N", "L"],
+      "target_deltas": {
+        "S": {"from": 18, "to": 19, "delta": 1},
+        "K": {"from": 19, "to": 20, "delta": 1},
+        "N": {"from": 19, "to": 20, "delta": 1},
+        "L": {"from": 19, "to": 20, "delta": 1}
+      },
+      "gates": [
+        {"name": "automation-coverage-gate.py", "min_checks": 8},
+        {"name": "trace-propagation-gate.py", "min_checks": 8}
+      ],
+      "tests": {
+        "minimum": 20,
+        "target": 26,
+        "files": [
+          "tests/unit/test_automation_coverage.py",
+          "tests/unit/test_trace_propagation.py",
+          "tests/unit/test_perf_profile.py",
+          "tests/unit/test_test_coverage.py"
+        ]
+      },
+      "artifacts": [
+        "reports/audit/automation-coverage-gate-<ts>.json",
+        "reports/audit/trace-propagation-gate-<ts>.json",
+        "reports/audit/epic2-test-summary-<ts>.json",
+        "reports/audit/perf-steady-state-<ts>.json"
+      ]
+    }
+  },
+  "failure_policy": {
+    "inherited_gate_regression": "HOLD",
+    "delta_gate_failure": "fix and re-run before merge",
+    "test_failure": "fix and re-run before merge"
+  },
+  "release_acceptance": {
+    "inherited_gates": 24,
+    "delta_gates": 4,
+    "unit_test_floor": 339,
+    "standard_floor_pct": 78,
+    "conservative_floor_pct": 78,
+    "section_floor": 15,
+    "evidence_bundle_sha256": true
+  }
+}
