@@ -1,0 +1,27 @@
+{
+  "version": "v3.8.0",
+  "timestamp": "20260216-032509",
+  "commit": "67911e5563b337f9f19fd0719be29a79d3bf03fb",
+  "standard": {
+    "score": 493,
+    "max": 500,
+    "pct": 98.6
+  },
+  "conservative": {
+    "score": 479,
+    "max": 500,
+    "pct": 95.8
+  },
+  "mean": 486,
+  "variance": 14,
+  "gates": {
+    "total": 28,
+    "passed": 28
+  },
+  "tests": {
+    "total": 430,
+    "passed": 430,
+    "new_v38": 131
+  },
+  "verdict": "PROMOTE"
+}
