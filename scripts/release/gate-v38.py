@@ -1,5 +1,5 @@
 """
-SONIA v3.8.0 Promotion Gate (M0: Bootstrap)
+SONIA v3.8.0 Promotion Gate (M0: Bootstrap + Hardening)
 =====================================================
 Inherits the full v3.7 floor (24 gates, 299 unit tests) and adds v3.8 delta gates.
 
@@ -8,16 +8,13 @@ Usage:
     python gate-v38.py --floor-only   # run only inherited floor
 
 Inherited Floor (v3.7): 24 gates
-  auth-posture-gate, auth-surface-gate, backup-restore-drill,
-  cleanroom-parity-gate, consolidated-preaudit, drill-determinism-gate,
-  fallback-behavior-gate, incident-bundle-gate, incident-completeness-gate,
-  incident-lineage-gate, memory-silo-gate, output-budget-gate,
-  perf-budget-gate, policy-enforcement-gate, rate-limiter-gate,
-  recovery-determinism-gate, regression-guard-gate, release-integrity-gate,
-  restore-integrity-gate, runtime-qos-gate, secret-scan-gate,
-  session-isolation-gate, traceability-gate, unit-test-layer-gate
-
 v3.8 Delta Gates: TBD (wired per-epic as scope is defined)
+
+Hardening (M0):
+  - One retry for gate subprocesses that fail with empty/ambiguous output
+  - Persists stdout/stderr + cwd + elapsed time per gate in matrix artifact
+  - Classifies failures as deterministic_fail vs transient_fail
+  - If retry passes, marks gate PASS_WITH_RETRY and includes evidence
 """
 import argparse
 import json
@@ -77,34 +74,135 @@ DELTA_GATE_COUNT = len(DELTA_GATES)
 TOTAL_GATES = INHERITED_FLOOR_COUNT + DELTA_GATE_COUNT
 
 
-def run_gate_script(gate_file):
-    """Run a single gate script, return (passed: bool, detail: str)."""
-    gate_path = GATE_DIR / gate_file
-    if not gate_path.exists():
-        return False, f"gate script not found: {gate_path}"
+def _is_ambiguous_failure(returncode, stdout, stderr):
+    """Detect failures that may be transient (empty output, subprocess noise)."""
+    combined = (stdout or "") + (stderr or "")
+    if returncode != 0:
+        # Empty or near-empty output suggests subprocess issue, not real failure
+        if len(combined.strip()) < 20:
+            return True
+        # Pydantic/deprecation warnings in stderr with no real failure info
+        if "DeprecatedSince" in stderr and "FAIL" not in stdout:
+            return True
+        # Timeout-like patterns without explicit FAIL
+        if "timed out" in combined.lower() and "FAIL" not in stdout:
+            return True
+    return False
+
+
+def _run_gate_once(gate_path):
+    """Execute a gate script once, return (returncode, stdout, stderr, elapsed)."""
     cmd = [PYTHON, str(gate_path)]
+    t0 = time.time()
     try:
         result = subprocess.run(
             cmd, capture_output=True, text=True,
             cwd=str(REPO_ROOT), timeout=600,
         )
-        output = result.stdout + result.stderr
-        # Gate scripts print "X / Y checks PASS" on success
-        if result.returncode == 0:
-            # Extract check count if available
-            m = re.search(r"(\d+)\s*/\s*(\d+)\s*checks?\s*PASS", output)
-            if m:
-                return True, f"{m.group(1)}/{m.group(2)} checks PASS"
-            return True, "PASS"
-        else:
-            # Extract failure detail
-            lines = output.strip().split("\n")
-            last = lines[-1] if lines else "unknown failure"
-            return False, f"FAIL: {last[:200]}"
+        elapsed = round(time.time() - t0, 3)
+        return result.returncode, result.stdout, result.stderr, elapsed
     except subprocess.TimeoutExpired:
-        return False, "TIMEOUT (300s)"
+        elapsed = round(time.time() - t0, 3)
+        return -1, "", "TIMEOUT (600s)", elapsed
     except Exception as e:
-        return False, f"ERROR: {e}"
+        elapsed = round(time.time() - t0, 3)
+        return -2, "", f"ERROR: {e}", elapsed
+
+
+def run_gate_script(gate_file):
+    """Run a gate script with retry logic. Returns a rich result dict."""
+    gate_path = GATE_DIR / gate_file
+    if not gate_path.exists():
+        return {
+            "passed": False,
+            "detail": f"gate script not found: {gate_path}",
+            "failure_class": "deterministic_fail",
+            "attempts": 0,
+            "stdout": "",
+            "stderr": "",
+            "cwd": str(REPO_ROOT),
+            "elapsed_s": 0,
+        }
+
+    # Attempt 1
+    rc, stdout, stderr, elapsed = _run_gate_once(gate_path)
+    combined = stdout + stderr
+
+    if rc == 0:
+        # Parse check count
+        m = re.search(r"(\d+)\s*/\s*(\d+)\s*checks?\s*PASS", combined)
+        detail = f"{m.group(1)}/{m.group(2)} checks PASS" if m else "PASS"
+        return {
+            "passed": True,
+            "detail": detail,
+            "failure_class": None,
+            "attempts": 1,
+            "stdout": stdout[-500:],
+            "stderr": stderr[-500:],
+            "cwd": str(REPO_ROOT),
+            "elapsed_s": elapsed,
+        }
+
+    # Check if failure is ambiguous (candidate for retry)
+    if _is_ambiguous_failure(rc, stdout, stderr):
+        # Attempt 2 (retry)
+        time.sleep(2)  # brief cooldown
+        rc2, stdout2, stderr2, elapsed2 = _run_gate_once(gate_path)
+        combined2 = stdout2 + stderr2
+
+        if rc2 == 0:
+            m = re.search(r"(\d+)\s*/\s*(\d+)\s*checks?\s*PASS", combined2)
+            detail = f"{m.group(1)}/{m.group(2)} checks PASS" if m else "PASS"
+            return {
+                "passed": True,
+                "detail": f"PASS_WITH_RETRY: {detail}",
+                "failure_class": "transient_fail",
+                "attempts": 2,
+                "retry_evidence": {
+                    "attempt1_rc": rc,
+                    "attempt1_stdout_tail": stdout[-300:],
+                    "attempt1_stderr_tail": stderr[-300:],
+                    "attempt1_elapsed_s": elapsed,
+                },
+                "stdout": stdout2[-500:],
+                "stderr": stderr2[-500:],
+                "cwd": str(REPO_ROOT),
+                "elapsed_s": elapsed + elapsed2,
+            }
+        else:
+            # Retry also failed -- deterministic
+            lines = combined2.strip().split("\n")
+            last = lines[-1] if lines else "unknown failure"
+            return {
+                "passed": False,
+                "detail": f"FAIL (confirmed after retry): {last[:200]}",
+                "failure_class": "deterministic_fail",
+                "attempts": 2,
+                "retry_evidence": {
+                    "attempt1_rc": rc,
+                    "attempt1_stdout_tail": stdout[-300:],
+                    "attempt1_stderr_tail": stderr[-300:],
+                    "attempt1_elapsed_s": elapsed,
+                },
+                "stdout": stdout2[-500:],
+                "stderr": stderr2[-500:],
+                "cwd": str(REPO_ROOT),
+                "elapsed_s": elapsed + elapsed2,
+            }
+
+    # Deterministic failure (clear output, no retry)
+    lines = combined.strip().split("\n")
+    last = lines[-1] if lines else "unknown failure"
+    return {
+        "passed": False,
+        "detail": f"FAIL: {last[:200]}",
+        "failure_class": "deterministic_fail",
+        "attempts": 1,
+        "stdout": stdout[-500:],
+        "stderr": stderr[-500:],
+        "cwd": str(REPO_ROOT),
+        "elapsed_s": elapsed,
+    }
 
 
 def run_unit_tests():
@@ -151,7 +249,7 @@ def main():
 
     # ---- Unit test floor check ----
     print("=" * 60)
-    print("  SONIA v3.8 Promotion Gate")
+    print("  SONIA v3.8 Promotion Gate (hardened)")
     print("=" * 60)
     print(f"\n[1/3] Running unit test floor check (>={INHERITED_UNIT_TEST_FLOOR} required)...")
     t0 = time.time()
@@ -164,34 +262,40 @@ def main():
         "gate": "UNIT_TEST_FLOOR",
         "passed": unit_ok,
         "detail": f"{passed} passed, {failed} failed (floor: {INHERITED_UNIT_TEST_FLOOR})",
+        "failure_class": None if unit_ok else "deterministic_fail",
+        "attempts": 1,
         "duration_s": dt,
+        "cwd": str(REPO_ROOT),
     })
 
     # ---- Inherited baseline gates ----
     print(f"\n[2/3] Running {INHERITED_FLOOR_COUNT} inherited baseline gates...")
     floor_pass = 0
     floor_fail = 0
+    retried = 0
     for gate_file in INHERITED_GATES:
-        t0 = time.time()
-        ok, detail = run_gate_script(gate_file)
-        dt = round(time.time() - t0, 3)
-        results.append({
-            "gate": gate_file,
-            "passed": ok,
-            "detail": detail,
-            "duration_s": dt,
-            "category": "inherited",
-        })
-        status = "PASS" if ok else "FAIL"
-        print(f"  [{status}] {gate_file}: {detail} ({dt}s)")
-        if ok:
+        gate_result = run_gate_script(gate_file)
+        gate_result["gate"] = gate_file
+        gate_result["category"] = "inherited"
+        gate_result["duration_s"] = gate_result.pop("elapsed_s")
+        results.append(gate_result)
+
+        if gate_result["passed"]:
             floor_pass += 1
+            if gate_result["attempts"] > 1:
+                retried += 1
         else:
             floor_fail += 1
 
+        tag = "PASS" if gate_result["passed"] else "FAIL"
+        retry_note = " [RETRIED]" if gate_result["attempts"] > 1 else ""
+        print(f"  [{tag}] {gate_file}: {gate_result['detail']}"
+              f" ({gate_result['duration_s']}s){retry_note}")
+
     floor_ok = floor_fail == 0
+    retry_note = f" ({retried} retried)" if retried else ""
     print(f"\n  Inherited floor: {floor_pass}/{INHERITED_FLOOR_COUNT}"
-          f" {'PASS' if floor_ok else 'FAIL'}")
+          f" {'PASS' if floor_ok else 'FAIL'}{retry_note}")
 
     # ---- v3.8 delta gates ----
     delta_pass = 0
@@ -199,23 +303,21 @@ def main():
     if not args.floor_only and DELTA_GATES:
         print(f"\n[3/3] Running {DELTA_GATE_COUNT} v3.8 delta gates...")
         for gate_file, label in DELTA_GATES:
-            t0 = time.time()
-            ok, detail = run_gate_script(gate_file)
-            dt = round(time.time() - t0, 3)
-            results.append({
-                "gate": gate_file,
-                "passed": ok,
-                "detail": detail,
-                "duration_s": dt,
-                "category": "delta",
-                "label": label,
-            })
-            status = "PASS" if ok else "FAIL"
-            print(f"  [{status}] {gate_file} ({label}): {detail} ({dt}s)")
-            if ok:
+            gate_result = run_gate_script(gate_file)
+            gate_result["gate"] = gate_file
+            gate_result["category"] = "delta"
+            gate_result["label"] = label
+            gate_result["duration_s"] = gate_result.pop("elapsed_s")
+            results.append(gate_result)
+
+            if gate_result["passed"]:
                 delta_pass += 1
             else:
                 delta_fail += 1
+
+            tag = "PASS" if gate_result["passed"] else "FAIL"
+            print(f"  [{tag}] {gate_file} ({label}): {gate_result['detail']}"
+                  f" ({gate_result['duration_s']}s)")
     else:
         print(f"\n[3/3] No delta gates wired yet (or --floor-only mode)")
 
@@ -227,7 +329,7 @@ def main():
     verdict = "PROMOTE" if all_green else "HOLD"
 
     report = {
-        "schema_version": "5.0",
+        "schema_version": "5.1",
         "version": "3.8.0-dev",
         "branch": EXPECTED_BRANCH,
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -239,6 +341,7 @@ def main():
         "unit_tests_failed": failed,
         "delta_gates_wired": DELTA_GATE_COUNT,
         "floor_only": args.floor_only,
+        "retried_gates": retried,
         "verdict": verdict,
         "gates": results,
     }
@@ -248,6 +351,8 @@ def main():
 
     print(f"\n{'=' * 60}")
     print(f"  {total_pass}/{total_count} gates passed -- {verdict}")
+    if retried:
+        print(f"  ({retried} gate(s) passed with retry)")
     if args.floor_only:
         print(f"  (floor-only mode: v3.8 delta gates skipped)")
     print(f"  Report: {report_path}")

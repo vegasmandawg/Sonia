@@ -31,16 +31,45 @@
 
 ---
 
-## v3.8 Objectives (2-3 epics max)
+## v3.8 Objectives (2 epics)
 
-Epics to be defined after dual-pass reassessment identifies the highest-value
-conservative gaps remaining. Candidate focus areas (pending scorer output):
+Selected by priority_index scoring model (see `reports/audit/v3.8-epic-priorities-*.json`).
+Formula: `priority_index = 4*floor_gap + 2*target_gap + 2*variance`
 
-| Priority | Candidate Area | Sections Affected | Rationale |
-|----------|---------------|-------------------|-----------|
-| TBD | To be determined by reassessment | -- | -- |
+### Epic 1: Data Quality & Schema Governance (aggregate priority: 18)
 
-**Epic definitions will be added here once the reassessment is complete.**
+| Section | Con Score | Target Gap | Variance | Priority | Deliverable |
+|---------|-----------|------------|----------|----------|-------------|
+| J: Data Management | 15 | 3 | 2 | 10 | Migration rollback framework + schema validation |
+| C: Code Quality | 16 | 2 | 1 | 6 | Lint/validation in pre-commit + code quality gate |
+| D: Configuration Mgmt | 18 | 0 | 1 | 2 | Config schema validation gate |
+
+**Projected conservative uplift:** +4-6 pts (J: 15->18, C: 16->18, D: 18->19)
+**Rationale:** J is the lowest conservative score at 15 (floor boundary). C has the
+second-highest target gap. Both share a "schema/validation" architecture affinity.
+
+**Requirements:**
+- At least 2 new gates (schema-validation-gate.py, data-migration-gate.py)
+- At least 20 new unit tests
+- Artifact outputs in `reports/audit/`
+
+### Epic 2: Automation & Observability Hardening (aggregate priority: 10)
+
+| Section | Con Score | Target Gap | Variance | Priority | Deliverable |
+|---------|-----------|------------|----------|----------|-------------|
+| S: CI/CD & Automation | 18 | 0 | 2 | 4 | Gate orchestration coverage gate |
+| K: Performance | 19 | 0 | 1 | 2 | Sustained load validation |
+| N: Observability | 19 | 0 | 1 | 2 | Trace propagation verification |
+| L: Testing | 19 | 0 | 1 | 2 | Test coverage metrics gate |
+
+**Projected conservative uplift:** +3-4 pts (S: 18->19, K/N/L: 19->20)
+**Rationale:** S has the highest variance (2) outside Epic 1. K, N, L share an
+"operational instrumentation" affinity and each need only +1 for ceiling.
+
+**Requirements:**
+- At least 2 new gates (automation-coverage-gate.py, trace-propagation-gate.py)
+- At least 20 new unit tests
+- Artifact outputs in `reports/audit/`
 
 ---
 
@@ -91,10 +120,16 @@ in v3.8. They are structural properties of a single-developer project, not contr
 
 **Fail-fast rule:** If ANY inherited gate fails, v3.8 verdict is HOLD.
 
-### v3.8 Delta Gates (TBD)
+### v3.8 Delta Gates (4 planned)
 
-Delta gates will be added per-epic as scope is defined. Each epic must add
-at least 1 gate with >=6 checks and corresponding unit tests.
+| # | Gate Script | Epic | Sections | Min Checks |
+|---|------------|------|----------|------------|
+| 25 | schema-validation-gate.py | Epic 1 | J, D | 8 |
+| 26 | data-migration-gate.py | Epic 1 | J, C | 8 |
+| 27 | automation-coverage-gate.py | Epic 2 | S, L | 8 |
+| 28 | trace-propagation-gate.py | Epic 2 | N, K | 8 |
+
+Each gate must produce a JSON artifact in `reports/audit/` and have >=6 checks.
 
 ---
 
@@ -114,9 +149,21 @@ at least 1 gate with >=6 checks and corresponding unit tests.
 
 ---
 
-## v3.7 Conservative Gaps Remaining
+## v3.8 Reassessment Baseline
 
-Pending dual-pass reassessment with locked audit contract.
+Dual-pass reassessment completed with locked scorer contract:
+
+| Metric | Standard | Conservative |
+|--------|----------|-------------|
+| **Score** | 493/500 | 479/500 |
+| **Percentage** | 98.6% | 95.8% |
+| **>= 78% floor** | PASS | PASS |
+| **Variance** | +/-14 pts (+/-2.8%) |
+
+**Sections below 15:** None
+**Top conservative gaps:** J (15), C (16), D/S (18)
+
+See `reports/audit/v3.8-dualpass-summary-*.md` for full breakdown.
 
 ---
 
