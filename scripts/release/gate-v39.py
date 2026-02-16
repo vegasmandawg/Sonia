@@ -83,6 +83,8 @@ INHERITED_UNIT_TEST_FLOOR = 430
 DELTA_GATES = [
     ("coverage-completeness-gate.py", "gates", "Epic 1: Coverage Completeness"),
     ("data-durability-gate.py", "gates", "Epic 1: Data Durability"),
+    ("deduction-sweep-gate.py", "gates", "Epic 2: Deduction Sweep"),
+    ("test-strategy-gate.py", "gates", "Epic 2: Test Strategy"),
 ]
 
 DELTA_GATE_COUNT = len(DELTA_GATES)
