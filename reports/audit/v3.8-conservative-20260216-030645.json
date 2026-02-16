@@ -1,0 +1,145 @@
+{
+  "scorer": "conservative",
+  "version": "3.8.0-dev",
+  "timestamp": "2026-02-16T03:06:45.622305+00:00",
+  "contract": "docs/SCORER_CONTRACT.md",
+  "non_goals": [
+    "CI/CD platform integration",
+    "database replication/PITR",
+    "enterprise SSO/RBAC",
+    "load testing at scale",
+    "GDPR right-to-deletion",
+    "mypy/pylint/black in CI"
+  ],
+  "total": 479,
+  "max": 500,
+  "percentage": 95.8,
+  "floor_met": true,
+  "sections": {
+    "A": {
+      "score": 20,
+      "name": "Governance & Process",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "B": {
+      "score": 20,
+      "name": "Architecture & Design",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "C": {
+      "score": 16,
+      "name": "Code Quality",
+      "rationale": "No static type checking beyond bandit; -1 for no linter in commit hooks"
+    },
+    "D": {
+      "score": 18,
+      "name": "Configuration Mgmt",
+      "rationale": "Config file present but no JSON schema validation gate; -1"
+    },
+    "E": {
+      "score": 20,
+      "name": "Deployment & Release",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "F": {
+      "score": 20,
+      "name": "API Design",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "G": {
+      "score": 20,
+      "name": "Error Handling",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "H": {
+      "score": 20,
+      "name": "Logging & Monitoring",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "I": {
+      "score": 20,
+      "name": "Auth & Authorization",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "J": {
+      "score": 15,
+      "name": "Data Management",
+      "rationale": "WAL + forward migrations only; no down-migration support; -2"
+    },
+    "K": {
+      "score": 19,
+      "name": "Performance",
+      "rationale": "Soak scripts cover p95 budgets but no sustained load testing; -1"
+    },
+    "L": {
+      "score": 19,
+      "name": "Testing Strategy",
+      "rationale": "299 unit tests; no mutation testing coverage; -1"
+    },
+    "M": {
+      "score": 19,
+      "name": "Data Stores",
+      "rationale": "SQLite with WAL + backup drill; no replication/PITR (non-goal); -1"
+    },
+    "N": {
+      "score": 19,
+      "name": "Observability",
+      "rationale": "Correlation IDs present but no distributed tracing backend; -1"
+    },
+    "O": {
+      "score": 19,
+      "name": "Operational Readiness",
+      "rationale": "Runbook present; no automated runbook testing; -1"
+    },
+    "P": {
+      "score": 20,
+      "name": "Security Controls",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "Q": {
+      "score": 19,
+      "name": "Privacy & Data",
+      "rationale": "Privacy model + redaction; no formal data classification schema; -1"
+    },
+    "R": {
+      "score": 20,
+      "name": "Dependency Mgmt",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "S": {
+      "score": 18,
+      "name": "CI/CD & Automation",
+      "rationale": "Gate scripts as CI substitute; no CI/CD platform integration (non-goal); -2"
+    },
+    "T": {
+      "score": 19,
+      "name": "Documentation Quality",
+      "rationale": "Comprehensive docs; no automated doc quality/freshness checks; -1"
+    },
+    "U": {
+      "score": 20,
+      "name": "Backup & Recovery",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "V": {
+      "score": 20,
+      "name": "Incident Response",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "W": {
+      "score": 19,
+      "name": "Operations Docs",
+      "rationale": "6 ops docs present; no staleness detection mechanism; -1"
+    },
+    "X": {
+      "score": 20,
+      "name": "Release Management",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    },
+    "Y": {
+      "score": 20,
+      "name": "Compliance & Audit",
+      "rationale": "Score 20/20; no additional conservative deductions"
+    }
+  }
+}
