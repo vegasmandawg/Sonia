@@ -1,0 +1,18 @@
+{
+  "timestamp_utc": "2026-02-16T00:48:09Z",
+  "test_files": 10,
+  "total_tests": 147,
+  "all_pass": true,
+  "files": [
+    "test_auth_posture.py",
+    "test_auth_surface.py",
+    "test_drill_determinism.py",
+    "test_fallback_behavior.py",
+    "test_log_redaction.py",
+    "test_policy_enforcement.py",
+    "test_rate_limiter.py",
+    "test_restore_integrity.py",
+    "test_tool_policy.py",
+    "test_turn_quality.py"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "version": "3.6.0",
+  "date": "2026-02-16",
+  "tag": "v3.6.0",
+  "branch": "v3.6-dev",
+  "summary": "Three-workstream hardening: auth surface, drill determinism, performance budget",
+  "scoring": {
+    "standard": {
+      "score": 489,
+      "max": 500,
+      "pct": 97.8
+    },
+    "conservative": {
+      "score": 441,
+      "max": 500,
+      "pct": 88.2
+    },
+    "mean": {
+      "score": 465,
+      "max": 500,
+      "pct": 93.0
+    },
+    "promotion": "PROMOTE"
+  },
+  "workstreams": {
+    "P1_security_governance": {
+      "gates": [
+        "auth-surface-gate",
+        "policy-enforcement-gate"
+      ],
+      "tests": 43,
+      "description": "Auth deny-by-default verification, tool policy enforcement, rate limiter coverage"
+    },
+    "P2_recovery_incident": {
+      "gates": [
+        "restore-integrity-gate",
+        "drill-determinism-gate",
+        "incident-completeness-gate"
+      ],
+      "tests": 18,
+      "description": "Backup/restore SHA-256 integrity, circuit breaker FSM determinism, incident bundle completeness"
+    },
+    "P3_performance_release": {
+      "gates": [
+        "perf-budget-gate",
+        "cleanroom-parity-gate",
+        "release-integrity-gate"
+      ],
+      "tests": 0,
+      "description": "Latency instrumentation, dependency parity, release packaging integrity"
+    }
+  },
+  "delta_from_v35": {
+    "standard": "+32 pts (+6.4%)",
+    "conservative": "+35 pts (+7.0%)",
+    "mean": "+33.5 pts (+6.7%)"
+  },
+  "files_added": [
+    "tests/unit/test_auth_surface.py",
+    "tests/unit/test_policy_enforcement.py",
+    "tests/unit/test_restore_integrity.py",
+    "tests/unit/test_drill_determinism.py",
+    "scripts/gates/auth-surface-gate.py",
+    "scripts/gates/policy-enforcement-gate.py",
+    "scripts/gates/restore-integrity-gate.py",
+    "scripts/gates/drill-determinism-gate.py",
+    "scripts/gates/incident-completeness-gate.py",
+    "scripts/gates/perf-budget-gate.py",
+    "scripts/gates/cleanroom-parity-gate.py",
+    "scripts/gates/release-integrity-gate.py",
+    "docs/audit_snapshots/v36-standard-score-20260216.json",
+    "docs/audit_snapshots/v36-conservative-score-20260216.json"
+  ],
+  "files_modified": [
+    "scripts/gates/regression-guard-gate.py",
+    "reports/audit/FINAL_SCORECARD.md"
+  ]
+}
