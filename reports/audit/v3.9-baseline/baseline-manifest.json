@@ -1,0 +1,15 @@
+{
+  "version": "v3.9-baseline",
+  "timestamp": "20260216T033954Z",
+  "source_version": "v3.8.0",
+  "files": {
+    "FINAL_SCORECARD-v38-20260216-032509.json": "bb48d4999aa37a065acb00c51ccb26423376572ace8993bc7b7a6a6e817b7270",
+    "FINAL_SCORECARD-v38-20260216-032509.md": "768ce759629d0eee73cae4af80b50fcc16d9df66fa72e6b23e6686e847a4713c",
+    "gate-matrix-v38-20260216-032509.json": "6181077637405809e6eef3303dfcf4c2c6445d9c78660b542f36f885581a9d90",
+    "unit-summary-v38-20260216-032509.json": "36df8012dc701ebed6df2237b467c3cbf621094b7b7a2919eefa8f08628fac84",
+    "v38-conservative-20260216-032509.json": "2fb2a5465334b8c590bd678b9cab974477b4018516755ff67c08bf1cb891efa5",
+    "v38-release-pointer.json": "15be566e464e1cb3786dfd22d60e089e0db9d4d4a13884129e8fd3a81af2b1eb",
+    "v38-standard-20260216-032509.json": "ee9502cf553355faa0b767f4e61f31f544ef588044f2abcb33a38f135f92f4a4"
+  },
+  "total_files": 7
+}

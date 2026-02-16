@@ -1,0 +1,7 @@
+{
+  "v38_release_bundle": "S:/releases/v3.8.0/",
+  "v38_manifest": "release-manifest.json",
+  "v38_sha256_manifest": "release-manifest-20260216T032651Z.sha256",
+  "v38_ga_tag_commit": "39f662c9d566ab2e645e9794a40bbbcb3f68467a",
+  "v38_main_merge_commit": "015eb68e7e8985ba9a55c082e8413780256fa1cb"
+}

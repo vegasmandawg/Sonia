@@ -1,0 +1,64 @@
+{
+  "version": "v3.9.0",
+  "scorer_contract": "SCORER_CONTRACT_V39.md",
+  "baseline": {
+    "standard": 493,
+    "conservative": 479,
+    "variance": 14
+  },
+  "epics": {
+    "epic_1": {
+      "name": "Conservative Gap Closure (High-Variance Sections)",
+      "branch": "v3.9-e1-conservative-gaps",
+      "sections": ["J", "S", "M", "O", "Q", "W"],
+      "projected_uplift": 8,
+      "priority_index": 32,
+      "gates": [
+        {"name": "coverage-completeness-gate.py", "min_checks": 8},
+        {"name": "data-durability-gate.py", "min_checks": 8}
+      ],
+      "min_tests": 20,
+      "target_tests": 30,
+      "min_gate_count": 2,
+      "artifacts_required": [
+        "reports/audit/coverage-completeness-gate-*.json",
+        "reports/audit/data-durability-gate-*.json"
+      ]
+    },
+    "epic_2": {
+      "name": "Remaining Deduction Elimination",
+      "branch": "v3.9-e2-deduction-sweep",
+      "sections": ["C", "D", "K", "L", "N", "T"],
+      "projected_uplift": 6,
+      "priority_index": 24,
+      "gates": [
+        {"name": "deduction-sweep-gate.py", "min_checks": 10},
+        {"name": "test-strategy-gate.py", "min_checks": 8}
+      ],
+      "min_tests": 20,
+      "target_tests": 26,
+      "min_gate_count": 2,
+      "artifacts_required": [
+        "reports/audit/deduction-sweep-gate-*.json",
+        "reports/audit/test-strategy-gate-*.json"
+      ]
+    }
+  },
+  "release_acceptance": {
+    "inherited_gates": 28,
+    "delta_gates": 4,
+    "total_gates": 32,
+    "min_tests": 470,
+    "standard_floor": 493,
+    "conservative_floor": 487,
+    "max_variance": 10,
+    "section_floor": 15,
+    "projected_conservative": 493,
+    "projected_variance": 0
+  },
+  "failure_policy": {
+    "inherited_regression": "HOLD -- fail-fast, fix before proceeding",
+    "delta_gate_failure": "Fix and re-run, no merge until green",
+    "conservative_regression": "HOLD -- investigate deduction source"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "version": "3.9.0",
+  "timestamp": "2026-02-16T05:21:38.527588+00:00",
+  "rc_tag": "v3.9.0-rc1",
+  "rc_commit": "224fbae",
+  "files": {
+    "CHG-v3.9.0.md": {
+      "sha256": "b4627ad302e8e435de3114ae5dc6bda84d6920f1044d789db940dbdc72f7a568",
+      "size_bytes": 2805
+    },
+    "CLOSURE_CHECKPOINT.md": {
+      "sha256": "7f9e37bda04f4cefed81acd314e2a00ae28168cd0fb72c571c86820415725823",
+      "size_bytes": 1092
+    },
+    "FINAL_SCORECARD-v39-20260216-051159.json": {
+      "sha256": "df65408bfcdc53ef6124f22f4166b1d3d1a15da5ac75a249d96892a9937839fe",
+      "size_bytes": 1848
+    },
+    "FINAL_SCORECARD-v39-20260216-051159.md": {
+      "sha256": "1908235ea3432b29f99c2a28c7d6582be243ea775f78e0a214de8c3b3eeed863",
+      "size_bytes": 1855
+    },
+    "dependency-lock.json": {
+      "sha256": "5cc5b026f35590761b4ef580360d7227931f3992d4a271fbbcbf887d418a4509",
+      "size_bytes": 3402
+    },
+    "gate-matrix-v39-20260216-051159.json": {
+      "sha256": "046ea3db15f2c651a72bdd5aba95d2c6b19af7cc07cac769cada2d45caa9525f",
+      "size_bytes": 26047
+    },
+    "remediation-log-v39-20260216-051159.md": {
+      "sha256": "dcfbf4b9f9ef035271e783338443fc43eff7159b482847645b241ad1b679f098",
+      "size_bytes": 944
+    },
+    "requirements-frozen.txt": {
+      "sha256": "24330beab15a8acd931d8a1cbdd11b7ab196927c383732b8fce316f90eee3d1a",
+      "size_bytes": 1478
+    },
+    "unit-summary-v39-20260216-051159.json": {
+      "sha256": "a36652cdda8e5885b24063fce577031b8af2d27944145b0c8510d19e68d2b95a",
+      "size_bytes": 670
+    },
+    "v3.9-artdriven-conservative-20260216-051159.json": {
+      "sha256": "a545894f022dbb8975760a463355b74dc2257e737cba130563072c4a479bb772",
+      "size_bytes": 14317
+    },
+    "v3.9-artdriven-diff-20260216-051159.json": {
+      "sha256": "e488e49cbda4e3fa0a3666ba9b4683f90fcddaaae8c9cef448d51fd2ae2cb99d",
+      "size_bytes": 4651
+    },
+    "v3.9-artdriven-standard-20260216-051159.json": {
+      "sha256": "32e1eb21aec3ac282918962c23764e2e8d719e172999c007073b14b9d900f4fb",
+      "size_bytes": 14313
+    },
+    "v3.9-artdriven-summary-20260216-051159.md": {
+      "sha256": "566fd5b016e5e0ca8aa63ff562feea45af2789f1557e3e346bb29bf0702be3af",
+      "size_bytes": 3120
+    },
+    "v3.9-conservative-20260216-051830.json": {
+      "sha256": "e1b5fef399691a564ad164e3c9069ba8f9ca97dbf84105216439c75a4c5e0efd",
+      "size_bytes": 6628
+    },
+    "v3.9-dualpass-diff-20260216-051830.json": {
+      "sha256": "0c6ec06629b1f536ed972139ff53438ff1ef72270489db06aaef1edcf3acee1e",
+      "size_bytes": 4600
+    },
+    "v3.9-dualpass-summary-20260216-051830.md": {
+      "sha256": "7d2aa2a73bfdeb6a48d66905c1323b06f59300e0c1aef497f865a478627ddcfd",
+      "size_bytes": 3743
+    },
+    "v3.9-standard-20260216-051830.json": {
+      "sha256": "21c24b661e994feb4d2068d51f1e687c3364044d40f23b4d7b838a16bdb269de",
+      "size_bytes": 4886
+    }
+  }
+}
