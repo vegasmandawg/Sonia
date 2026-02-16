@@ -1,0 +1,95 @@
+{
+  "$schema": "sonia-promotion-criteria-v1",
+  "version": "4.0.0-dev",
+  "created": "2026-02-16",
+  "criteria": [
+    {
+      "id": "PC-01",
+      "name": "Inherited gates remain green",
+      "description": "All 33 inherited gates from v3.9.0 must pass",
+      "threshold": 33,
+      "type": "gate_count",
+      "category": "inherited",
+      "blocking": true
+    },
+    {
+      "id": "PC-02",
+      "name": "All delta gates pass",
+      "description": "Every v4.0 delta gate (epic + cross-cutting) must pass",
+      "threshold": "all",
+      "type": "gate_count",
+      "category": "delta",
+      "blocking": true
+    },
+    {
+      "id": "PC-03",
+      "name": "Standard score floor",
+      "description": "Standard dual-pass score must be >= 496/500",
+      "threshold": 496,
+      "max": 500,
+      "type": "score",
+      "scorer": "standard",
+      "blocking": true
+    },
+    {
+      "id": "PC-04",
+      "name": "Conservative score floor",
+      "description": "Conservative dual-pass score must be >= 496/500",
+      "threshold": 496,
+      "max": 500,
+      "type": "score",
+      "scorer": "conservative",
+      "blocking": true
+    },
+    {
+      "id": "PC-05",
+      "name": "No section below 15",
+      "description": "No individual section (A-Y) may score below 15/20",
+      "threshold": 15,
+      "max": 20,
+      "type": "section_floor",
+      "blocking": true
+    },
+    {
+      "id": "PC-06",
+      "name": "Variance ceiling",
+      "description": "Gap between standard and conservative scores must be <= 50",
+      "threshold": 50,
+      "type": "variance_ceiling",
+      "blocking": true
+    },
+    {
+      "id": "PC-07",
+      "name": "Release bundle with SHA-256 manifest",
+      "description": "Immutable release bundle must exist with verified SHA-256 checksums",
+      "type": "artifact",
+      "artifact": "release-manifest.json",
+      "blocking": true
+    },
+    {
+      "id": "PC-08",
+      "name": "Unit test floor",
+      "description": "All inherited tests (>=523) must pass with 0 failures, plus epic delta tests",
+      "threshold": 523,
+      "type": "test_count",
+      "blocking": true
+    },
+    {
+      "id": "PC-09",
+      "name": "Per-epic test budget met",
+      "description": "Each epic must have >= its declared minimum test count",
+      "type": "per_epic_test_floor",
+      "blocking": true
+    }
+  ],
+  "merge_protocol": {
+    "method": "--no-ff",
+    "target": "main",
+    "source": "v4.0-dev",
+    "tags": ["v4.0.0-rc1", "v4.0.0"],
+    "post_merge": {
+      "cut_release_branch": "release/v4.0.x",
+      "open_next_dev": "v4.1-dev"
+    }
+  }
+}

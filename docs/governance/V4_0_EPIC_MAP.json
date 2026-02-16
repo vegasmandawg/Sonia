@@ -1,0 +1,77 @@
+{
+  "$schema": "sonia-epic-map-v1",
+  "version": "4.0.0-dev",
+  "created": "2026-02-16",
+  "status": "SCOPE_LOCKED",
+  "inherited_floor": {
+    "gates": 33,
+    "unit_tests": 523,
+    "standard_score": 496,
+    "conservative_score": 496,
+    "source_version": "3.9.0"
+  },
+  "epics": [
+    {
+      "id": "E1",
+      "name": "TBD - Epic 1",
+      "description": "Scope to be defined after v4.0 planning session",
+      "status": "PLACEHOLDER",
+      "gate_file": "v40-epic1-gate.py",
+      "test_budget": {
+        "minimum": 20,
+        "target": 30,
+        "floor_enforced": true
+      },
+      "sections_targeted": [],
+      "modules_planned": [],
+      "owner": null
+    },
+    {
+      "id": "E2",
+      "name": "TBD - Epic 2",
+      "description": "Scope to be defined after v4.0 planning session",
+      "status": "PLACEHOLDER",
+      "gate_file": "v40-epic2-gate.py",
+      "test_budget": {
+        "minimum": 20,
+        "target": 30,
+        "floor_enforced": true
+      },
+      "sections_targeted": [],
+      "modules_planned": [],
+      "owner": null
+    },
+    {
+      "id": "E3",
+      "name": "TBD - Epic 3",
+      "description": "Scope to be defined after v4.0 planning session",
+      "status": "PLACEHOLDER",
+      "gate_file": "v40-epic3-gate.py",
+      "test_budget": {
+        "minimum": 20,
+        "target": 30,
+        "floor_enforced": true
+      },
+      "sections_targeted": [],
+      "modules_planned": [],
+      "owner": null
+    }
+  ],
+  "cross_cutting": {
+    "evidence_integrity": {
+      "gate_file": "v40-evidence-integrity-gate.py",
+      "description": "Validates release bundle completeness, SHA-256 manifest integrity, and scorer convergence",
+      "test_budget": {
+        "minimum": 10,
+        "target": 15,
+        "floor_enforced": true
+      }
+    }
+  },
+  "rules": {
+    "no_feature_merge_without_gate_ownership": true,
+    "no_feature_merge_without_test_targets": true,
+    "per_pass_floor_mandatory": true,
+    "release_v39x_hotfix_only": true
+  }
+}

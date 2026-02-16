@@ -43,6 +43,20 @@ Inherited from v3.9.0:
 
 ---
 
+## Test Budgets
+
+| Epic | Minimum Tests | Target | Floor Enforced |
+|------|--------------|--------|----------------|
+| Epic 1 (TBD) | 20 | 30 | Yes |
+| Epic 2 (TBD) | 20 | 30 | Yes |
+| Epic 3 (TBD) | 20 | 30 | Yes |
+| Evidence Integrity | 10 | 15 | Yes |
+| **Inherited** | **523** | **523** | **Yes** |
+
+No feature merge is permitted without gate ownership and test targets.
+
+---
+
 ## Promotion Criteria
 
 1. All inherited gates (33) remain green
@@ -52,3 +66,25 @@ Inherited from v3.9.0:
 5. No section below 15
 6. Variance <= 50
 7. Release bundle with SHA-256 manifest
+8. Per-epic test budget met (>= minimum)
+9. Per-pass floor mandatory (both scorers must meet threshold)
+
+---
+
+## Gate Architecture (schema v7.0)
+
+| Class | Count | Description |
+|-------|-------|-------------|
+| A | 33 + 1 test floor | Inherited baseline (fail-fast, always_retry) |
+| B | 3 (placeholder) | Epic delta gates (per-epic ownership) |
+| C | 1 (placeholder) | Cross-cutting (evidence integrity) |
+
+Gate runner: `scripts/release/gate-v40.py`
+
+---
+
+## Machine-Checkable Contracts
+
+- `docs/governance/V4_0_EPIC_MAP.json` -- epic definitions, test budgets, rules
+- `docs/governance/V4_0_PROMOTION_CRITERIA.json` -- promotion criteria with thresholds
+- `docs/governance/V4_0_NON_GOALS.json` -- inherited non-goals with review policy
