@@ -1,0 +1,36 @@
+{
+  "version": "4.2.0-dev",
+  "baseline": {
+    "inherited_tests": 753,
+    "inherited_gates": 41,
+    "source_tag": "v4.1.0"
+  },
+  "epic_budgets": {
+    "E1": {
+      "minimum_tests": 30,
+      "gate_checks": 10
+    },
+    "E2": {
+      "minimum_tests": 30,
+      "gate_checks": 10
+    },
+    "E3": {
+      "minimum_tests": 30,
+      "gate_checks": 10
+    }
+  },
+  "ga_targets": {
+    "total_tests_minimum": 843,
+    "delta_tests_minimum": 90,
+    "total_gates": 45,
+    "inherited_gates": 41,
+    "delta_gates": 4,
+    "dual_pass_standard_floor": 495,
+    "dual_pass_conservative_floor": 495,
+    "inter_pass_gap_max": 6,
+    "min_section_score": 15,
+    "deterministic_failures_allowed": 0
+  },
+  "locked_at": "20260216-121844",
+  "immutable": true
+}

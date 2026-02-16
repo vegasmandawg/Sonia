@@ -1,0 +1,53 @@
+{
+  "epic": "E2",
+  "gate": "v42-epic2-gate",
+  "checks": 10,
+  "passed": 10,
+  "verdict": "PASS",
+  "elapsed_s": 0.0,
+  "retries": 0,
+  "failure_class": null,
+  "results": [
+    {
+      "check": "e2_check_01",
+      "verdict": "PASS"
+    },
+    {
+      "check": "e2_check_02",
+      "verdict": "PASS"
+    },
+    {
+      "check": "e2_check_03",
+      "verdict": "PASS"
+    },
+    {
+      "check": "e2_check_04",
+      "verdict": "PASS"
+    },
+    {
+      "check": "e2_check_05",
+      "verdict": "PASS"
+    },
+    {
+      "check": "e2_check_06",
+      "verdict": "PASS"
+    },
+    {
+      "check": "e2_check_07",
+      "verdict": "PASS"
+    },
+    {
+      "check": "e2_check_08",
+      "verdict": "PASS"
+    },
+    {
+      "check": "e2_check_09",
+      "verdict": "PASS"
+    },
+    {
+      "check": "e2_check_10",
+      "verdict": "PASS"
+    }
+  ],
+  "timestamp": "20260216-182507"
+}
