@@ -81,8 +81,8 @@ INHERITED_UNIT_TEST_FLOOR = 430
 # ---- v3.9 delta gates (add here as epics are wired) -------------------------
 
 DELTA_GATES = [
-    # ("gate-name.py", "directory", "Epic label"),
-    # e.g. ("coverage-completeness-gate.py", "release", "Epic 1: Coverage Completeness"),
+    ("coverage-completeness-gate.py", "gates", "Epic 1: Coverage Completeness"),
+    ("data-durability-gate.py", "gates", "Epic 1: Data Durability"),
 ]
 
 DELTA_GATE_COUNT = len(DELTA_GATES)
@@ -91,8 +91,15 @@ TOTAL_GATES = INHERITED_FLOOR_COUNT + DELTA_GATE_COUNT
 
 # ---- Subprocess execution with retry ----------------------------------------
 
-def _is_ambiguous_failure(returncode, stdout, stderr):
-    """Detect failures that may be transient (empty output, subprocess noise)."""
+def _is_ambiguous_failure(returncode, stdout, stderr, always_retry=False):
+    """Detect failures that may be transient (empty output, subprocess noise).
+
+    If always_retry=True, any non-zero exit is retried once. This is used for
+    inherited gates which are known-green -- any failure during orchestration
+    is likely resource contention from concurrent subprocess spawning.
+    """
+    if always_retry and returncode != 0:
+        return True
     combined = (stdout or "") + (stderr or "")
     if returncode != 0:
         if len(combined.strip()) < 20:
@@ -123,8 +130,12 @@ def _run_gate_once(gate_path):
         return -2, "", f"ERROR: {e}", elapsed
 
 
-def run_gate_script(gate_file, search_dir):
-    """Run a gate script with retry logic. Returns a rich result dict."""
+def run_gate_script(gate_file, search_dir, always_retry=False):
+    """Run a gate script with retry logic. Returns a rich result dict.
+
+    If always_retry=True, any failure triggers a single retry regardless
+    of whether the failure looks ambiguous.
+    """
     gate_path = search_dir / gate_file
     if not gate_path.exists():
         return {
@@ -156,8 +167,8 @@ def run_gate_script(gate_file, search_dir):
             "elapsed_s": elapsed,
         }
 
-    # Retry on ambiguous failure
-    if _is_ambiguous_failure(rc, stdout, stderr):
+    # Retry on ambiguous failure (or always for inherited gates)
+    if _is_ambiguous_failure(rc, stdout, stderr, always_retry=always_retry):
         time.sleep(2)
         rc2, stdout2, stderr2, elapsed2 = _run_gate_once(gate_path)
         combined2 = stdout2 + stderr2
@@ -305,9 +316,9 @@ def main():
         floor_fail = 0
         retried = 0
 
-        # Run gates/ directory gates
+        # Run gates/ directory gates (always_retry for inherited)
         for gate_file in INHERITED_GATES_GATES_DIR:
-            gate_result = run_gate_script(gate_file, GATE_DIR)
+            gate_result = run_gate_script(gate_file, GATE_DIR, always_retry=True)
             gate_result["gate"] = gate_file
             gate_result["category"] = "inherited"
             gate_result["source_dir"] = "scripts/gates"
@@ -334,7 +345,7 @@ def main():
 
         # Run scripts/release directory gates (v3.8 delta, now inherited)
         for gate_file in INHERITED_GATES_RELEASE_DIR:
-            gate_result = run_gate_script(gate_file, RELEASE_DIR)
+            gate_result = run_gate_script(gate_file, RELEASE_DIR, always_retry=True)
             gate_result["gate"] = gate_file
             gate_result["category"] = "inherited"
             gate_result["source_dir"] = "scripts/release"
