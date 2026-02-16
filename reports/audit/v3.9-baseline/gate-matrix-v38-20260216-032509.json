@@ -1,0 +1,68 @@
+{
+  "version": "v3.8.0",
+  "timestamp": "20260216-032509",
+  "inherited_gates": {
+    "total": 24,
+    "passed": 24,
+    "failed": 0,
+    "gates": [
+      "auth-posture-gate.py",
+      "auth-surface-gate.py",
+      "backup-restore-drill.py",
+      "cleanroom-parity-gate.py",
+      "consolidated-preaudit.py",
+      "drill-determinism-gate.py",
+      "fallback-behavior-gate.py",
+      "incident-bundle-gate.py",
+      "incident-completeness-gate.py",
+      "incident-lineage-gate.py",
+      "memory-silo-gate.py",
+      "output-budget-gate.py",
+      "perf-budget-gate.py",
+      "policy-enforcement-gate.py",
+      "rate-limiter-gate.py",
+      "recovery-determinism-gate.py",
+      "regression-guard-gate.py",
+      "release-integrity-gate.py",
+      "restore-integrity-gate.py",
+      "runtime-qos-gate.py",
+      "secret-scan-gate.py",
+      "session-isolation-gate.py",
+      "traceability-gate.py",
+      "unit-test-layer-gate.py"
+    ]
+  },
+  "delta_gates": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "gates": {
+      "schema-validation-gate.py": {
+        "checks": 10,
+        "passed": 10,
+        "verdict": "PASS"
+      },
+      "data-migration-gate.py": {
+        "checks": 10,
+        "passed": 10,
+        "verdict": "PASS"
+      },
+      "automation-coverage-gate.py": {
+        "checks": 10,
+        "passed": 10,
+        "verdict": "PASS"
+      },
+      "trace-propagation-gate.py": {
+        "checks": 10,
+        "passed": 10,
+        "verdict": "PASS"
+      }
+    }
+  },
+  "combined": {
+    "total": 28,
+    "passed": 28,
+    "failed": 0
+  },
+  "verdict": "PASS"
+}
