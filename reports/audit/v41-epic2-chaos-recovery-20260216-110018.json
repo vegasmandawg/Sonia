@@ -1,0 +1,8 @@
+{
+  "epic": "E2",
+  "gate": "v41-epic2-chaos-recovery-gate",
+  "checks": 10,
+  "passed": 10,
+  "verdict": "PASS",
+  "timestamp": "20260216-110018"
+}
