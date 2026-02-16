@@ -1,0 +1,15 @@
+{
+  "epic": "E3",
+  "new_tests": 46,
+  "passed": 46,
+  "failed": 0,
+  "total_suite": 753,
+  "files": [
+    "test_repro_build_policy.py",
+    "test_cleanroom_parity.py",
+    "test_release_manifest_policy.py",
+    "test_rollback_determinism.py",
+    "test_release_lineage.py"
+  ],
+  "timestamp": "20260216-112402"
+}
