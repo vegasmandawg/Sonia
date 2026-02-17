@@ -10,6 +10,7 @@ import asyncio
 import time
 import logging
 import json
+import subprocess
 from enum import Enum
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
@@ -215,6 +216,134 @@ class ServiceSupervisor:
                     "consecutive_failures": record.consecutive_failures,
                     "error": record.error,
                 })
+
+        # v4.4 Epic C: Health-driven auto_restart on UNREACHABLE
+        if record.state == ServiceState.UNREACHABLE and old_state != ServiceState.UNREACHABLE:
+            asyncio.ensure_future(self._auto_restart(record.name))
+
+    async def _auto_restart(self, service_name: str):
+        """Trigger automatic restart when service enters UNREACHABLE state."""
+        logger.info("Auto-restart triggered for %s (health-driven)", service_name)
+        try:
+            result = await self.restart_service(service_name)
+            if result.get("ok"):
+                logger.info("Auto-restart succeeded for %s (pid=%s)", service_name, result.get("pid"))
+            else:
+                logger.warning("Auto-restart failed for %s: %s", service_name, result.get("error"))
+        except Exception as e:
+            logger.error("Auto-restart error for %s: %s", service_name, e)
+
+    # ── Restart Support (v4.4 Epic C) ────────────────────────────────
+
+    # Canonical uvicorn commands for each service
+    SERVICE_COMMANDS = {
+        "api-gateway": {
+            "cwd": r"S:\services\api-gateway",
+            "cmd": [r"S:\envs\sonia-core\python.exe", "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "7000"],
+        },
+        "model-router": {
+            "cwd": r"S:\services\model-router",
+            "cmd": [r"S:\envs\sonia-core\python.exe", "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "7010"],
+        },
+        "memory-engine": {
+            "cwd": r"S:\services\memory-engine",
+            "cmd": [r"S:\envs\sonia-core\python.exe", "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "7020"],
+        },
+        "pipecat": {
+            "cwd": r"S:\services\pipecat",
+            "cmd": [r"S:\envs\sonia-core\python.exe", "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "7030"],
+        },
+        "openclaw": {
+            "cwd": r"S:\services\openclaw",
+            "cmd": [r"S:\envs\sonia-core\python.exe", "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "7040"],
+        },
+    }
+
+    # Restart policy: max restarts per window, exponential backoff
+    MAX_RESTARTS = 3
+    RESTART_WINDOW_S = 300.0  # 5 minutes
+    BACKOFF_BASE_S = 2.0  # 2s, 4s, 8s
+
+    async def restart_service(self, name: str) -> Dict[str, Any]:
+        """
+        Restart a service via subprocess.
+
+        Enforces restart policy: max 3 restarts per 5-minute window,
+        exponential backoff (2s, 4s, 8s). After exhaustion, marks UNREACHABLE.
+
+        Returns:
+            Dict with restart result including status and details.
+        """
+        record = self._services.get(name)
+        if not record:
+            raise ValueError(f"Unknown service: {name}")
+
+        svc_cmd = self.SERVICE_COMMANDS.get(name)
+        if not svc_cmd:
+            return {"ok": False, "service": name, "error": f"No restart command for {name}"}
+
+        # Check restart policy
+        now = time.time()
+        restart_history = getattr(record, '_restart_history', [])
+        # Prune old entries outside window
+        restart_history = [t for t in restart_history if now - t < self.RESTART_WINDOW_S]
+
+        if len(restart_history) >= self.MAX_RESTARTS:
+            record.state = ServiceState.UNREACHABLE
+            self._emit_event("supervision.restart.exhausted", name, {
+                "restart_count": len(restart_history),
+                "window_s": self.RESTART_WINDOW_S,
+            })
+            logger.warning("Restart policy exhausted for %s (%d in %ds)",
+                          name, len(restart_history), self.RESTART_WINDOW_S)
+            return {
+                "ok": False, "service": name,
+                "error": "Restart policy exhausted",
+                "restart_count": len(restart_history),
+            }
+
+        # Exponential backoff
+        attempt = len(restart_history)
+        backoff_s = self.BACKOFF_BASE_S * (2 ** attempt)
+        if attempt > 0:
+            logger.info("Restart backoff for %s: %.1fs", name, backoff_s)
+            await asyncio.sleep(backoff_s)
+
+        # Execute restart
+        try:
+            logger.info("Restarting service %s (attempt %d/%d)", name, attempt + 1, self.MAX_RESTARTS)
+
+            process = subprocess.Popen(
+                svc_cmd["cmd"],
+                cwd=svc_cmd["cwd"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0),
+            )
+
+            # Record restart
+            restart_history.append(now)
+            record._restart_history = restart_history
+            record.state = ServiceState.RECOVERING
+            record.consecutive_failures = 0
+
+            self._emit_event("supervision.service.restarted", name, {
+                "pid": process.pid,
+                "attempt": attempt + 1,
+                "backoff_s": backoff_s,
+            })
+
+            return {
+                "ok": True, "service": name,
+                "pid": process.pid,
+                "attempt": attempt + 1,
+                "backoff_s": backoff_s,
+            }
+
+        except Exception as e:
+            logger.error("Restart failed for %s: %s", name, e)
+            self._emit_event("supervision.restart.failed", name, {"error": str(e)})
+            return {"ok": False, "service": name, "error": str(e)}
 
     async def probe_all(self) -> Dict[str, ServiceRecord]:
         """Probe all services concurrently."""
