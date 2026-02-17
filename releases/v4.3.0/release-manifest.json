@@ -1,0 +1,57 @@
+{
+  "schema_version": "10.0",
+  "version": "4.3.0",
+  "tag": "v4.3.0",
+  "commit": "bb511d4",
+  "timestamp": "2026-02-17T15:46:35.694549+00:00",
+  "epics": {
+    "A": "Session Durability + Restart Recovery",
+    "B": "Persistent Retrieval + Deterministic Recall",
+    "C": "Consent/Privacy Hardening"
+  },
+  "new_files": [
+    "services/api-gateway/durable_state.py",
+    "services/api-gateway/backpressure.py",
+    "services/api-gateway/latency_budget.py",
+    "services/memory-engine/vector/index_manifest.py",
+    "services/shared/consent.py"
+  ],
+  "modified_files": [
+    "services/api-gateway/session_manager.py",
+    "services/api-gateway/tool_policy.py",
+    "services/api-gateway/dead_letter.py",
+    "services/api-gateway/memory_policy.py",
+    "services/api-gateway/main.py",
+    "services/api-gateway/routes/stream.py",
+    "services/memory-engine/hybrid_search.py",
+    "services/memory-engine/main.py",
+    "services/memory-engine/core/retriever.py",
+    "services/perception/main.py"
+  ],
+  "validation": {
+    "promotion_gate": "18/18 PASS (reproducible)",
+    "compile_check": "15/15 OK",
+    "roundtrip_tests": "4/4 PASS (backpressure, consent, durable_state, latency_budget)",
+    "frozen_deps": "79 packages, 4/4 key deps verified"
+  },
+  "files": {
+    "services/api-gateway/durable_state.py": "7f5dbc98af1d08da876e2feb53f23661ef83fe4c893a5d0e2f35d1ce3f4fab11",
+    "services/api-gateway/backpressure.py": "7dbefdf35ce24fc7484668ff5ae9f856d3b261915b9b2e42e45b53532250dd45",
+    "services/api-gateway/latency_budget.py": "b2ba72ad4245753ac712b7383de0f81d287975f7c5f8f7c776348a3428559bc2",
+    "services/memory-engine/vector/index_manifest.py": "03c35429459c987c4705448f8b7bd7895176515ac1de7237618f99ae59c989ad",
+    "services/shared/consent.py": "f195028ebbe82b4cfa5a0b12fb9e593f1c9d826a229c7bfe507eb58b65a0c19c",
+    "services/api-gateway/session_manager.py": "5ec55d49b774010f9c9970e6c4aff975740a32155d1f941fff0e60ad14a88c5f",
+    "services/api-gateway/tool_policy.py": "01a762ecabd84d6d37a5eb667c381d4195219191b40543b00bba855a88a6f7d4",
+    "services/api-gateway/dead_letter.py": "06801e543a597789cf51e4cbb90a534c4791806a5401db7e1c67b5dfe1ebd5ff",
+    "services/api-gateway/memory_policy.py": "976c6ab1db5878b8520eda70d4908d4ff5c873530a5c9241c747d597a826e366",
+    "services/api-gateway/main.py": "90d26fc6dd254c4f730520e69e04be3400f4a24df2402a15fb9d0fe7755171ab",
+    "services/api-gateway/routes/stream.py": "220886bf1a06fed7bd62607cfa394a0c00ef947109161e6b1e288496974e1370",
+    "services/memory-engine/hybrid_search.py": "6717bd123ed59005f0075791ce808594e2c50ce6d5d0f2b6c47951862a2d3a82",
+    "services/memory-engine/main.py": "cb849bb349e78a8e4c35978511f7ac9eb29212b97bec6cb6294007b954399c0c",
+    "services/memory-engine/core/retriever.py": "43e4753ff7b9018f63e7092c6b8934228883686dbe56d6855c831ace183914b5",
+    "services/perception/main.py": "b3276be01eb0b9f48e839787396b89080ac8f0e95cbdbd628049b930b77dc3d3",
+    "scripts/release/gate-v43.py": "83f39fcb1444100e5df7bb4dcc44c731a47b12669b2da7ca1b3fd67f38210ac2"
+  },
+  "promoted_from": "v4.3.0-rc1",
+  "ga_timestamp": "2026-02-17T15:47:04.539846+00:00"
+}
