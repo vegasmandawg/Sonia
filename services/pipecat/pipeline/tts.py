@@ -25,6 +25,7 @@ class TTSConfig:
     voice: str = "default"  # Voice identifier
     speed: float = 1.0  # Speech speed (0.5-2.0)
     timeout: float = 30.0
+    api_key: str = ""  # v4.4: Required for OpenAI backend
 
 
 class TTS:
