@@ -149,7 +149,7 @@ async def handle_turn(
         assistant_text = normalize_response(assistant_text, response_policy)
         assistant_text = enforce_non_empty(assistant_text, response_policy)
 
-        # ── 4. Tool call detection (forward-compatible stub) ──────────
+        # ── 4. Tool call detection + openclaw routing ─────────────────
         ttool0 = time.monotonic()
         raw_tool_calls = chat_resp.get("tool_calls") or []
         tool_calls_attempted = len(raw_tool_calls)

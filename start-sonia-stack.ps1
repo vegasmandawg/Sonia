@@ -121,6 +121,12 @@ if (Test-Path -LiteralPath $perceptionDir) {
     $services += @{ Name = "Perception"; Script = "run-perception.ps1"; Port = 7070 }
 }
 
+# Check if Orchestrator exists (Tier 3, optional)
+$orchestratorDir = Join-Path $root "services\orchestrator"
+if (Test-Path -LiteralPath $orchestratorDir) {
+    $services += @{ Name = "Orchestrator"; Script = "run-orchestrator.ps1"; Port = 8000 }
+}
+
 # Check if MCP Server exists
 $mcpDir = Join-Path $root "services\mcp-server"
 if (Test-Path -LiteralPath $mcpDir) {

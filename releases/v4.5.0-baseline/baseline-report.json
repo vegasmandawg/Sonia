@@ -1,0 +1,15 @@
+{
+  "version": "4.5.0-baseline",
+  "schema": "12.0",
+  "floor": "33/33 PASS",
+  "delta_baseline": "9/15 pass (6 fail = implementation targets)",
+  "failing_gates": [
+    "orchestrator-supervised",
+    "orchestrator-boot",
+    "vision-supervised",
+    "verify-real",
+    "tool-call-extraction",
+    "memory-risk-tier"
+  ],
+  "timestamp": "2026-02-17T20:40:35.034468+00:00"
+}

@@ -533,27 +533,86 @@ class ActionPipeline:
                           dead_lettered=True)
         return result
 
-    # ── Verify (placeholder — full impl in M3) ──────────────────────────
+    # ── Verify (v4.5 Epic B: real post-execution checks) ─────────────
 
     async def verify(self, action_id: str) -> bool:
         """
         Phase 4: Post-execution verification.
-        Placeholder — returns True for executed actions.
-        Full verification adapters land in M3.
+        Checks actual outcome per capability type.
         """
         record = await self.store.get(action_id)
         if not record:
             return False
-        if record.state == "succeeded":
-            t0 = time.time()
-            # Placeholder: no actual verification yet
-            elapsed = round((time.time() - t0) * 1000, 2)
-            record.telemetry.verify_ms = elapsed
+        if record.state != "succeeded":
+            return False
+
+        t0 = time.time()
+        verified = True
+        detail = ""
+
+        try:
+            intent = record.intent
+            params = record.params or {}
+            result = record.result or {}
+
+            if intent == "file.write":
+                import os
+                path = params.get("path", "")
+                if path and not os.path.exists(path):
+                    verified = False
+                    detail = f"file.write target not found: {path}"
+                elif path:
+                    stat = os.stat(path)
+                    if stat.st_size == 0 and params.get("content", ""):
+                        verified = False
+                        detail = f"file.write target is empty: {path}"
+
+            elif intent == "shell.run":
+                exit_code = result.get("exit_code", result.get("exitCode"))
+                if exit_code is not None and int(exit_code) != 0:
+                    verified = False
+                    detail = f"shell.run exited with code {exit_code}"
+
+            elif intent == "app.launch":
+                launched_pid = result.get("pid")
+                if launched_pid:
+                    import os
+                    try:
+                        os.kill(int(launched_pid), 0)
+                    except (OSError, ProcessLookupError):
+                        verified = False
+                        detail = f"app.launch pid {launched_pid} not alive"
+
+            elif intent == "clipboard.write":
+                expected = params.get("content", "")
+                actual = result.get("content", result.get("clipboard", ""))
+                if expected and actual and expected != actual:
+                    verified = False
+                    detail = "clipboard.write content mismatch"
+
+            elif intent == "file.read":
+                content = result.get("content", "")
+                if content is None:
+                    verified = False
+                    detail = "file.read returned no content"
+
+        except Exception as e:
+            verified = False
+            detail = f"verification error: {e}"
+
+        elapsed = round((time.time() - t0) * 1000, 2)
+        record.telemetry.verify_ms = elapsed
+
+        if verified:
             await self.store.update_state(action_id, "succeeded",
                                           telemetry=record.telemetry)
-            _log_action_event(action_id, "verified")
-            return True
-        return False
+            _log_action_event(action_id, "verified", detail=detail or "ok")
+        else:
+            await self.store.update_state(action_id, "failed",
+                                          telemetry=record.telemetry)
+            _log_action_event(action_id, "verify_failed", detail=detail)
+
+        return verified
 
     # ── Full run ─────────────────────────────────────────────────────────
 

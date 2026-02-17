@@ -113,7 +113,7 @@ class ReplayEngine:
                 subject_key=p_input.subject_key,
                 payload=p_input.payload,
                 confidence=p_input.confidence,
-                risk_tier=RiskTier.AUTO_LOW,  # placeholder
+                risk_tier=RiskTier.AUTO_LOW,  # initial default, classify_proposal() overrides below
                 created_seq=seq,
                 schema_version=p_input.schema_version,
                 policy_version=p_input.policy_version,
