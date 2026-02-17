@@ -166,6 +166,20 @@ recovery exit criteria.
 - Floor: 66/66 PASS
 - Delta: 15/18 PASS (B4 idempotency-store-durable FAIL, C3 recovery-exit-criteria FAIL, C4 slo-diagnostics-endpoint FAIL)
 
+### Post-closure
+- Floor: 66/66 PASS (zero regressions)
+- Delta: 18/18 PASS
+- **VERDICT: PROMOTE (84/84)**
+
+### Gap Implementations
+- **B4 idempotency-store-durable**: `idempotency_keys` table in DurableStateStore (SQLite WAL, TTL-expiring, write-through). 7 tests.
+- **C3 recovery-exit-criteria**: `SLOGuardrails` class in `latency_budget.py` -- 3-state machine (NORMAL/DEGRADED/RECOVERING), M consecutive_healthy windows to exit_degrade, clear_to_recover flag. 6 tests.
+- **C4 slo-diagnostics-endpoint**: `GET /v1/slo/status` + `/v3/slo/status` -- returns current_mode, breach_history, time_in_degrade, degrade_reason, clear_to_recover. 2 tests.
+- **Epic A**: 6/6 at baseline, no implementation needed.
+
+### B4 fail-closed note
+DurableStateStore idempotency methods follow existing pattern: persistence failures log warnings but never raise. Expired keys return None (fail-closed: no cached result = full re-execution).
+
 ---
 
 ## Execution Choreography
