@@ -1,0 +1,34 @@
+{
+  "schema_version": "10.0",
+  "version": "4.4.0-dev",
+  "baseline_commit": "3973b72",
+  "parent_release": "v4.3.0 (bb511d4)",
+  "timestamp": "2026-02-17T15:56:55.789887+00:00",
+  "inherited_floor": {
+    "gate_script": "scripts/release/gate-v43.py",
+    "gates_total": 18,
+    "gates_pass": 18,
+    "gates_fail": 0,
+    "verdict": "FLOOR_GREEN"
+  },
+  "architecture_audit": {
+    "p0_items": [
+      "No TLS on any service",
+      "tool-service + orchestrator on 0.0.0.0 with no auth",
+      "Pipecat: no binary audio I/O, voice_backends all NotImplementedError",
+      "EVA-OS: /tasks stub, /approve no-op",
+      "Zero container/orchestration artifacts",
+      "No process supervision for crash restart",
+      "action_pipeline.verify() is placeholder"
+    ],
+    "p1_items": [
+      "Auth only on api-gateway (no intra-service auth)",
+      "EVA-OS supervisor cannot restart services",
+      "Hard-coded Windows paths",
+      "tool-service port 7040 collides with openclaw",
+      "ASR/TTS OpenAI path api_key AttributeError",
+      "Memory ops risk_tier classification placeholder",
+      "No audio voice integration tests"
+    ]
+  }
+}
