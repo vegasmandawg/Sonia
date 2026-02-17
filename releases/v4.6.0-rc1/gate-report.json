@@ -1,0 +1,550 @@
+{
+  "schema_version": "13.0",
+  "version": "4.6.0",
+  "verdict": "PROMOTE",
+  "timestamp": "2026-02-17T22:24:48.261275+00:00",
+  "elapsed_s": 0.41,
+  "summary": {
+    "pass": 66,
+    "fail": 0,
+    "skip": 0,
+    "total": 66,
+    "floor_pass": 48,
+    "floor_fail": 0,
+    "floor_total": 48,
+    "delta_pass": 18,
+    "delta_fail": 0,
+    "delta_total": 18,
+    "floor_regression": false
+  },
+  "gates": [
+    {
+      "name": "file-exists",
+      "class": "A",
+      "epic": "",
+      "status": "PASS",
+      "detail": "All 15 files exist",
+      "duration_s": 0.0
+    },
+    {
+      "name": "compile-all",
+      "class": "A",
+      "epic": "",
+      "status": "PASS",
+      "detail": "15 files compile OK",
+      "duration_s": 0.031
+    },
+    {
+      "name": "durable-state-tables",
+      "class": "A",
+      "epic": "v4.3-A",
+      "status": "PASS",
+      "detail": "All 4 tables defined",
+      "duration_s": 0.0
+    },
+    {
+      "name": "wal-mode",
+      "class": "A",
+      "epic": "v4.3-A",
+      "status": "PASS",
+      "detail": "WAL mode configured",
+      "duration_s": 0.0
+    },
+    {
+      "name": "session-restore",
+      "class": "A",
+      "epic": "v4.3-A",
+      "status": "PASS",
+      "detail": "Session restore integration present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "confirmation-restore",
+      "class": "A",
+      "epic": "v4.3-A",
+      "status": "PASS",
+      "detail": "Confirmation restore integration present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "outbox-pattern",
+      "class": "A",
+      "epic": "v4.3-A",
+      "status": "PASS",
+      "detail": "Outbox pattern wired end-to-end",
+      "duration_s": 0.0
+    },
+    {
+      "name": "lifespan-wiring",
+      "class": "A",
+      "epic": "v4.3-A",
+      "status": "PASS",
+      "detail": "main.py lifespan wires DurableStateStore",
+      "duration_s": 0.0
+    },
+    {
+      "name": "hnsw-wired",
+      "class": "A",
+      "epic": "v4.3-B",
+      "status": "PASS",
+      "detail": "HNSW fully wired into hybrid search",
+      "duration_s": 0.0
+    },
+    {
+      "name": "index-manifest",
+      "class": "A",
+      "epic": "v4.3-B",
+      "status": "PASS",
+      "detail": "Index manifest with SHA-256 verification",
+      "duration_s": 0.0
+    },
+    {
+      "name": "token-budget",
+      "class": "A",
+      "epic": "v4.3-B",
+      "status": "PASS",
+      "detail": "Deterministic token budget in retriever",
+      "duration_s": 0.0
+    },
+    {
+      "name": "memory-lifespan",
+      "class": "A",
+      "epic": "v4.3-B",
+      "status": "PASS",
+      "detail": "Memory-engine lifespan: vector init + save",
+      "duration_s": 0.0
+    },
+    {
+      "name": "consent-fsm",
+      "class": "A",
+      "epic": "v4.3-C",
+      "status": "PASS",
+      "detail": "Consent FSM: 5 states + inference gate",
+      "duration_s": 0.0
+    },
+    {
+      "name": "consent-fail-closed",
+      "class": "A",
+      "epic": "v4.3-C",
+      "status": "PASS",
+      "detail": "Fail-closed consent (returns False on error)",
+      "duration_s": 0.0
+    },
+    {
+      "name": "perception-consent",
+      "class": "A",
+      "epic": "v4.3-C",
+      "status": "PASS",
+      "detail": "Perception consent gate active",
+      "duration_s": 0.0
+    },
+    {
+      "name": "backpressure",
+      "class": "A",
+      "epic": "v4.3-C",
+      "status": "PASS",
+      "detail": "Backpressure policy with oldest-first shedding",
+      "duration_s": 0.0
+    },
+    {
+      "name": "latency-budget",
+      "class": "A",
+      "epic": "v4.3-C",
+      "status": "PASS",
+      "detail": "Latency budget: per-stage p95/p99 + SLO",
+      "duration_s": 0.0
+    },
+    {
+      "name": "stream-backpressure",
+      "class": "A",
+      "epic": "v4.3-C",
+      "status": "PASS",
+      "detail": "stream.py: backpressure + latency wired",
+      "duration_s": 0.0
+    },
+    {
+      "name": "bind-audit",
+      "class": "A",
+      "epic": "v4.4-A",
+      "status": "PASS",
+      "detail": "All services bind safely",
+      "duration_s": 0.0
+    },
+    {
+      "name": "auth-coverage",
+      "class": "A",
+      "epic": "v4.4-A",
+      "status": "PASS",
+      "detail": "Auth middleware with Bearer + service-token",
+      "duration_s": 0.0
+    },
+    {
+      "name": "tls-config",
+      "class": "A",
+      "epic": "v4.4-A",
+      "status": "PASS",
+      "detail": "TLS config wired",
+      "duration_s": 0.0
+    },
+    {
+      "name": "cors-env",
+      "class": "A",
+      "epic": "v4.4-A",
+      "status": "PASS",
+      "detail": "CORS origins configurable via env",
+      "duration_s": 0.0
+    },
+    {
+      "name": "service-token",
+      "class": "A",
+      "epic": "v4.4-A",
+      "status": "PASS",
+      "detail": "Service-token bypass flow present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "backends-wired",
+      "class": "A",
+      "epic": "v4.4-B",
+      "status": "PASS",
+      "detail": "Concrete providers: ['OllamaASR', 'OllamaTTS', 'EnergyVAD', 'QwenASR', 'QwenTTS']",
+      "duration_s": 0.0
+    },
+    {
+      "name": "asr-config-fix",
+      "class": "A",
+      "epic": "v4.4-B",
+      "status": "PASS",
+      "detail": "ASR/TTS config api_key fields defined",
+      "duration_s": 0.0
+    },
+    {
+      "name": "factory-providers",
+      "class": "A",
+      "epic": "v4.4-B",
+      "status": "PASS",
+      "detail": "Factory functions with conditional provider selection",
+      "duration_s": 0.0
+    },
+    {
+      "name": "ws-audio-framing",
+      "class": "A",
+      "epic": "v4.4-B",
+      "status": "PASS",
+      "detail": "WS audio framing indicators: ['bytes', 'audio', 'binary', 'pcm']",
+      "duration_s": 0.0
+    },
+    {
+      "name": "voice-roundtrip-test",
+      "class": "A",
+      "epic": "v4.4-B",
+      "status": "PASS",
+      "detail": "Voice roundtrip tests: ['tests\\\\integration\\\\test_voice_roundtrip.py', 'tests\\\\integration\\\\__pycache__\\\\test_voice_roundtrip.cpython-311-pytest-8.4.2.pyc']",
+      "duration_s": 0.0
+    },
+    {
+      "name": "restart-method",
+      "class": "A",
+      "epic": "v4.4-C",
+      "status": "PASS",
+      "detail": "restart_service with subprocess execution",
+      "duration_s": 0.0
+    },
+    {
+      "name": "restart-policy",
+      "class": "A",
+      "epic": "v4.4-C",
+      "status": "PASS",
+      "detail": "Restart policy: ['max_restart', 'backoff', 'restart_count']",
+      "duration_s": 0.0
+    },
+    {
+      "name": "tasks-endpoint",
+      "class": "A",
+      "epic": "v4.4-C",
+      "status": "PASS",
+      "detail": "Task storage present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "approve-endpoint",
+      "class": "A",
+      "epic": "v4.4-C",
+      "status": "PASS",
+      "detail": "Approval endpoint with real logic",
+      "duration_s": 0.0
+    },
+    {
+      "name": "health-restart-trigger",
+      "class": "A",
+      "epic": "v4.4-C",
+      "status": "PASS",
+      "detail": "Health-driven restart trigger wired",
+      "duration_s": 0.0
+    },
+    {
+      "name": "orchestrator-supervised",
+      "class": "A",
+      "epic": "v4.5-A",
+      "status": "PASS",
+      "detail": "Orchestrator in DEPENDENCY_GRAPH + SERVICE_COMMANDS",
+      "duration_s": 0.0
+    },
+    {
+      "name": "orchestrator-boot",
+      "class": "A",
+      "epic": "v4.5-A",
+      "status": "PASS",
+      "detail": "Orchestrator in boot script",
+      "duration_s": 0.0
+    },
+    {
+      "name": "tool-proxy-canonical",
+      "class": "A",
+      "epic": "v4.5-A",
+      "status": "PASS",
+      "detail": "Tools proxy present (ToolExecutor may be deprecated path)",
+      "duration_s": 0.0
+    },
+    {
+      "name": "memory-proxy-canonical",
+      "class": "A",
+      "epic": "v4.5-A",
+      "status": "PASS",
+      "detail": "Memory proxy present (MemoryManager may be deprecated path)",
+      "duration_s": 0.0
+    },
+    {
+      "name": "vision-supervised",
+      "class": "A",
+      "epic": "v4.5-A",
+      "status": "PASS",
+      "detail": "Vision-capture + perception in supervisor",
+      "duration_s": 0.0
+    },
+    {
+      "name": "verify-real",
+      "class": "A",
+      "epic": "v4.5-B",
+      "status": "PASS",
+      "detail": "verify() appears to have real logic",
+      "duration_s": 0.015
+    },
+    {
+      "name": "tool-call-extraction",
+      "class": "A",
+      "epic": "v4.5-B",
+      "status": "PASS",
+      "detail": "Tool call extraction + routing implemented",
+      "duration_s": 0.0
+    },
+    {
+      "name": "memory-risk-tier",
+      "class": "A",
+      "epic": "v4.5-B",
+      "status": "PASS",
+      "detail": "Memory risk tier classification implemented",
+      "duration_s": 0.0
+    },
+    {
+      "name": "supervisor-ports-clean",
+      "class": "A",
+      "epic": "v4.5-B",
+      "status": "PASS",
+      "detail": "Supervisor port assignments correct",
+      "duration_s": 0.0
+    },
+    {
+      "name": "verification-tests",
+      "class": "A",
+      "epic": "v4.5-B",
+      "status": "PASS",
+      "detail": "Verification tests: ['tests\\\\integration\\\\test_log_redaction_verification.py']",
+      "duration_s": 0.0
+    },
+    {
+      "name": "default-backend-auto",
+      "class": "A",
+      "epic": "v4.5-C",
+      "status": "PASS",
+      "detail": "Auto-detect provider logic present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "streaming-asr",
+      "class": "A",
+      "epic": "v4.5-C",
+      "status": "PASS",
+      "detail": "transcribe_stream method present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "vad-turn-detect",
+      "class": "A",
+      "epic": "v4.5-C",
+      "status": "PASS",
+      "detail": "VAD turn detection present (barge-in TBD)",
+      "duration_s": 0.0
+    },
+    {
+      "name": "tts-streaming",
+      "class": "A",
+      "epic": "v4.5-C",
+      "status": "PASS",
+      "detail": "TTS streaming audio frames present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "e2e-audio-test",
+      "class": "A",
+      "epic": "v4.5-C",
+      "status": "PASS",
+      "detail": "E2E audio tests: ['tests/integration/test_voice_roundtrip.py (has binary tests)']",
+      "duration_s": 0.0
+    },
+    {
+      "name": "auth-required-mutating",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "Auth guard present on mutating endpoints",
+      "duration_s": 0.0
+    },
+    {
+      "name": "deny-invalid-token",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "Token expiry check + denial present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "role-enforcement",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "Role enforcement (operator/observer) present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "key-rotation",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "Key rotation/invalidation logic present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "actor-attribution",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "Actor attribution fields present",
+      "duration_s": 0.032
+    },
+    {
+      "name": "fail-closed-auth",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "Fail-closed auth startup logic present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "tasks-persist",
+      "class": "B",
+      "epic": "B",
+      "status": "PASS",
+      "detail": "Durable task persistence present",
+      "duration_s": 0.015
+    },
+    {
+      "name": "approvals-restore",
+      "class": "B",
+      "epic": "B",
+      "status": "PASS",
+      "detail": "Approval state restore from durable store",
+      "duration_s": 0.016
+    },
+    {
+      "name": "supervisor-budget-persist",
+      "class": "B",
+      "epic": "B",
+      "status": "PASS",
+      "detail": "Supervisor restart budget persistence + counters",
+      "duration_s": 0.0
+    },
+    {
+      "name": "outbox-idempotent",
+      "class": "B",
+      "epic": "B",
+      "status": "PASS",
+      "detail": "Outbox with idempotent replay",
+      "duration_s": 0.016
+    },
+    {
+      "name": "restore-ordering",
+      "class": "B",
+      "epic": "B",
+      "status": "PASS",
+      "detail": "Deterministic restore from durable state in lifespan",
+      "duration_s": 0.0
+    },
+    {
+      "name": "migration-integrity",
+      "class": "B",
+      "epic": "B",
+      "status": "PASS",
+      "detail": "Migration logic with durable store",
+      "duration_s": 0.015
+    },
+    {
+      "name": "global-backpressure",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "Global backpressure across multiple queues",
+      "duration_s": 0.031
+    },
+    {
+      "name": "slo-enforcement",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "SLO enforcement with threshold checks",
+      "duration_s": 0.016
+    },
+    {
+      "name": "chaos-flap",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "Chaos flap recovery tests present",
+      "duration_s": 0.031
+    },
+    {
+      "name": "chaos-partial",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "Chaos partial outage recovery tests",
+      "duration_s": 0.032
+    },
+    {
+      "name": "replay-determinism",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "Replay determinism support present",
+      "duration_s": 0.078
+    },
+    {
+      "name": "queue-storm",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "Queue storm resistance with tests",
+      "duration_s": 0.078
+    }
+  ]
+}

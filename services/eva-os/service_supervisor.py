@@ -7,6 +7,7 @@ Emits supervisory events via shared EventEnvelope.
 """
 
 import asyncio
+import sqlite3
 import time
 import logging
 import json
@@ -75,6 +76,215 @@ DEPENDENCY_GRAPH = {
 }
 
 
+class RestartBudgetStore:
+    """Durable SQLite-backed persistence for restart budget counters.
+
+    Stores per-service restart attempts, backoff timers, and exhaustion state.
+    Write-through: every mutation is immediately persisted.
+
+    Fail-closed policy: if the DB is corrupted or unreadable, the store enters
+    degraded mode where get_budget() returns a synthetic exhausted budget
+    (attempt_count=MAX, exhausted=True). This prevents the supervisor from
+    granting fresh restart attempts when persistence is compromised.
+    Mutations are silently dropped in degraded mode.
+    """
+
+    _SCHEMA = """
+    CREATE TABLE IF NOT EXISTS restart_budgets (
+        service_name    TEXT PRIMARY KEY,
+        window_start_ms REAL NOT NULL DEFAULT 0,
+        attempt_count   INTEGER NOT NULL DEFAULT 0,
+        backoff_until_epoch_ms REAL NOT NULL DEFAULT 0,
+        exhausted       INTEGER NOT NULL DEFAULT 0,
+        updated_at      REAL NOT NULL DEFAULT 0
+    );
+    """
+
+    # Synthetic budget returned when store is degraded (fail-closed)
+    _DEGRADED_BUDGET = {
+        "service_name": "",
+        "window_start_ms": 0,
+        "attempt_count": 999,
+        "backoff_until_epoch_ms": 0,
+        "exhausted": True,
+        "updated_at": 0,
+        "degraded": True,
+    }
+
+    def __init__(self, db_path: str = r"S:\state\eva-os\restart_budgets.db"):
+        self._db_path = db_path
+        self._conn: Optional[sqlite3.Connection] = None
+        self._degraded = False
+        try:
+            Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+            self._conn = sqlite3.connect(db_path)
+            self._conn.execute("PRAGMA journal_mode=WAL")
+            self._conn.execute(self._SCHEMA)
+            self._conn.commit()
+        except Exception as e:
+            logger.error("RestartBudgetStore: init failed (%s), entering degraded mode (fail-closed)", e)
+            self._degraded = True
+            self._conn = None
+
+    def record_attempt(self, service_name: str, timestamp: float) -> None:
+        """Record a restart attempt for a service."""
+        if not self._conn:
+            return
+        try:
+            row = self._conn.execute(
+                "SELECT attempt_count, window_start_ms FROM restart_budgets WHERE service_name = ?",
+                (service_name,),
+            ).fetchone()
+            now_ms = timestamp * 1000
+            if row:
+                count = row[0] + 1
+                window_start = row[1] if row[1] > 0 else now_ms
+                self._conn.execute(
+                    "UPDATE restart_budgets SET attempt_count=?, window_start_ms=?, updated_at=? WHERE service_name=?",
+                    (count, window_start, now_ms, service_name),
+                )
+            else:
+                self._conn.execute(
+                    "INSERT INTO restart_budgets (service_name, window_start_ms, attempt_count, updated_at) VALUES (?, ?, 1, ?)",
+                    (service_name, now_ms, now_ms),
+                )
+            self._conn.commit()
+        except Exception as e:
+            logger.warning("RestartBudgetStore.record_attempt failed: %s", e)
+
+    def update_backoff(self, service_name: str, backoff_until: float) -> None:
+        """Update the backoff-until timestamp for a service."""
+        if not self._conn:
+            return
+        try:
+            until_ms = backoff_until * 1000
+            now_ms = time.time() * 1000
+            row = self._conn.execute(
+                "SELECT 1 FROM restart_budgets WHERE service_name = ?",
+                (service_name,),
+            ).fetchone()
+            if row:
+                self._conn.execute(
+                    "UPDATE restart_budgets SET backoff_until_epoch_ms=?, updated_at=? WHERE service_name=?",
+                    (until_ms, now_ms, service_name),
+                )
+            else:
+                self._conn.execute(
+                    "INSERT INTO restart_budgets (service_name, backoff_until_epoch_ms, updated_at) VALUES (?, ?, ?)",
+                    (service_name, until_ms, now_ms),
+                )
+            self._conn.commit()
+        except Exception as e:
+            logger.warning("RestartBudgetStore.update_backoff failed: %s", e)
+
+    def mark_exhausted(self, service_name: str) -> None:
+        """Mark a service's restart budget as exhausted."""
+        if not self._conn:
+            return
+        try:
+            now_ms = time.time() * 1000
+            row = self._conn.execute(
+                "SELECT 1 FROM restart_budgets WHERE service_name = ?",
+                (service_name,),
+            ).fetchone()
+            if row:
+                self._conn.execute(
+                    "UPDATE restart_budgets SET exhausted=1, updated_at=? WHERE service_name=?",
+                    (now_ms, service_name),
+                )
+            else:
+                self._conn.execute(
+                    "INSERT INTO restart_budgets (service_name, exhausted, updated_at) VALUES (?, 1, ?)",
+                    (service_name, now_ms),
+                )
+            self._conn.commit()
+        except Exception as e:
+            logger.warning("RestartBudgetStore.mark_exhausted failed: %s", e)
+
+    def prune_expired(self, service_name: str, window_s: float = 300.0) -> None:
+        """Reset attempts for a service if its window has expired."""
+        if not self._conn:
+            return
+        try:
+            row = self._conn.execute(
+                "SELECT window_start_ms FROM restart_budgets WHERE service_name = ?",
+                (service_name,),
+            ).fetchone()
+            if row and row[0] > 0:
+                window_start_s = row[0] / 1000
+                if time.time() - window_start_s > window_s:
+                    now_ms = time.time() * 1000
+                    self._conn.execute(
+                        "UPDATE restart_budgets SET attempt_count=0, window_start_ms=0, exhausted=0, backoff_until_epoch_ms=0, updated_at=? WHERE service_name=?",
+                        (now_ms, service_name),
+                    )
+                    self._conn.commit()
+        except Exception as e:
+            logger.warning("RestartBudgetStore.prune_expired failed: %s", e)
+
+    def get_budget(self, service_name: str) -> Optional[Dict[str, Any]]:
+        """Get the current restart budget for a service.
+
+        In degraded mode, returns a synthetic exhausted budget (fail-closed)
+        to prevent the supervisor from granting fresh restart attempts.
+        """
+        if self._degraded:
+            return {**self._DEGRADED_BUDGET, "service_name": service_name}
+        if not self._conn:
+            return None
+        try:
+            row = self._conn.execute(
+                "SELECT service_name, window_start_ms, attempt_count, backoff_until_epoch_ms, exhausted, updated_at "
+                "FROM restart_budgets WHERE service_name = ?",
+                (service_name,),
+            ).fetchone()
+            if not row:
+                return None
+            return {
+                "service_name": row[0],
+                "window_start_ms": row[1],
+                "attempt_count": row[2],
+                "backoff_until_epoch_ms": row[3],
+                "exhausted": bool(row[4]),
+                "updated_at": row[5],
+            }
+        except Exception as e:
+            logger.warning("RestartBudgetStore.get_budget failed: %s", e)
+            return None
+
+    @property
+    def is_degraded(self) -> bool:
+        """True if the store is in degraded mode (fail-closed)."""
+        return self._degraded
+
+    def get_all(self) -> List[Dict[str, Any]]:
+        """Get all restart budgets."""
+        if self._degraded or not self._conn:
+            return []
+        try:
+            rows = self._conn.execute(
+                "SELECT service_name, window_start_ms, attempt_count, backoff_until_epoch_ms, exhausted, updated_at "
+                "FROM restart_budgets"
+            ).fetchall()
+            return [
+                {
+                    "service_name": r[0], "window_start_ms": r[1], "attempt_count": r[2],
+                    "backoff_until_epoch_ms": r[3], "exhausted": bool(r[4]), "updated_at": r[5],
+                }
+                for r in rows
+            ]
+        except Exception:
+            return []
+
+    def close(self) -> None:
+        if self._conn:
+            try:
+                self._conn.close()
+            except Exception:
+                pass
+            self._conn = None
+
+
 class ServiceSupervisor:
     """
     Active health supervision for all Sonia services.
@@ -86,13 +296,15 @@ class ServiceSupervisor:
     DEGRADATION_THRESHOLD_S = 60.0  # consecutive failure time before degraded -> unreachable
     RECOVERY_PROBES = 2  # consecutive successes to recover
 
-    def __init__(self, config_path: str = r"S:\config\sonia-config.json"):
+    def __init__(self, config_path: str = r"S:\config\sonia-config.json",
+                 budget_db_path: str = r"S:\state\eva-os\restart_budgets.db"):
         self._services: Dict[str, ServiceRecord] = {}
         self._maintenance_mode = False
         self._event_listeners: List[Callable] = []
         self._poll_task: Optional[asyncio.Task] = None
         self._poll_interval = 15.0  # seconds
         self._started_at = time.time()
+        self._budget_store = RestartBudgetStore(budget_db_path)
 
         self._load_services(config_path)
 
@@ -303,11 +515,13 @@ class ServiceSupervisor:
         # Check restart policy
         now = time.time()
         restart_history = getattr(record, '_restart_history', [])
-        # Prune old entries outside window
+        # Prune old entries outside window (in-memory + durable)
         restart_history = [t for t in restart_history if now - t < self.RESTART_WINDOW_S]
+        self._budget_store.prune_expired(name, window_s=self.RESTART_WINDOW_S)
 
         if len(restart_history) >= self.MAX_RESTARTS:
             record.state = ServiceState.UNREACHABLE
+            self._budget_store.mark_exhausted(name)
             self._emit_event("supervision.restart.exhausted", name, {
                 "restart_count": len(restart_history),
                 "window_s": self.RESTART_WINDOW_S,
@@ -324,6 +538,8 @@ class ServiceSupervisor:
         attempt = len(restart_history)
         backoff_s = self.BACKOFF_BASE_S * (2 ** attempt)
         if attempt > 0:
+            backoff_until = now + backoff_s
+            self._budget_store.update_backoff(name, backoff_until)
             logger.info("Restart backoff for %s: %.1fs", name, backoff_s)
             await asyncio.sleep(backoff_s)
 
@@ -339,9 +555,10 @@ class ServiceSupervisor:
                 creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0),
             )
 
-            # Record restart
+            # Record restart (in-memory + durable)
             restart_history.append(now)
             record._restart_history = restart_history
+            self._budget_store.record_attempt(name, now)
             record.state = ServiceState.RECOVERING
             record.consecutive_failures = 0
 

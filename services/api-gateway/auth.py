@@ -12,6 +12,8 @@ Config:
     auth.key_cache_max_entries: max cache size (default 100)
 """
 
+import enum
+import functools
 import hashlib
 import logging
 import time
@@ -28,6 +30,64 @@ logger = logging.getLogger("api-gateway.auth")
 _DEFAULT_EXEMPT = {
     "/healthz", "/health", "/status", "/", "/docs", "/openapi.json", "/redoc",
 }
+
+
+# ── Role-Based Access Control ──────────────────────────────────────────────
+
+class Role(str, enum.Enum):
+    """Operator roles for RBAC enforcement."""
+    OPERATOR = "operator"    # Can mutate: tasks, approvals, policy toggles, restarts
+    OBSERVER = "observer"    # Read-only: diagnostics, health, list endpoints
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        return value in cls._value2member_map_
+
+
+# Valid roles for quick lookup
+_VALID_ROLES = {r.value for r in Role}
+
+
+def require_role(allowed_role: str):
+    """Decorator/wrapper that enforces role-based access on an endpoint handler.
+
+    Checks request.state.user_role against allowed_role.
+    Returns 403 if role is missing, invalid, or insufficient.
+
+    The operator role implicitly includes observer access (superset).
+    """
+    def decorator(fn):
+        @functools.wraps(fn)
+        async def wrapper(request: Request, *args, **kwargs):
+            user_role = getattr(request.state, "user_role", None)
+
+            # Missing role -> 403
+            if not user_role:
+                return JSONResponse(
+                    status_code=403,
+                    content={"error": "FORBIDDEN", "message": "No role claim present"},
+                )
+
+            # Invalid/unknown role -> 403
+            if user_role not in _VALID_ROLES:
+                return JSONResponse(
+                    status_code=403,
+                    content={"error": "FORBIDDEN", "message": f"Unknown role: {user_role}"},
+                )
+
+            # Role hierarchy: operator is superset of observer
+            if allowed_role == "operator" and user_role != Role.OPERATOR.value:
+                return JSONResponse(
+                    status_code=403,
+                    content={"error": "FORBIDDEN", "message": "Operator role required"},
+                )
+
+            # observer access: both operator and observer are allowed
+            # (if allowed_role == "observer", any valid role passes)
+
+            return await fn(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 
 class _KeyCache:
@@ -99,6 +159,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if not self.enabled:
             request.state.user_id = None
             request.state.user_name = None
+            request.state.user_role = None
             request.state.authenticated = False
             return await call_next(request)
 
@@ -108,6 +169,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if self._is_exempt(path):
             request.state.user_id = None
             request.state.user_name = None
+            request.state.user_role = None
             request.state.authenticated = False
             return await call_next(request)
 
@@ -116,6 +178,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if self.service_token and svc_token == self.service_token:
             request.state.user_id = "_service"
             request.state.user_name = "internal-service"
+            request.state.user_role = Role.OPERATOR.value
             request.state.authenticated = True
             return await call_next(request)
 
@@ -141,6 +204,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if cached:
             request.state.user_id = cached["user_id"]
             request.state.user_name = cached["display_name"]
+            request.state.user_role = cached.get("role", Role.OPERATOR.value)
             request.state.authenticated = True
             return await call_next(request)
 
@@ -160,9 +224,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     content={"error": "UNAUTHORIZED", "message": "Invalid API key"},
                 )
 
+            user_role = user_info.get("role", Role.OPERATOR.value)
             self._cache.put(key_hash, user_info["user_id"], user_info["display_name"])
             request.state.user_id = user_info["user_id"]
             request.state.user_name = user_info["display_name"]
+            request.state.user_role = user_role
             request.state.authenticated = True
             return await call_next(request)
 
