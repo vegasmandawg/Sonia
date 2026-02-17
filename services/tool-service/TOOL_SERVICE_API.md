@@ -128,7 +128,7 @@ tag: string (matches any tag)
 
 **Example:**
 ```bash
-curl http://localhost:7040/api/v1/tools?category=filesystem&risk_tier=tier_0
+curl http://localhost:7080/api/v1/tools?category=filesystem&risk_tier=tier_0
 ```
 
 ---
@@ -147,7 +147,7 @@ Get specific tool definition.
 
 **Example:**
 ```bash
-curl http://localhost:7040/api/v1/tools/read_file
+curl http://localhost:7080/api/v1/tools/read_file
 ```
 
 ---
@@ -205,7 +205,7 @@ approved: boolean (whether execution is pre-approved)
 
 **Example:**
 ```bash
-curl -X POST http://localhost:7040/api/v1/tools/read_file/execute \
+curl -X POST http://localhost:7080/api/v1/tools/read_file/execute \
   -H "Content-Type: application/json" \
   -d '{"path": "/path/to/file.txt"}'
 ```
@@ -256,7 +256,7 @@ parallel: boolean (execute in parallel, default: false)
 
 **Example:**
 ```bash
-curl -X POST http://localhost:7040/api/v1/tools/batch-execute?parallel=true \
+curl -X POST http://localhost:7080/api/v1/tools/batch-execute?parallel=true \
   -H "Content-Type: application/json" \
   -d '[
     {"tool_name": "get_system_info", "parameters": {}},
@@ -572,13 +572,13 @@ Import tools from catalog file.
 
 **Step 1: Check if approval required**
 ```bash
-curl http://localhost:7040/api/v1/tools/write_file
+curl http://localhost:7080/api/v1/tools/write_file
 # See: "requires_approval": true
 ```
 
 **Step 2: Request execution (will return requires_approval status)**
 ```bash
-curl -X POST http://localhost:7040/api/v1/tools/write_file/execute \
+curl -X POST http://localhost:7080/api/v1/tools/write_file/execute \
   -H "Content-Type: application/json" \
   -d '{"path": "/file.txt", "content": "data"}'
 # Returns: {"status": "requires_approval"}
@@ -586,7 +586,7 @@ curl -X POST http://localhost:7040/api/v1/tools/write_file/execute \
 
 **Step 3: Execute with approval**
 ```bash
-curl -X POST http://localhost:7040/api/v1/tools/write_file/execute?approved=true \
+curl -X POST http://localhost:7080/api/v1/tools/write_file/execute?approved=true \
   -H "Content-Type: application/json" \
   -d '{"path": "/file.txt", "content": "data"}'
 # Executes and returns result
@@ -676,7 +676,7 @@ import json
 
 async def execute_tool(tool_name, parameters):
     async with aiohttp.ClientSession() as session:
-        url = f"http://localhost:7040/api/v1/tools/{tool_name}/execute"
+        url = f"http://localhost:7080/api/v1/tools/{tool_name}/execute"
         async with session.post(url, json=parameters) as resp:
             return await resp.json()
 
@@ -690,7 +690,7 @@ print(result["result"]["result"])
 ```javascript
 async function executeTool(toolName, parameters) {
   const response = await fetch(
-    `http://localhost:7040/api/v1/tools/${toolName}/execute`,
+    `http://localhost:7080/api/v1/tools/${toolName}/execute`,
     {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -708,15 +708,15 @@ console.log(result.result);
 
 ```bash
 # List all filesystem tools
-curl "http://localhost:7040/api/v1/tools?category=filesystem"
+curl "http://localhost:7080/api/v1/tools?category=filesystem"
 
 # Execute a tool
-curl -X POST http://localhost:7040/api/v1/tools/read_file/execute \
+curl -X POST http://localhost:7080/api/v1/tools/read_file/execute \
   -H "Content-Type: application/json" \
   -d '{"path": "/path/to/file"}'
 
 # Batch execution
-curl -X POST http://localhost:7040/api/v1/tools/batch-execute?parallel=true \
+curl -X POST http://localhost:7080/api/v1/tools/batch-execute?parallel=true \
   -H "Content-Type: application/json" \
   -d '[
     {"tool_name": "get_current_time", "parameters": {}},

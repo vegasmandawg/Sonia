@@ -23,6 +23,7 @@ class ASRConfig:
     base_url: str = "http://127.0.0.1:8000"  # Service endpoint
     model: str = "qwen-audio"  # Model name
     timeout: float = 30.0
+    api_key: str = ""  # v4.4: Required for OpenAI backend
 
 
 class ASR:

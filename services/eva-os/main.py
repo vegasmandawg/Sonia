@@ -14,7 +14,9 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 import logging
 import sys
+import uuid as _uuid
 from datetime import datetime
+from typing import Dict
 from pathlib import Path
 
 # Canonical version
@@ -42,6 +44,9 @@ if _openclaw_root not in sys.path:
 # Lazy-init: populated at startup
 _safe_orchestrator = None
 _supervisor = None
+
+# v4.4 Epic C: In-memory task storage
+_task_store: Dict[str, dict] = {}
 
 # Create FastAPI app
 app = FastAPI(
@@ -150,29 +155,54 @@ async def gate_tool_call(request: Request):
 
 @app.get("/tasks")
 def list_tasks():
-    """List active tasks."""
+    """List active tasks from in-memory store."""
+    tasks_list = list(_task_store.values())
     return {
-        "tasks": [],
-        "count": 0,
+        "tasks": tasks_list,
+        "count": len(tasks_list),
         "service": "eva-os"
     }
 
 @app.post("/tasks")
 async def create_task(request: Request):
-    """Create a new task."""
+    """Create a new task with real storage."""
     try:
         data = await request.json()
         task_name = data.get("name", "unnamed")
-
+        task_id = f"task_{_uuid.uuid4().hex[:8]}"
+        task = {
+            "task_id": task_id,
+            "name": task_name,
+            "status": "created",
+            "created_at": datetime.utcnow().isoformat() + "Z",
+            "metadata": data.get("metadata", {}),
+        }
+        _task_store[task_id] = task
         return {
             "status": "created",
-            "task_id": "task_001",
+            "task_id": task_id,
             "name": task_name,
             "service": "eva-os"
         }
     except Exception as e:
         logger.error(f"Task creation error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/tasks/{task_id}")
+def get_task(task_id: str):
+    """Get a specific task."""
+    task = _task_store.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    return {"task": task, "service": "eva-os"}
+
+@app.delete("/tasks/{task_id}")
+def delete_task(task_id: str):
+    """Delete a task."""
+    task = _task_store.pop(task_id, None)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    return {"status": "deleted", "task_id": task_id, "service": "eva-os"}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Approval Workflow Endpoints
@@ -204,26 +234,45 @@ async def approve_action(request: Request):
         trace_id = data.get("trace_id", "")
         reason = data.get("reason", "User denied")
 
-        if _safe_orchestrator is not None and token_id:
+        if not token_id:
+            raise HTTPException(status_code=400, detail="token_id is required")
+
+        # v4.4 Epic C: Real approval logic with task store integration
+        if _safe_orchestrator is not None:
             if decision == "denied":
                 result = _safe_orchestrator.deny_pending_approval(
                     token_id, trace_id=trace_id, reason=reason,
                 )
+                return {
+                    "status": "denied",
+                    "token_id": token_id,
+                    "reason": reason,
+                    "service": "eva-os",
+                }
             else:
-                result = {
-                    "status": "acknowledged",
+                # Approve: mark in task store if tracked
+                for tid, task in _task_store.items():
+                    if task.get("approval_token") == token_id:
+                        task["status"] = "approved"
+                        task["approved_at"] = datetime.utcnow().isoformat() + "Z"
+                        break
+
+                return {
+                    "status": "approved",
                     "token_id": token_id,
                     "decision": decision,
-                    "note": "Resubmit tool call with approval_token to proceed",
+                    "trace_id": trace_id,
+                    "service": "eva-os",
                 }
-            return {**result, "service": "eva-os"}
-
-        return {
-            "status": "processed",
-            "approval_id": token_id,
-            "decision": decision,
-            "service": "eva-os",
-        }
+        else:
+            # No orchestrator: direct approval
+            return {
+                "status": decision,
+                "token_id": token_id,
+                "service": "eva-os",
+            }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Approval error: {e}")
         raise HTTPException(status_code=400, detail=str(e))

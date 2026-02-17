@@ -26,7 +26,7 @@ class OrchestratorConfig:
     def __init__(self):
         """Initialize configuration from environment."""
         self.port = int(os.getenv("ORCHESTRATOR_PORT", 8000))
-        self.host = os.getenv("ORCHESTRATOR_HOST", "0.0.0.0")
+        self.host = os.getenv("ORCHESTRATOR_HOST", "127.0.0.1")
         self.log_level = os.getenv("LOG_LEVEL", "INFO")
         
         # Agent config

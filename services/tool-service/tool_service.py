@@ -35,8 +35,8 @@ class ToolServiceConfig:
 
     def __init__(self):
         """Initialize configuration from environment."""
-        self.port = int(os.getenv("TOOL_SERVICE_PORT", 7040))
-        self.host = os.getenv("TOOL_SERVICE_HOST", "0.0.0.0")
+        self.port = int(os.getenv("TOOL_SERVICE_PORT", 7080))
+        self.host = os.getenv("TOOL_SERVICE_HOST", "127.0.0.1")
         self.log_level = os.getenv("LOG_LEVEL", "INFO")
         self.catalog_path = os.getenv("TOOL_CATALOG_PATH", None)
 

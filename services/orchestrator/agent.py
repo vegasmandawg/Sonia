@@ -50,7 +50,7 @@ class AgentConfig:
     voice_service_url: str = "http://localhost:7030"
     vision_service_url: str = "http://localhost:7010"
     memory_service_url: str = "http://localhost:7000"
-    tool_service_url: str = "http://localhost:7040"
+    tool_service_url: str = "http://localhost:7080"
     
     # Behavior
     auto_approve_tier_0: bool = True
