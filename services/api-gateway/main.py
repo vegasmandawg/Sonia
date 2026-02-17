@@ -1224,6 +1224,26 @@ async def v1_get_audit_trail(action_id: str):
 
 
 # ============================================================================
+# SLO Diagnostics (v4.7 Epic C — /v1/slo/status)
+# ============================================================================
+
+@app.get("/v1/slo/status")
+async def v1_slo_status():
+    """SLO diagnostics: current mode, breach history, recovery status."""
+    from latency_budget import get_slo_guardrails
+    guardrails = get_slo_guardrails()
+    return guardrails.slo_status()
+
+
+@app.get("/v3/slo/status")
+async def v3_slo_status():
+    """SLO diagnostics (v3 canonical)."""
+    from latency_budget import get_slo_guardrails
+    guardrails = get_slo_guardrails()
+    return guardrails.slo_status()
+
+
+# ============================================================================
 # Diagnostic Snapshot (v3 canonical + v1 compat)
 # ============================================================================
 
