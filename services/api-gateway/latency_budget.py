@@ -1,11 +1,16 @@
 """
-Latency Budget (v4.3 Epic C)
+Latency Budget (v4.3 Epic C, v4.7 Epic C)
 
 Per-stage p95/p99 tracking for promotion gate compliance.
 Stages: asr, memory_read, model, tool, memory_write, tts, total
 
 Stores last 10000 samples per stage in a circular buffer.
 SLO checking returns a list of violations for promotion gates.
+
+v4.7 additions:
+  - SLOGuardrails: sustained breach detection, degrade/recover mode transitions
+  - Recovery exit criteria: M consecutive_healthy windows required to exit_degrade
+  - slo_status() diagnostics: current_mode, breach_history, time_in_degrade, clear_to_recover
 """
 
 from __future__ import annotations
@@ -162,3 +167,169 @@ class LatencyBudget:
                     })
 
         return violations
+
+
+# ============================================================================
+# SLO Guardrails (v4.7 Epic C)
+# ============================================================================
+
+class SLOGuardrails:
+    """
+    Sustained breach detection with deterministic recovery exit criteria.
+
+    Modes:
+      NORMAL   - all SLO windows healthy
+      DEGRADED - N consecutive breach windows exceeded threshold
+      RECOVERING - breach cleared, waiting for M consecutive_healthy windows to exit_degrade
+
+    Recovery requires recover_threshold (M) consecutive healthy windows.
+    One-off spikes do not trigger degraded mode (requires sustained breach).
+    """
+
+    MODE_NORMAL = "normal"
+    MODE_DEGRADED = "degraded"
+    MODE_RECOVERING = "recovering"
+
+    def __init__(
+        self,
+        breach_threshold: int = 3,
+        recover_threshold: int = 5,
+    ) -> None:
+        """
+        Args:
+            breach_threshold: N consecutive breach windows to enter DEGRADED (sustained breach)
+            recover_threshold: M consecutive_healthy windows to exit_degrade back to NORMAL
+        """
+        self._breach_threshold = breach_threshold
+        self._recover_threshold = recover_threshold
+
+        self._current_mode: str = self.MODE_NORMAL
+        self._consecutive_breach: int = 0
+        self._consecutive_healthy: int = 0
+        self._breach_history: List[Dict[str, Any]] = []
+        self._degrade_entered_at: Optional[float] = None
+        self._degrade_reason: str = ""
+        self._recovery_windows: int = 0
+        self._lock = threading.Lock()
+
+    @property
+    def current_mode(self) -> str:
+        return self._current_mode
+
+    @property
+    def slo_mode(self) -> str:
+        """Alias for current_mode (gate compatibility)."""
+        return self._current_mode
+
+    @property
+    def clear_to_recover(self) -> bool:
+        """True when recovery exit criteria are met (M consecutive healthy windows)."""
+        return self._consecutive_healthy >= self._recover_threshold
+
+    def record_window(self, violations: List[Dict[str, Any]]) -> str:
+        """
+        Record an SLO evaluation window result.
+
+        Args:
+            violations: list of SLO violations from LatencyBudget.check_slo()
+
+        Returns:
+            Current mode after evaluation.
+        """
+        with self._lock:
+            is_breach = len(violations) > 0
+            now = time.time()
+
+            if is_breach:
+                self._consecutive_breach += 1
+                self._consecutive_healthy = 0
+                self._recovery_windows = 0
+
+                self._breach_history.append({
+                    "timestamp": now,
+                    "violations": violations,
+                    "consecutive": self._consecutive_breach,
+                })
+                # Bound history
+                if len(self._breach_history) > 200:
+                    self._breach_history = self._breach_history[-200:]
+
+                # Sustained breach detection
+                if self._current_mode == self.MODE_NORMAL and self._consecutive_breach >= self._breach_threshold:
+                    self._current_mode = self.MODE_DEGRADED
+                    self._degrade_entered_at = now
+                    self._degrade_reason = f"sustained breach: {self._consecutive_breach} consecutive windows"
+                elif self._current_mode == self.MODE_RECOVERING:
+                    # Breach during recovery -> back to DEGRADED
+                    self._current_mode = self.MODE_DEGRADED
+                    self._degrade_reason = "breach during recovery"
+            else:
+                # Healthy window
+                self._consecutive_breach = 0
+                self._consecutive_healthy += 1
+                self._recovery_windows += 1
+
+                if self._current_mode == self.MODE_DEGRADED:
+                    # Enter recovering mode
+                    self._current_mode = self.MODE_RECOVERING
+                    self._consecutive_healthy = 1
+
+                if self._current_mode == self.MODE_RECOVERING:
+                    # Check recovery exit criteria: M consecutive_healthy windows
+                    if self._consecutive_healthy >= self._recover_threshold:
+                        self._current_mode = self.MODE_NORMAL
+                        self._degrade_entered_at = None
+                        self._degrade_reason = ""
+
+            return self._current_mode
+
+    def slo_status(self) -> Dict[str, Any]:
+        """
+        Diagnostics snapshot for /v1/slo/status endpoint.
+
+        Returns current_mode, breach_history, time_in_degrade, degrade_reason,
+        clear_to_recover flag, and recovery window counters.
+        """
+        with self._lock:
+            time_in_degrade = 0.0
+            if self._degrade_entered_at is not None:
+                time_in_degrade = round(time.time() - self._degrade_entered_at, 2)
+
+            return {
+                "current_mode": self._current_mode,
+                "slo_mode": self._current_mode,
+                "breach_history": self._breach_history[-20:],  # last 20 for endpoint
+                "time_in_degrade": time_in_degrade,
+                "degrade_reason": self._degrade_reason,
+                "clear_to_recover": self._consecutive_healthy >= self._recover_threshold,
+                "consecutive_breach": self._consecutive_breach,
+                "consecutive_healthy": self._consecutive_healthy,
+                "recovery_windows": self._recovery_windows,
+                "breach_threshold": self._breach_threshold,
+                "recover_threshold": self._recover_threshold,
+            }
+
+    def reset(self) -> None:
+        """Reset to NORMAL mode (for testing or operator override)."""
+        with self._lock:
+            self._current_mode = self.MODE_NORMAL
+            self._consecutive_breach = 0
+            self._consecutive_healthy = 0
+            self._degrade_entered_at = None
+            self._degrade_reason = ""
+            self._recovery_windows = 0
+
+
+# Module-level singleton for SLO guardrails
+_guardrails: Optional[SLOGuardrails] = None
+
+
+def get_slo_guardrails(breach_threshold: int = 3, recover_threshold: int = 5) -> SLOGuardrails:
+    """Get or create the singleton SLOGuardrails instance."""
+    global _guardrails
+    if _guardrails is None:
+        _guardrails = SLOGuardrails(
+            breach_threshold=breach_threshold,
+            recover_threshold=recover_threshold,
+        )
+    return _guardrails
