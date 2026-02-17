@@ -166,7 +166,12 @@ def test_multiple_services_isolate_budgets():
 
 
 def test_corrupted_db_fails_closed():
-    """Corrupted/invalid DB path uses safe fallback (empty budget)."""
+    """Corrupted/invalid DB enters degraded mode: synthetic exhausted budget (fail-closed).
+
+    Policy: corrupted persistence must NOT grant fresh restart attempts.
+    The store returns a synthetic budget with exhausted=True and high attempt_count
+    so the supervisor refuses to restart any service until the store recovers.
+    """
     db_path = _make_tmp_db()
     try:
         # Write garbage to the file
@@ -174,13 +179,20 @@ def test_corrupted_db_fails_closed():
             f.write(b"THIS IS NOT A DATABASE\x00\xff\xfe")
 
         store = sup_mod.RestartBudgetStore(db_path)
-        # Should not crash; returns None or empty budget
+        # Store should be in degraded mode
+        assert store.is_degraded, "Store should be degraded after corruption"
+
+        # get_budget must return exhausted budget (fail-closed, not fail-open)
         budget = store.get_budget("api-gateway")
         store.close()
 
-        # Either None (no data) or a fresh budget with 0 attempts
-        if budget is not None:
-            assert budget["attempt_count"] == 0
+        assert budget is not None, "Degraded store must return a budget, not None"
+        assert budget["exhausted"] is True, \
+            f"Degraded budget must be exhausted (fail-closed), got: {budget}"
+        assert budget["attempt_count"] >= 3, \
+            f"Degraded budget must show high attempt count, got: {budget['attempt_count']}"
+        assert budget.get("degraded") is True, \
+            "Degraded budget should carry degraded flag for diagnostics"
     finally:
         try:
             os.unlink(db_path)

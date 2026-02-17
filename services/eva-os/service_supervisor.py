@@ -81,7 +81,12 @@ class RestartBudgetStore:
 
     Stores per-service restart attempts, backoff timers, and exhaustion state.
     Write-through: every mutation is immediately persisted.
-    Fail-closed: corrupted DB initializes with empty tables (no crash).
+
+    Fail-closed policy: if the DB is corrupted or unreadable, the store enters
+    degraded mode where get_budget() returns a synthetic exhausted budget
+    (attempt_count=MAX, exhausted=True). This prevents the supervisor from
+    granting fresh restart attempts when persistence is compromised.
+    Mutations are silently dropped in degraded mode.
     """
 
     _SCHEMA = """
@@ -95,9 +100,21 @@ class RestartBudgetStore:
     );
     """
 
+    # Synthetic budget returned when store is degraded (fail-closed)
+    _DEGRADED_BUDGET = {
+        "service_name": "",
+        "window_start_ms": 0,
+        "attempt_count": 999,
+        "backoff_until_epoch_ms": 0,
+        "exhausted": True,
+        "updated_at": 0,
+        "degraded": True,
+    }
+
     def __init__(self, db_path: str = r"S:\state\eva-os\restart_budgets.db"):
         self._db_path = db_path
         self._conn: Optional[sqlite3.Connection] = None
+        self._degraded = False
         try:
             Path(db_path).parent.mkdir(parents=True, exist_ok=True)
             self._conn = sqlite3.connect(db_path)
@@ -105,14 +122,9 @@ class RestartBudgetStore:
             self._conn.execute(self._SCHEMA)
             self._conn.commit()
         except Exception as e:
-            logger.warning("RestartBudgetStore: init failed (%s), using empty state", e)
-            # Re-create with fresh DB
-            try:
-                self._conn = sqlite3.connect(":memory:")
-                self._conn.execute(self._SCHEMA)
-                self._conn.commit()
-            except Exception:
-                self._conn = None
+            logger.error("RestartBudgetStore: init failed (%s), entering degraded mode (fail-closed)", e)
+            self._degraded = True
+            self._conn = None
 
     def record_attempt(self, service_name: str, timestamp: float) -> None:
         """Record a restart attempt for a service."""
@@ -211,7 +223,13 @@ class RestartBudgetStore:
             logger.warning("RestartBudgetStore.prune_expired failed: %s", e)
 
     def get_budget(self, service_name: str) -> Optional[Dict[str, Any]]:
-        """Get the current restart budget for a service."""
+        """Get the current restart budget for a service.
+
+        In degraded mode, returns a synthetic exhausted budget (fail-closed)
+        to prevent the supervisor from granting fresh restart attempts.
+        """
+        if self._degraded:
+            return {**self._DEGRADED_BUDGET, "service_name": service_name}
         if not self._conn:
             return None
         try:
@@ -234,9 +252,14 @@ class RestartBudgetStore:
             logger.warning("RestartBudgetStore.get_budget failed: %s", e)
             return None
 
+    @property
+    def is_degraded(self) -> bool:
+        """True if the store is in degraded mode (fail-closed)."""
+        return self._degraded
+
     def get_all(self) -> List[Dict[str, Any]]:
         """Get all restart budgets."""
-        if not self._conn:
+        if self._degraded or not self._conn:
             return []
         try:
             rows = self._conn.execute(
