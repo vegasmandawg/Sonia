@@ -1,0 +1,23 @@
+{
+  "version": "4.6.0-rc1",
+  "schema_version": "13.0",
+  "contract_pin": "v4.5.0",
+  "timestamp": "2026-02-17T22:25:09.458316+00:00",
+  "commit": "da8ea57",
+  "gate_result": "66/66 PROMOTE",
+  "integration_tests": "14/14 green",
+  "files": {
+    "services/api-gateway/main.py": "372dadb940c2cd72993ea496c809556a0615a5e3bc9daa59172d78f11c956fb9",
+    "services/api-gateway/auth.py": "858ff190b66b2987239d7ab3d6053aa61b1c92d8ba5e7665ae4364c2c9c3b3d0",
+    "services/api-gateway/routes/turn.py": "f2c7e5a4b142b4211c833d303cf50e215d9e6b50025ba3b3c81c2ab3da12f4a8",
+    "services/api-gateway/routes/sessions.py": "17aac0b0f5d481bc07692a193fc19f5b906d156f77ccf82ad912b07c5fcc07f7",
+    "services/api-gateway/routes/stream.py": "220886bf1a06fed7bd62607cfa394a0c00ef947109161e6b1e288496974e1370",
+    "services/eva-os/main.py": "88048a4494f389a5b2e8c799ad9cdfc2d6feafee22126c23539c5370a05dbbd7",
+    "services/eva-os/service_supervisor.py": "a9fa5fea1dd944d815a4d7da8955db3ed59520d988396e2ddd5c556071189334",
+    "services/shared/version.py": "9c96fa2656c1ff2566b0074f677c9c5e99950a1e39b44f8c34e934a0aa6dcd40",
+    "scripts/release/gate-v46.py": "ed835477bdc4fc6eb3d7d8a9e0d25414bfaef06b830ae2611da85a7366d75a16",
+    "tests/integration/test_role_enforcement.py": "aa03eb542030804459a3d422e7fe8fbd6fda8afee1d1d737134875d1da542e81",
+    "tests/integration/test_supervisor_budget_persist.py": "f99bdf052e5d02234258f9d8fc9df6ff703ec2b388ec7a931d34b681a7aa3dd0",
+    "docs/governance/V4_6_SCOPE_LOCK.md": "2876d82a4196186e7f6eba380d4449aadbf1c83651ed55a041903e1e85b70c62"
+  }
+}
