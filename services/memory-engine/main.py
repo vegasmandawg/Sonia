@@ -258,6 +258,12 @@ async def store(request: StoreRequest):
         except Exception as e:
             logger.warning(f"Hybrid index failed for {memory_id}: {e}")
 
+        # Vector index (async, fire-and-forget)
+        try:
+            await _hybrid.on_store_async(memory_id, request.content)
+        except Exception as e:
+            logger.warning(f"Vector index failed for {memory_id}: {e}")
+
         # Track provenance (best-effort)
         try:
             source_type = (request.metadata or {}).get("source_type", "direct")
@@ -367,13 +373,20 @@ def _apply_token_budget(results: List[Dict], max_tokens: Optional[int]) -> List[
 
 @app.post("/v1/search")
 async def hybrid_search(request: HybridSearchRequest):
-    """Hybrid search: BM25 ranking + LIKE fallback.
+    """Hybrid search: BM25 + vector ranking + LIKE fallback.
 
-    Upgraded search path for v2.9. Returns ranked results with
-    score and source provenance (bm25, like_fallback).
+    Uses async_search (BM25 + HNSW vector + LIKE) when vector
+    search is available, otherwise falls back to sync BM25 + LIKE.
+    Scores: 0.4 * BM25 + 0.6 * vector similarity.
     """
     try:
-        results = _hybrid.search(request.query, limit=request.limit)
+        # Use full hybrid (vector) when available, sync fallback otherwise
+        if _hybrid._vector_initialized:
+            results = await _hybrid.async_search(request.query, limit=request.limit)
+            search_mode = "hybrid_vector"
+        else:
+            results = _hybrid.search(request.query, limit=request.limit)
+            search_mode = "hybrid_bm25"
 
         # Token budget enforcement
         results = _apply_token_budget(results, request.max_tokens)
@@ -382,7 +395,7 @@ async def hybrid_search(request: HybridSearchRequest):
             "query": request.query,
             "results": results,
             "count": len(results),
-            "search_mode": "hybrid",
+            "search_mode": search_mode,
             "service": "memory-engine",
         }
     except Exception as e:
@@ -1537,7 +1550,25 @@ async def _lifespan(a):
     except Exception as e:
         logger.error(f"Hybrid search init failed (LIKE fallback active): {e}")
 
+    # Initialize vector search (HNSW + embeddings) -- best-effort
+    try:
+        await _hybrid.initialize_vector()
+        v_stats = _hybrid.get_stats().get("vector", {})
+        logger.info(
+            "Vector search ready: %d vectors, provider=%s",
+            v_stats.get("vector_count", 0),
+            v_stats.get("embeddings_provider", "unknown"),
+        )
+    except Exception as e:
+        logger.error(f"Vector search init failed (BM25+LIKE fallback active): {e}")
+
     yield  # ── app is running ──
+
+    # Persist HNSW index on shutdown
+    try:
+        await _hybrid.save_index()
+    except Exception as e:
+        logger.error(f"HNSW save on shutdown failed: {e}")
 
     logger.info("Memory Engine shutting down...")
 

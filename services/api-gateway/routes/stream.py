@@ -37,8 +37,14 @@ from schemas.vision import (
     ResponsePolicy,
     LatencyBreakdown,
 )
+from backpressure import BackpressurePolicy
+from latency_budget import LatencyBudget
 
 logger = logging.getLogger("api-gateway.routes.stream")
+
+# Module-level singletons -- shared across all stream connections
+_backpressure = BackpressurePolicy(max_queue_depth=10, shed_strategy="oldest")
+_latency_budget = LatencyBudget()
 
 
 def _now() -> str:
@@ -129,6 +135,18 @@ async def handle_stream(
             payload = raw.get("payload", {})
             turn_id = raw.get("turn_id", "")
 
+            # Backpressure gate: shed if queue is overloaded
+            if event_type in ("input.text", "input.audio.chunk", "input.vision.frame", "input.vision.snapshot"):
+                if not _backpressure.admit({"type": event_type, "turn_id": turn_id}, session_id):
+                    await websocket.send_json(
+                        _event("error", session_id, turn_id=turn_id, payload={
+                            "code": "BACKPRESSURE_SHED",
+                            "message": "Message shed due to backpressure",
+                            "retryable": True,
+                        })
+                    )
+                    continue
+
             # ── control.ping ────────────────────────────────────────
             if event_type == "control.ping":
                 await websocket.send_json(
@@ -137,8 +155,9 @@ async def handle_stream(
                 await session_mgr.touch(session_id)
                 continue
 
-            # ── control.cancel ──────────────────────────────────────
+            # ── control.cancel (barge-in) ──────────────────────────────
             if event_type == "control.cancel":
+                _backpressure.reset_session(session_id)
                 await websocket.send_json(
                     _event("ack", session_id, turn_id=turn_id, payload={"cancelled": True})
                 )
@@ -278,6 +297,7 @@ async def handle_stream(
                 retrieved_count = mem_ctx["retrieved_count"]
                 context_text = mem_ctx["context_text"]
                 latency.memory_read_ms = round((time.monotonic() - tm0) * 1000, 1)
+                _latency_budget.record("memory_read", latency.memory_read_ms, session_id)
 
                 # — Build messages —
                 messages: List[Dict[str, Any]] = []
@@ -356,6 +376,7 @@ async def handle_stream(
                         continue
 
                 latency.model_ms = round((time.monotonic() - tmod0) * 1000, 1)
+                _latency_budget.record("model", latency.model_ms, session_id)
 
                 # — Response normalization —
                 assistant_text = normalize_response(assistant_text, response_policy)
@@ -454,6 +475,7 @@ async def handle_stream(
                         tool_events.append({"tool_name": tool_name, "disposition": "error", "error": exc.message})
 
                 latency.tool_ms = round((time.monotonic() - ttool0) * 1000, 1)
+                _latency_budget.record("tool", latency.tool_ms, session_id)
 
                 # — Build quality annotations —
                 quality = build_annotations(
@@ -491,8 +513,10 @@ async def handle_stream(
                     correlation_id=correlation_id,
                 )
                 latency.memory_write_ms = round((time.monotonic() - tmw0) * 1000, 1)
+                _latency_budget.record("memory_write", latency.memory_write_ms, session_id)
 
                 latency.total_ms = round((time.monotonic() - t0) * 1000, 1)
+                _latency_budget.record("total", latency.total_ms, session_id)
 
                 turn_log.log({
                     "session_id": session_id,

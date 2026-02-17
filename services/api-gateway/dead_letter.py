@@ -1,15 +1,18 @@
 """
-Stage 5 M2 — Dead Letter Queue
+Stage 5 M2 — Dead Letter Queue (v4.3 Epic A durability)
 In-memory dead letter queue for unrecoverable action events.
-Supports inspection, replay, and purge operations.
+Supports inspection, replay, purge, and write-through to DurableStateStore.
 """
 
 import asyncio
+import logging
 import uuid
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 from dataclasses import dataclass, field
 from jsonl_logger import JsonlLogger
+
+logger = logging.getLogger("api-gateway.dead_letter")
 
 
 MAX_DEAD_LETTERS = 1000
@@ -59,12 +62,68 @@ class DeadLetterQueue:
     """
     In-memory dead letter queue for failed actions.
     Thread-safe via asyncio lock. Bounded to MAX_DEAD_LETTERS.
+    v4.3: write-through to DurableStateStore for crash recovery.
     """
 
     def __init__(self):
         self._letters: Dict[str, DeadLetter] = {}
         self._lock = asyncio.Lock()
         self._logger = JsonlLogger("dead_letters")
+        self._state_store = None  # v4.3: DurableStateStore
+
+    def set_state_store(self, store) -> None:
+        """Inject DurableStateStore for write-through persistence (v4.3 Epic A)."""
+        self._state_store = store
+
+    async def restore_dead_letters(self) -> int:
+        """Restore dead letters from durable state store on startup. Returns count restored."""
+        if not self._state_store:
+            return 0
+        try:
+            records = await self._state_store.load_dead_letters()
+            count = 0
+            for rec in records:
+                created_at_str = rec.get("created_at", "")
+                try:
+                    if created_at_str.endswith("Z"):
+                        created_at_str = created_at_str[:-1]
+                    created_at = datetime.fromisoformat(created_at_str)
+                except (ValueError, TypeError):
+                    created_at = datetime.utcnow()
+
+                replayed_at = None
+                replayed_at_str = rec.get("replayed_at")
+                if replayed_at_str:
+                    try:
+                        if replayed_at_str.endswith("Z"):
+                            replayed_at_str = replayed_at_str[:-1]
+                        replayed_at = datetime.fromisoformat(replayed_at_str)
+                    except (ValueError, TypeError):
+                        pass
+
+                dl = DeadLetter(
+                    letter_id=rec["letter_id"],
+                    action_id=rec.get("action_id", ""),
+                    intent=rec.get("intent", ""),
+                    params=rec.get("params", {}),
+                    error_code=rec.get("error_code", ""),
+                    error_message=rec.get("error_message", ""),
+                    correlation_id=rec.get("correlation_id"),
+                    session_id=rec.get("session_id"),
+                    created_at=created_at,
+                    retries_exhausted=rec.get("retries_exhausted", 0),
+                    failure_class=rec.get("failure_class"),
+                    replayed=bool(rec.get("replayed", False)),
+                    replayed_at=replayed_at,
+                    replay_action_id=rec.get("replay_action_id"),
+                )
+                self._letters[dl.letter_id] = dl
+                count += 1
+            logger.info("Restored %d dead letters from durable state store", count)
+            return count
+        except Exception as e:
+            logger.warning("Dead letter restore failed (non-fatal): %s", e)
+            return 0
 
     async def enqueue(
         self,
@@ -110,7 +169,14 @@ class DeadLetterQueue:
                 "error_message": error_message,
             })
 
-            return letter_id
+        # v4.3: write-through to durable state store (best-effort, outside lock)
+        if self._state_store:
+            try:
+                await self._state_store.persist_dead_letter(dl.to_dict())
+            except Exception as e:
+                logger.warning("Dead letter persist failed for %s: %s", letter_id, e)
+
+        return letter_id
 
     async def get(self, letter_id: str) -> Optional[DeadLetter]:
         return self._letters.get(letter_id)
@@ -145,6 +211,17 @@ class DeadLetterQueue:
                     "letter_id": letter_id,
                     "replay_action_id": replay_action_id,
                 })
+
+        # v4.3: persist replay status
+        if self._state_store and dl:
+            try:
+                await self._state_store.update_dead_letter(letter_id, {
+                    "replayed": True,
+                    "replayed_at": dl.replayed_at,
+                    "replay_action_id": replay_action_id,
+                })
+            except Exception as e:
+                logger.warning("Dead letter replay persist failed for %s: %s", letter_id, e)
 
     async def purge(self, older_than_hours: int = 24) -> int:
         """Purge dead letters older than N hours. Returns count purged."""

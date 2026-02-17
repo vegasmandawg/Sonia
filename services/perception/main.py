@@ -34,6 +34,7 @@ import sys as _sys
 from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent / "shared"))
 from version import SONIA_VERSION, SONIA_CONTRACT
+from consent import ConsentManager, ConsentViolation
 
 logger = logging.getLogger("perception")
 
@@ -122,6 +123,7 @@ class PerceptionRequest(BaseModel):
     frame_count: int = Field(default=1, ge=1, le=5)
     max_inference_ms: float = MAX_GPU_BUDGET_MS
     correlation_id: str = ""
+    session_id: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +136,7 @@ class PerceptionState:
         self.total_inferences: int = 0
         self.total_errors: int = 0
         self.total_privacy_blocks: int = 0
+        self.total_consent_blocks: int = 0
         self.avg_inference_ms: float = 0.0
         self.last_scene: Optional[SceneAnalysis] = None
         self._inference_times: list = []
@@ -149,6 +152,7 @@ class PerceptionState:
 
 
 state = PerceptionState()
+consent_mgr = ConsentManager()
 
 
 # ---------------------------------------------------------------------------
@@ -303,7 +307,7 @@ async def run_vlm_inference(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Perception pipeline starting")
+    logger.info("Perception pipeline starting (consent gate enabled)")
     yield
     logger.info("Perception pipeline stopped")
 
@@ -325,6 +329,7 @@ async def healthz():
         "inference_status": state.status.value,
         "total_inferences": state.total_inferences,
         "privacy_blocks": state.total_privacy_blocks,
+        "consent_blocks": state.total_consent_blocks,
     }
 
 
@@ -361,7 +366,26 @@ async def analyze(req: PerceptionRequest):
     if state.status == PerceptionStatus.PROCESSING:
         raise HTTPException(429, "BUSY: inference already in progress")
 
-    # Privacy check FIRST -- no inference when disabled
+    # Consent check FIRST -- fail-closed: no inference without active consent
+    try:
+        if not consent_mgr.is_inference_allowed(req.session_id):
+            state.total_consent_blocks += 1
+            raise HTTPException(
+                403,
+                detail={"error": "CONSENT_NOT_ACTIVE", "detail": "Perception inference requires active consent"},
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Fail-closed: any error in consent check = denied
+        state.total_consent_blocks += 1
+        logger.warning(f"Consent check error (fail-closed): {e}")
+        raise HTTPException(
+            403,
+            detail={"error": "CONSENT_NOT_ACTIVE", "detail": "Perception inference requires active consent"},
+        )
+
+    # Privacy check -- no inference when disabled
     privacy = await check_vision_privacy()
     if privacy.get("privacy") == "disabled" or not privacy.get("capture_allowed", False):
         state.total_privacy_blocks += 1
@@ -468,6 +492,64 @@ async def receive_event(event: EventEnvelope):
             return {"accepted": False, "reason": e.detail}
 
     return {"accepted": False, "reason": f"unknown event type: {event.type}"}
+
+
+# ---------------------------------------------------------------------------
+# Routes: consent management
+# ---------------------------------------------------------------------------
+
+class ConsentRequest(BaseModel):
+    session_id: str = Field(min_length=1)
+    correlation_id: str = ""
+
+
+@app.post("/v1/perception/consent/request")
+async def consent_request_endpoint(req: ConsentRequest):
+    """OFF -> REQUESTED. Initiate consent flow."""
+    try:
+        record = consent_mgr.request_consent(req.session_id, req.correlation_id)
+        return record.to_dict()
+    except ConsentViolation as e:
+        raise HTTPException(409, detail=str(e))
+
+
+@app.post("/v1/perception/consent/grant")
+async def consent_grant_endpoint(req: ConsentRequest):
+    """REQUESTED -> GRANTED. User grants consent."""
+    try:
+        record = consent_mgr.grant_consent(req.session_id, req.correlation_id)
+        return record.to_dict()
+    except ConsentViolation as e:
+        raise HTTPException(409, detail=str(e))
+
+
+@app.post("/v1/perception/consent/activate")
+async def consent_activate_endpoint(req: ConsentRequest):
+    """GRANTED -> ACTIVE. Consent is now active for inference."""
+    try:
+        record = consent_mgr.activate_consent(req.session_id, req.correlation_id)
+        return record.to_dict()
+    except ConsentViolation as e:
+        raise HTTPException(409, detail=str(e))
+
+
+@app.post("/v1/perception/consent/revoke")
+async def consent_revoke_endpoint(req: ConsentRequest):
+    """any -> REVOKED. Revoke consent (terminal)."""
+    try:
+        record = consent_mgr.revoke_consent(req.session_id, req.correlation_id)
+        return record.to_dict()
+    except ConsentViolation as e:
+        raise HTTPException(409, detail=str(e))
+
+
+@app.get("/v1/perception/consent/{session_id}")
+async def consent_get_endpoint(session_id: str):
+    """Get current consent state for a session."""
+    record = consent_mgr.get_consent(session_id)
+    if record is None:
+        raise HTTPException(404, detail=f"No consent record for session {session_id}")
+    return record.to_dict()
 
 
 # ---------------------------------------------------------------------------

@@ -1,8 +1,9 @@
 """
-API Gateway — Session Manager with Durable Persistence (M2)
+API Gateway — Session Manager with Durable Persistence (v4.3 Epic A)
 
 In-memory session registry with configurable TTL + write-through
-to memory-engine SQLite for survival across restarts.
+to DurableStateStore (SQLite) for survival across restarts.
+Falls back to memory-engine client if state store is not set.
 
 The in-memory dict is the fast-path. Persistence is best-effort
 (failures log warnings but don't block session operations).
@@ -123,14 +124,47 @@ class SessionManager:
         self._lock = asyncio.Lock()
         self._max = max_sessions
         self._default_ttl = default_ttl
-        self._memory_client = memory_client  # set via set_memory_client()
+        self._memory_client = memory_client  # legacy fallback
+        self._state_store = None             # v4.3: DurableStateStore (preferred)
 
     def set_memory_client(self, client) -> None:
         """Inject memory client for persistence (called from lifespan)."""
         self._memory_client = client
 
+    def set_state_store(self, store) -> None:
+        """Inject DurableStateStore for write-through persistence (v4.3 Epic A)."""
+        self._state_store = store
+
     async def restore_sessions(self) -> int:
-        """Restore active sessions from memory-engine on startup. Returns count restored."""
+        """Restore active sessions on startup. Prefers state_store, falls back to memory_client."""
+        # v4.3: prefer DurableStateStore
+        if self._state_store:
+            try:
+                records = await self._state_store.load_active_sessions()
+                count = 0
+                for rec in records:
+                    sess = Session(
+                        user_id=rec["user_id"],
+                        conversation_id=rec["conversation_id"],
+                        profile=rec.get("profile", "chat_low_latency"),
+                        session_id=rec["session_id"],
+                        created_at=rec.get("created_at"),
+                        expires_at=rec.get("expires_at"),
+                        last_activity=rec.get("last_activity"),
+                        turn_count=rec.get("turn_count", 0),
+                        status=rec.get("status", "active"),
+                        metadata=rec.get("metadata"),
+                    )
+                    sess.mark_persisted()
+                    if not sess.is_expired and not sess.is_idle_timeout:
+                        self._sessions[sess.session_id] = sess
+                        count += 1
+                logger.info("Restored %d active sessions from durable state store", count)
+                return count
+            except Exception as e:
+                logger.warning("Session restore from state store failed (non-fatal): %s", e)
+                # Fall through to memory_client
+
         if not self._memory_client:
             return 0
         try:
@@ -154,14 +188,21 @@ class SessionManager:
                 if not sess.is_expired and not sess.is_idle_timeout:
                     self._sessions[sess.session_id] = sess
                     count += 1
-            logger.info("Restored %d active sessions from durable storage", count)
+            logger.info("Restored %d active sessions from memory-engine", count)
             return count
         except Exception as e:
             logger.warning("Session restore failed (non-fatal): %s", e)
             return 0
 
     async def _persist_session(self, sess: Session) -> None:
-        """Write session to durable storage (best-effort)."""
+        """Write session to durable storage (best-effort). Prefers state_store."""
+        if self._state_store:
+            try:
+                await self._state_store.persist_session(sess.to_dict())
+                sess.mark_persisted()
+            except Exception as e:
+                logger.warning("Session persist (state store) failed for %s: %s", sess.session_id, e)
+            return
         if not self._memory_client:
             return
         try:
@@ -171,7 +212,14 @@ class SessionManager:
             logger.warning("Session persist failed for %s: %s", sess.session_id, e)
 
     async def _persist_session_update(self, sess: Session, updates: Dict[str, Any]) -> None:
-        """Update session fields in durable storage (best-effort)."""
+        """Update session fields in durable storage (best-effort). Prefers state_store."""
+        if self._state_store:
+            try:
+                await self._state_store.update_session(sess.session_id, updates)
+                sess.mark_persisted()
+            except Exception as e:
+                logger.warning("Session update (state store) failed for %s: %s", sess.session_id, e)
+            return
         if not self._memory_client:
             return
         try:
