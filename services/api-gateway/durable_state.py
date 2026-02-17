@@ -1,14 +1,15 @@
 """
-API Gateway -- Durable State Store (v4.3 Epic A)
+API Gateway -- Durable State Store (v4.3 Epic A, v4.7 Epic B)
 
-SQLite-backed persistence for sessions, confirmations, and dead letters.
+SQLite-backed persistence for sessions, confirmations, dead letters, and idempotency keys.
 Write-through cache: in-memory dict is fast path, SQLite is crash-safe journal.
 
 Tables:
-  sessions      - session lifecycle (active, expired, closed)
-  confirmations - tool confirmation tokens (pending, approved, denied, expired)
-  dead_letters  - failed action events
-  outbox        - memory write-back queue (at-least-once delivery)
+  sessions         - session lifecycle (active, expired, closed)
+  confirmations    - tool confirmation tokens (pending, approved, denied, expired)
+  dead_letters     - failed action events
+  outbox           - memory write-back queue (at-least-once delivery)
+  idempotency_keys - durable idempotency store (v4.7 B4)
 """
 
 import asyncio
@@ -77,6 +78,14 @@ CREATE TABLE IF NOT EXISTS outbox (
     delivered    INTEGER NOT NULL DEFAULT 0,
     delivered_at TEXT,
     attempts     INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS idempotency_keys (
+    idempotency_key TEXT PRIMARY KEY,
+    action_id       TEXT NOT NULL,
+    result_json     TEXT NOT NULL DEFAULT '{}',
+    created_at      TEXT NOT NULL,
+    expires_at      TEXT NOT NULL
 );
 """
 
@@ -461,6 +470,75 @@ class DurableStateStore:
             await self._run(self._increment_attempt_sync, outbox_id)
         except Exception as e:
             logger.warning("increment_attempt failed for %s: %s", outbox_id, e)
+
+    # ------------------------------------------------------------------
+    # Idempotency Keys (v4.7 Epic B — durable idempotency_store)
+    # ------------------------------------------------------------------
+    # IdempotencyStore is integrated into DurableStateStore (not a separate class)
+    # Table: idempotency_keys — SQLite-backed, TTL-expiring, write-through
+
+    def _persist_idempotency_key_sync(self, key: str, action_id: str, result_json: str, created_at: str, expires_at: str):
+        self._conn.execute(
+            """INSERT OR REPLACE INTO idempotency_keys
+               (idempotency_key, action_id, result_json, created_at, expires_at)
+               VALUES (?, ?, ?, ?, ?)""",
+            (key, action_id, result_json, created_at, expires_at),
+        )
+        self._conn.commit()
+
+    async def persist_idempotency_key(self, key: str, action_id: str, result: Dict[str, Any], ttl_seconds: float = 300.0):
+        """Write an idempotency key mapping to durable storage with TTL."""
+        now = datetime.now(timezone.utc)
+        created_at = now.isoformat()
+        from datetime import timedelta
+        expires_at = (now + timedelta(seconds=ttl_seconds)).isoformat()
+        result_json = json.dumps(result, default=str)
+        try:
+            await self._run(self._persist_idempotency_key_sync, key, action_id, result_json, created_at, expires_at)
+        except Exception as e:
+            logger.warning("persist_idempotency_key failed for %s: %s", key, e)
+
+    def _get_idempotency_key_sync(self, key: str) -> str:
+        now = datetime.now(timezone.utc).isoformat()
+        cur = self._conn.execute(
+            "SELECT * FROM idempotency_keys WHERE idempotency_key = ? AND expires_at > ?",
+            (key, now),
+        )
+        row = cur.fetchone()
+        if row is None:
+            return json.dumps(None)
+        d = dict(row)
+        try:
+            d["result_json"] = json.loads(d.get("result_json") or "{}")
+        except (json.JSONDecodeError, TypeError):
+            d["result_json"] = {}
+        return json.dumps(d)
+
+    async def get_idempotency_key(self, key: str) -> Optional[Dict[str, Any]]:
+        """Look up a non-expired idempotency key. Returns None if not found or expired."""
+        try:
+            raw = await self._run(self._get_idempotency_key_sync, key)
+            return json.loads(raw)
+        except Exception as e:
+            logger.warning("get_idempotency_key failed for %s: %s", key, e)
+            return None
+
+    def _prune_expired_idempotency_keys_sync(self) -> int:
+        now = datetime.now(timezone.utc).isoformat()
+        cur = self._conn.execute(
+            "DELETE FROM idempotency_keys WHERE expires_at <= ?",
+            (now,),
+        )
+        self._conn.commit()
+        return cur.rowcount
+
+    async def prune_expired_idempotency_keys(self) -> int:
+        """Remove expired idempotency keys. Returns count deleted."""
+        try:
+            return await self._run(self._prune_expired_idempotency_keys_sync)
+        except Exception as e:
+            logger.warning("prune_expired_idempotency_keys failed: %s", e)
+            return 0
 
     # ------------------------------------------------------------------
     # Bulk restore (startup convenience)
