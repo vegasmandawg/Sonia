@@ -69,6 +69,9 @@ DEPENDENCY_GRAPH = {
     "model-router": [],
     "memory-engine": [],
     "eva-os": [],
+    "orchestrator": ["api-gateway", "openclaw", "memory-engine"],
+    "vision-capture": [],
+    "perception": ["vision-capture"],
 }
 
 
@@ -111,6 +114,9 @@ class ServiceSupervisor:
             "memory_engine": ("memory-engine", "127.0.0.1", 7020),
             "pipecat": ("pipecat", "127.0.0.1", 7030),
             "openclaw": ("openclaw", "127.0.0.1", 7040),
+            "orchestrator": ("orchestrator", "127.0.0.1", 8000),
+            "vision_capture": ("vision-capture", "127.0.0.1", 7060),
+            "perception": ("perception", "127.0.0.1", 7070),
         }
 
         for cfg_key, (name, default_host, default_port) in defaults.items():
@@ -256,6 +262,18 @@ class ServiceSupervisor:
         "openclaw": {
             "cwd": r"S:\services\openclaw",
             "cmd": [r"S:\envs\sonia-core\python.exe", "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "7040"],
+        },
+        "orchestrator": {
+            "cwd": r"S:\services\orchestrator",
+            "cmd": [r"S:\envs\sonia-core\python.exe", "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"],
+        },
+        "vision-capture": {
+            "cwd": r"S:\services\vision-capture",
+            "cmd": [r"S:\envs\sonia-core\python.exe", "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "7060"],
+        },
+        "perception": {
+            "cwd": r"S:\services\perception",
+            "cmd": [r"S:\envs\sonia-core\python.exe", "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "7070"],
         },
     }
 
