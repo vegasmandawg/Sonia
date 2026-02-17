@@ -1,0 +1,21 @@
+{
+  "version": "4.7.0",
+  "tag": "v4.7.0",
+  "timestamp": "2026-02-17T22:54:11.220953+00:00",
+  "files": {
+    "services/api-gateway/main.py": "626e8ee545fd104763a1e92674a82d1c24b3e64d59a397dfe72922dbf2ca017b",
+    "services/api-gateway/durable_state.py": "ef4b702c3f1ffad835fa2d324778597da1ae4cd1b72f91e1e723e3ffce8ed6e1",
+    "services/api-gateway/latency_budget.py": "e2419b0525e20b9aaa2441877a6ef1c19fc318f10fc0f1674f955a6b524e1c14",
+    "services/api-gateway/action_pipeline.py": "0ccea8704433978a6bcd68c4c808d4af572b6693ebdd5b85375e1a85285968d0",
+    "services/api-gateway/auth.py": "858ff190b66b2987239d7ab3d6053aa61b1c92d8ba5e7665ae4364c2c9c3b3d0",
+    "services/api-gateway/tool_policy.py": "01a762ecabd84d6d37a5eb667c381d4195219191b40543b00bba855a88a6f7d4",
+    "services/api-gateway/session_manager.py": "5ec55d49b774010f9c9970e6c4aff975740a32155d1f941fff0e60ad14a88c5f",
+    "services/eva-os/service_supervisor.py": "a9fa5fea1dd944d815a4d7da8955db3ed59520d988396e2ddd5c556071189334",
+    "services/eva-os/main.py": "88048a4494f389a5b2e8c799ad9cdfc2d6feafee22126c23539c5370a05dbbd7",
+    "services/shared/version.py": "ded4168da2162a34aadb86f7916465d9cefa27527a2a2b3f74ea5874ea62ac09",
+    "scripts/release/gate-v47.py": "625d5d14ba3a05596ba2b445798fb03dd199b338491f6e786a4ccba3fc038955",
+    "docs/governance/V4_7_SCOPE_LOCK.md": "7fcd0da2ca5f5c7a1c524a31609213198151a96cae570541f313e30929900788"
+  },
+  "gate_verdict": "PROMOTE",
+  "gate_score": "84/84"
+}
