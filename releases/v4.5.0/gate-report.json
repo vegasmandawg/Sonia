@@ -2,8 +2,8 @@
   "schema_version": "12.0",
   "version": "4.5.0",
   "verdict": "PROMOTE",
-  "timestamp": "2026-02-17T20:48:59.146489+00:00",
-  "elapsed_s": 0.05,
+  "timestamp": "2026-02-17T20:49:41.861126+00:00",
+  "elapsed_s": 0.06,
   "summary": {
     "pass": 48,
     "fail": 0,
@@ -32,7 +32,7 @@
       "epic": "",
       "status": "PASS",
       "detail": "15 files compile OK",
-      "duration_s": 0.031
+      "duration_s": 0.047
     },
     {
       "name": "durable-state-tables",
@@ -360,7 +360,7 @@
       "epic": "B",
       "status": "PASS",
       "detail": "Verification tests: ['tests\\\\integration\\\\test_log_redaction_verification.py']",
-      "duration_s": 0.015
+      "duration_s": 0.0
     },
     {
       "name": "default-backend-auto",
@@ -400,7 +400,7 @@
       "epic": "C",
       "status": "PASS",
       "detail": "E2E audio tests: ['tests/integration/test_voice_roundtrip.py (has binary tests)']",
-      "duration_s": 0.0
+      "duration_s": 0.015
     }
   ]
 }
