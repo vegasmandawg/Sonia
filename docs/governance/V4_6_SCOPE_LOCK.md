@@ -126,7 +126,7 @@ and incident replay determinism.
 - **Implementation:** `RestartBudgetStore` (SQLite WAL) in `service_supervisor.py`
 - **Schema:** `restart_budgets` table (service_name PK, window_start_ms, attempt_count, backoff_until_epoch_ms, exhausted, updated_at)
 - **Write-through:** record_attempt, update_backoff, mark_exhausted, prune_expired
-- **Fail-closed:** corrupted DB falls back to in-memory empty state
+- **Fail-closed:** corrupted DB enters degraded mode (synthetic exhausted budget, attempt_count=999) -- prevents permissive reset
 - **Tests:** `tests/integration/test_supervisor_budget_persist.py` (7 tests, all green)
 - **Merged:** `--no-ff` into `v4.6-dev`
 
