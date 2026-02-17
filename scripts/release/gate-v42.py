@@ -42,7 +42,7 @@ RELEASE_DIR = REPO_ROOT / "scripts" / "release"
 UNIT_TEST_DIR = REPO_ROOT / "tests" / "unit"
 
 SCHEMA_VERSION = "9.0"
-VERSION = "4.2.0-rc1"
+VERSION = "4.2.0"
 
 # ---- Class A: Inherited baseline gates (41 from v4.1.0) ---------------------
 # 24 original (v3.7) + 4 release-dir + 4 delta (v3.9) + 3 delta (v4.0) + 1 evidence (v4.0)

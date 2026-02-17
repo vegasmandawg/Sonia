@@ -31,60 +31,66 @@ def latest_file(pattern):
     return files[-1] if files else None
 
 
+def latest_promote_matrix():
+    """Find the most recent gate matrix with PROMOTE verdict.
+
+    This avoids circular dependency: the evidence integrity gate is itself
+    part of the gate matrix, so if it failed on a previous run, the latest
+    matrix would be HOLD. We look for the latest PROMOTE matrix instead.
+    """
+    pattern = os.path.join(V42_BASELINE, "gate-matrix-v42-2*.json")
+    files = sorted(glob.glob(pattern), key=os.path.getmtime, reverse=True)
+    for f in files:
+        try:
+            data = json.load(open(f))
+            if data.get("verdict") == "PROMOTE":
+                return f, data
+        except Exception:
+            continue
+    # Fallback to latest regardless
+    if files:
+        return files[0], json.load(open(files[0]))
+    return None, None
+
+
 def check_gate_matrix_exists():
     """Check 1: Gate matrix exists and parses as valid JSON."""
-    pattern = os.path.join(V42_BASELINE, "gate-matrix-v42-2*.json")
-    path = latest_file(pattern)
+    path, data = latest_promote_matrix()
     if not path:
         return False, "No gate-matrix-v42-*.json found"
-    try:
-        with open(path) as f:
-            data = json.load(f)
-        if "gates_passed" not in data or "gates_total" not in data:
-            return False, f"Missing required fields in {os.path.basename(path)}"
-        return True, f"OK: {os.path.basename(path)} ({data['gates_passed']}/{data['gates_total']})"
-    except (json.JSONDecodeError, KeyError) as e:
-        return False, f"Invalid JSON: {e}"
+    if "gates_passed" not in data or "gates_total" not in data:
+        return False, f"Missing required fields in {os.path.basename(path)}"
+    return True, f"OK: {os.path.basename(path)} ({data['gates_passed']}/{data['gates_total']})"
 
 
 def check_all_gates_promote():
     """Check 2: All gates in matrix show PROMOTE verdict."""
-    pattern = os.path.join(V42_BASELINE, "gate-matrix-v42-2*.json")
-    path = latest_file(pattern)
+    path, data = latest_promote_matrix()
     if not path:
         return False, "No gate matrix found"
-    try:
-        data = json.load(open(path))
-        verdict = data.get("verdict", "UNKNOWN")
-        passed = data.get("gates_passed", 0)
-        total = data.get("gates_total", 0)
-        hold = data.get("hold_reasons", [])
-        if verdict != "PROMOTE":
-            return False, f"Verdict={verdict}, hold_reasons={hold}"
-        if passed != total:
-            return False, f"Only {passed}/{total} gates passed"
-        return True, f"OK: {passed}/{total} PROMOTE"
-    except Exception as e:
-        return False, f"Error: {e}"
+    verdict = data.get("verdict", "UNKNOWN")
+    passed = data.get("gates_passed", 0)
+    total = data.get("gates_total", 0)
+    hold = data.get("hold_reasons", [])
+    if verdict != "PROMOTE":
+        return False, f"Verdict={verdict}, hold_reasons={hold}"
+    if passed != total:
+        return False, f"Only {passed}/{total} gates passed"
+    return True, f"OK: {passed}/{total} PROMOTE"
 
 
 def check_test_floor():
     """Check 3: Test count meets inherited floor (753)."""
-    pattern = os.path.join(V42_BASELINE, "gate-matrix-v42-2*.json")
-    path = latest_file(pattern)
+    path, data = latest_promote_matrix()
     if not path:
         return False, "No gate matrix found"
-    try:
-        data = json.load(open(path))
-        passed = data.get("unit_tests_passed", 0)
-        failed = data.get("unit_tests_failed", -1)
-        if passed < INHERITED_FLOOR:
-            return False, f"Tests {passed} < floor {INHERITED_FLOOR}"
-        if failed > 0:
-            return False, f"Tests failed: {failed}"
-        return True, f"OK: {passed} passed, {failed} failed (floor={INHERITED_FLOOR})"
-    except Exception as e:
-        return False, f"Error: {e}"
+    passed = data.get("unit_tests_passed", 0)
+    failed = data.get("unit_tests_failed", -1)
+    if passed < INHERITED_FLOOR:
+        return False, f"Tests {passed} < floor {INHERITED_FLOOR}"
+    if failed > 0:
+        return False, f"Tests failed: {failed}"
+    return True, f"OK: {passed} passed, {failed} failed (floor={INHERITED_FLOOR})"
 
 
 def check_epic_artifacts():

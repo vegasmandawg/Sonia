@@ -7,7 +7,7 @@ Usage:
     app = FastAPI(..., version=SONIA_VERSION)
 """
 
-SONIA_VERSION = "4.2.0-rc1"
+SONIA_VERSION = "4.2.0"
 SONIA_CONTRACT = "v4.2.0"
 
 # Legacy contract for v1 shim deprecation warnings
