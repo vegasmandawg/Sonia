@@ -98,7 +98,7 @@ class MemoryGovernancePipeline:
             subject_key=subject_key,
             payload=payload,
             confidence=confidence,
-            risk_tier=RiskTier.AUTO_LOW,  # placeholder, policy overrides
+            risk_tier=RiskTier.AUTO_LOW,  # initial default, classify_proposal() overrides below
             created_seq=seq,
             schema_version=schema_version,
             policy_version=policy_version,
