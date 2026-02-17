@@ -1,0 +1,38 @@
+{
+  "epic": "cross-cutting",
+  "gate": "v42-evidence-integrity-gate",
+  "checks": 5,
+  "passed": 5,
+  "verdict": "PASS",
+  "elapsed_s": 0.01,
+  "retries": 0,
+  "failure_class": null,
+  "results": [
+    {
+      "check": "evidence_manifest_exists",
+      "verdict": "PASS",
+      "detail": "OK: gate-matrix-v42-20260217-055904.json (45/45)"
+    },
+    {
+      "check": "all_gates_promote",
+      "verdict": "PASS",
+      "detail": "OK: 45/45 PROMOTE"
+    },
+    {
+      "check": "test_floor_met",
+      "verdict": "PASS",
+      "detail": "OK: 923 passed, 0 failed (floor=753)"
+    },
+    {
+      "check": "epic_gate_reports_present",
+      "verdict": "PASS",
+      "detail": "OK: E1/E2/E3 all PASS 10/10"
+    },
+    {
+      "check": "dual_pass_scores_meet_floor",
+      "verdict": "PASS",
+      "detail": "OK: std=500, con=500, gap=0"
+    }
+  ],
+  "timestamp": "20260217-060718"
+}

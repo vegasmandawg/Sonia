@@ -1,0 +1,64 @@
+{
+  "epic": "E3",
+  "gate": "v42-epic3-repro-release-gate",
+  "title": "Reproducible Release + Cleanroom Parity",
+  "checks": 10,
+  "passed": 10,
+  "verdict": "PASS",
+  "elapsed_s": 0.017,
+  "retries": 0,
+  "failure_class": null,
+  "results": [
+    {
+      "check": "frozen_deps_no_floating_ranges",
+      "verdict": "PASS",
+      "detail": "pinned=True, floating_detected=True"
+    },
+    {
+      "check": "lock_hash_deterministic_verifiable",
+      "verdict": "PASS",
+      "detail": "deterministic=True, verify=True, bad_rejected=True"
+    },
+    {
+      "check": "manifest_completeness_all_entries_hashed",
+      "verdict": "PASS",
+      "detail": "complete=True, hashes=True, incomplete_detected=True"
+    },
+    {
+      "check": "cleanroom_parity_match_and_mismatch",
+      "verdict": "PASS",
+      "detail": "parity=True, mismatch_detected=True"
+    },
+    {
+      "check": "tag_commit_changelog_linkage",
+      "verdict": "PASS",
+      "detail": "valid=True, bad_tag=True, no_changelog=True"
+    },
+    {
+      "check": "rollback_scripts_exist_dry_run",
+      "verdict": "PASS",
+      "detail": "all_dry_run=True, missing_detected=True"
+    },
+    {
+      "check": "rollback_dry_run_deterministic",
+      "verdict": "PASS",
+      "detail": "deterministic=True, same=True, diff_version_diff_hash=True"
+    },
+    {
+      "check": "release_metadata_integrity",
+      "verdict": "PASS",
+      "detail": "valid=True, bad_ver=True, bad_ts=True"
+    },
+    {
+      "check": "evidence_artifacts_complete_hashed",
+      "verdict": "PASS",
+      "detail": "complete=True, bad_hash_detected=True"
+    },
+    {
+      "check": "rerun_parity_deterministic",
+      "verdict": "PASS",
+      "detail": "audit_deterministic=True, manifest_hash=True, lineage_hash=True"
+    }
+  ],
+  "timestamp": "20260217-060510"
+}
