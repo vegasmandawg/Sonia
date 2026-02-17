@@ -1,19 +1,19 @@
 {
   "schema_version": "12.0",
   "version": "4.5.0",
-  "verdict": "HOLD",
-  "timestamp": "2026-02-17T20:40:35.034468+00:00",
-  "elapsed_s": 0.23,
+  "verdict": "PROMOTE",
+  "timestamp": "2026-02-17T20:48:59.146489+00:00",
+  "elapsed_s": 0.05,
   "summary": {
-    "pass": 42,
-    "fail": 6,
+    "pass": 48,
+    "fail": 0,
     "skip": 0,
     "total": 48,
     "floor_pass": 33,
     "floor_fail": 0,
     "floor_total": 33,
-    "delta_pass": 9,
-    "delta_fail": 6,
+    "delta_pass": 15,
+    "delta_fail": 0,
     "delta_total": 15,
     "floor_regression": false
   },
@@ -32,7 +32,7 @@
       "epic": "",
       "status": "PASS",
       "detail": "15 files compile OK",
-      "duration_s": 0.109
+      "duration_s": 0.031
     },
     {
       "name": "durable-state-tables",
@@ -168,7 +168,7 @@
       "epic": "v4.4-A",
       "status": "PASS",
       "detail": "All services bind safely",
-      "duration_s": 0.016
+      "duration_s": 0.0
     },
     {
       "name": "auth-coverage",
@@ -176,7 +176,7 @@
       "epic": "v4.4-A",
       "status": "PASS",
       "detail": "Auth middleware with Bearer + service-token",
-      "duration_s": 0.015
+      "duration_s": 0.0
     },
     {
       "name": "tls-config",
@@ -224,7 +224,7 @@
       "epic": "v4.4-B",
       "status": "PASS",
       "detail": "Factory functions with conditional provider selection",
-      "duration_s": 0.016
+      "duration_s": 0.0
     },
     {
       "name": "ws-audio-framing",
@@ -248,7 +248,7 @@
       "epic": "v4.4-C",
       "status": "PASS",
       "detail": "restart_service with subprocess execution",
-      "duration_s": 0.016
+      "duration_s": 0.0
     },
     {
       "name": "restart-policy",
@@ -286,17 +286,17 @@
       "name": "orchestrator-supervised",
       "class": "B",
       "epic": "A",
-      "status": "FAIL",
-      "detail": "Orchestrator: not in DEPENDENCY_GRAPH, not in SERVICE_COMMANDS",
+      "status": "PASS",
+      "detail": "Orchestrator in DEPENDENCY_GRAPH + SERVICE_COMMANDS",
       "duration_s": 0.0
     },
     {
       "name": "orchestrator-boot",
       "class": "B",
       "epic": "A",
-      "status": "FAIL",
-      "detail": "Orchestrator not referenced in start-sonia-stack.ps1",
-      "duration_s": 0.015
+      "status": "PASS",
+      "detail": "Orchestrator in boot script",
+      "duration_s": 0.0
     },
     {
       "name": "tool-proxy-canonical",
@@ -318,33 +318,33 @@
       "name": "vision-supervised",
       "class": "B",
       "epic": "A",
-      "status": "FAIL",
-      "detail": "Supervisor: vision-capture missing, perception missing",
+      "status": "PASS",
+      "detail": "Vision-capture + perception in supervisor",
       "duration_s": 0.0
     },
     {
       "name": "verify-real",
       "class": "B",
       "epic": "B",
-      "status": "FAIL",
-      "detail": "verify() still has placeholder/stub",
-      "duration_s": 0.016
+      "status": "PASS",
+      "detail": "verify() appears to have real logic",
+      "duration_s": 0.0
     },
     {
       "name": "tool-call-extraction",
       "class": "B",
       "epic": "B",
-      "status": "FAIL",
-      "detail": "Tool call extraction still marked as stub",
+      "status": "PASS",
+      "detail": "Tool call extraction + routing implemented",
       "duration_s": 0.0
     },
     {
       "name": "memory-risk-tier",
       "class": "B",
       "epic": "B",
-      "status": "FAIL",
-      "detail": "governance_pipeline.py: still hardcoded AUTO_LOW placeholder; replay_engine.py: still hardcoded AUTO_LOW placeholder",
-      "duration_s": 0.015
+      "status": "PASS",
+      "detail": "Memory risk tier classification implemented",
+      "duration_s": 0.0
     },
     {
       "name": "supervisor-ports-clean",
@@ -360,7 +360,7 @@
       "epic": "B",
       "status": "PASS",
       "detail": "Verification tests: ['tests\\\\integration\\\\test_log_redaction_verification.py']",
-      "duration_s": 0.0
+      "duration_s": 0.015
     },
     {
       "name": "default-backend-auto",
@@ -400,7 +400,7 @@
       "epic": "C",
       "status": "PASS",
       "detail": "E2E audio tests: ['tests/integration/test_voice_roundtrip.py (has binary tests)']",
-      "duration_s": 0.016
+      "duration_s": 0.0
     }
   ]
 }

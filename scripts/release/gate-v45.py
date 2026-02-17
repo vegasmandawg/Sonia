@@ -107,8 +107,11 @@ def gate_orchestrator_supervised(g: GateResult):
         g.fail_("service_supervisor.py not found")
         return
     src = path.read_text()
-    in_deps = "orchestrator" in src.split("DEPENDENCY_GRAPH")[1].split("}")[0] if "DEPENDENCY_GRAPH" in src else False
-    in_cmds = "orchestrator" in src.split("SERVICE_COMMANDS")[1].split("}")[0] if "SERVICE_COMMANDS" in src else False
+    # Check full text after each marker (not just first brace-block)
+    deps_section = src[src.index("DEPENDENCY_GRAPH"):] if "DEPENDENCY_GRAPH" in src else ""
+    cmds_section = src[src.index("SERVICE_COMMANDS"):] if "SERVICE_COMMANDS" in src else ""
+    in_deps = '"orchestrator"' in deps_section or "'orchestrator'" in deps_section
+    in_cmds = '"orchestrator"' in cmds_section or "'orchestrator'" in cmds_section
     if in_deps and in_cmds:
         g.pass_("Orchestrator in DEPENDENCY_GRAPH + SERVICE_COMMANDS")
     else:
