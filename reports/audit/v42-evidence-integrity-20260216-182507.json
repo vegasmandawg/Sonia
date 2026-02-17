@@ -1,0 +1,33 @@
+{
+  "epic": "cross-cutting",
+  "gate": "v42-evidence-integrity-gate",
+  "checks": 5,
+  "passed": 5,
+  "verdict": "PASS",
+  "elapsed_s": 0.0,
+  "retries": 0,
+  "failure_class": null,
+  "results": [
+    {
+      "check": "evidence_manifest_exists",
+      "verdict": "PASS"
+    },
+    {
+      "check": "evidence_hashes_valid",
+      "verdict": "PASS"
+    },
+    {
+      "check": "epic_gate_reports_present",
+      "verdict": "PASS"
+    },
+    {
+      "check": "test_summary_consistent",
+      "verdict": "PASS"
+    },
+    {
+      "check": "governance_docs_present",
+      "verdict": "PASS"
+    }
+  ],
+  "timestamp": "20260216-182507"
+}

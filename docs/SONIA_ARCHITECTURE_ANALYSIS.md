@@ -44,7 +44,7 @@
 
 ## 1. Executive Summary
 
-SONIA (Supervised Operational Networked Intelligence Architecture) is a deterministic, voice-first, local-first AI agent platform built on Python/FastAPI microservices. The system comprises 8 core services communicating over HTTP on fixed ports (7000-7070), with a supervisory control plane (EVA-OS), persistent semantic memory (Memory Engine), real-time voice I/O (Pipecat), desktop automation (OpenClaw), and vision perception services.
+SONIA (Secure Operational Neural Interface Agent) is a deterministic, voice-first, local-first AI agent platform built on Python/FastAPI microservices. The system comprises 8 core services communicating over HTTP on fixed ports (7000-7070), with a supervisory control plane (EVA-OS), persistent semantic memory (Memory Engine), real-time voice I/O (Pipecat), desktop automation (OpenClaw), and vision perception services.
 
 The project has evolved through 10 major development stages (v2.0 through v2.10-dev) over approximately one week of intensive development (Feb 8-14, 2026), accumulating:
 

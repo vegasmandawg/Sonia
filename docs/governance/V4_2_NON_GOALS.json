@@ -1,0 +1,31 @@
+{
+  "version": "4.2.0-dev",
+  "schema": "non-goals-v2",
+  "non_goals": [
+    {
+      "id": "NG-1",
+      "description": "Score chasing -- v4.1 achieved 500/500; v4.2 focuses on depth not points",
+      "rationale": "Diminishing returns on scoring; invest in coverage and determinism"
+    },
+    {
+      "id": "NG-2",
+      "description": "Rewriting inherited modules -- v4.0/v4.1 governance modules are frozen",
+      "rationale": "Stability of inherited baseline is a hard constraint"
+    },
+    {
+      "id": "NG-3",
+      "description": "Integration test dependency on live services",
+      "rationale": "Unit tests are the gate criterion; integration tests are informational only"
+    },
+    {
+      "id": "NG-4",
+      "description": "Changing gate schema below v9.0",
+      "rationale": "v4.2 introduces schema v9.0; backward compat is not required"
+    },
+    {
+      "id": "NG-5",
+      "description": "Modifying v4.1 release bundle or evidence",
+      "rationale": "Frozen artifacts are immutable post-GA"
+    }
+  ]
+}

@@ -46,7 +46,7 @@
 
 ## 1. Genesis and Vision
 
-SONIA -- Supervised Operational Networked Intelligence Architecture -- began as a concept for a deterministic, voice-first, local-first AI agent platform. The project's founding thesis was that existing AI assistants suffer from three fundamental weaknesses: they lack persistent memory across sessions, they cannot take reliable action on the user's behalf, and they operate without meaningful safety governance. SONIA was conceived to solve all three simultaneously.
+SONIA -- Secure Operational Neural Interface Agent -- began as a concept for a deterministic, voice-first, local-first AI agent platform. The project's founding thesis was that existing AI assistants suffer from three fundamental weaknesses: they lack persistent memory across sessions, they cannot take reliable action on the user's behalf, and they operate without meaningful safety governance. SONIA was conceived to solve all three simultaneously.
 
 The project's philosophical underpinning is the principle of "models propose, supervisors decide." In SONIA, no language model output directly causes side effects. Every proposed action passes through a deterministic policy layer (EVA-OS) that classifies risk, requires appropriate approval, and maintains a complete audit trail. This is not AI safety in the abstract sense -- it is operational safety for a system that controls a desktop, executes shell commands, reads and writes files, and manages voice conversations.
 

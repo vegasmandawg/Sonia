@@ -1,0 +1,28 @@
+{
+  "version": "4.2.0",
+  "standard_total": 500,
+  "conservative_total": 500,
+  "gap": 0,
+  "min_section_conservative": 20,
+  "all_epics_pass": true,
+  "closed_deduction_active": true,
+  "gates_passed": 41,
+  "gates_total": 41,
+  "tests_passed": 753,
+  "tests_failed": 0,
+  "thresholds": {
+    "standard_floor": 495,
+    "conservative_floor": 495,
+    "max_gap": 6,
+    "min_section": 15,
+    "ga_minimum_tests": 843
+  },
+  "checks": {
+    "standard_above_floor": true,
+    "conservative_above_floor": true,
+    "gap_within_threshold": true,
+    "no_section_below_minimum": true
+  },
+  "overall": true,
+  "timestamp": "20260217-000518"
+}

@@ -1,0 +1,64 @@
+{
+  "epic": "E1",
+  "gate": "v42-epic1-identity-memory-gate",
+  "title": "Identity, Session, and Memory Sovereignty Hardening",
+  "checks": 10,
+  "passed": 10,
+  "verdict": "PASS",
+  "elapsed_s": 0.018,
+  "retries": 0,
+  "failure_class": null,
+  "results": [
+    {
+      "check": "session_namespace_isolation_invariant",
+      "verdict": "PASS",
+      "detail": "same=True, cross_denied=True"
+    },
+    {
+      "check": "persona_silo_isolation_invariant",
+      "verdict": "PASS",
+      "detail": "same=True, cross_denied=True"
+    },
+    {
+      "check": "cross_session_read_write_denial",
+      "verdict": "PASS",
+      "detail": "read=True, write=True, ns_w=True, ns_r=True"
+    },
+    {
+      "check": "cross_persona_memory_access_denial",
+      "verdict": "PASS",
+      "detail": "same=True, cross_denied=True"
+    },
+    {
+      "check": "memory_mutation_authorization_policy_enforcement",
+      "verdict": "PASS",
+      "detail": "granted=True, unauthorized_type=False, no_grant=False"
+    },
+    {
+      "check": "redaction_lineage_immutability",
+      "verdict": "PASS",
+      "detail": "chain_valid=True, tamper_rejected=True"
+    },
+    {
+      "check": "memory_version_conflict_handling_determinism",
+      "verdict": "PASS",
+      "detail": "both_conflict=True, same_resolution=True"
+    },
+    {
+      "check": "retention_deletion_policy_enforcement_determinism",
+      "verdict": "PASS",
+      "detail": "deterministic=True, action=delete"
+    },
+    {
+      "check": "memory_export_import_boundary_safety",
+      "verdict": "PASS",
+      "detail": "valid=True, cross=False, big=False, bad_type=False"
+    },
+    {
+      "check": "rerun_parity",
+      "verdict": "PASS",
+      "detail": "fingerprint_parity=True, chain_hash_parity=True"
+    }
+  ],
+  "timestamp": "20260216-185705"
+}

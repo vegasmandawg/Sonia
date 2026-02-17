@@ -1,0 +1,64 @@
+{
+  "epic": "E2",
+  "gate": "v42-epic2-chaos-recovery-gate",
+  "title": "Chaos Recovery Determinism at Scale",
+  "checks": 10,
+  "passed": 10,
+  "verdict": "PASS",
+  "elapsed_s": 0.018,
+  "retries": 0,
+  "failure_class": null,
+  "results": [
+    {
+      "check": "chaos_profile_registry_versioned_hash_stable",
+      "verdict": "PASS",
+      "detail": "exists=True, stable=True, deterministic=True"
+    },
+    {
+      "check": "scenario_bounds_enforced",
+      "verdict": "PASS",
+      "detail": "bounded=True, timeout_rej=True, retries_rej=True"
+    },
+    {
+      "check": "restore_preconditions_deterministic",
+      "verdict": "PASS",
+      "detail": "good_deterministic=True, bad_deterministic=True"
+    },
+    {
+      "check": "restore_postconditions_integrity_parity",
+      "verdict": "PASS",
+      "detail": "good=True, bad_count=False, bad_hash=False"
+    },
+    {
+      "check": "backup_hash_verification_enforced",
+      "verdict": "PASS",
+      "detail": "valid_hash=True, corrupted=False"
+    },
+    {
+      "check": "dlq_dry_run_vs_live_contract",
+      "verdict": "PASS",
+      "detail": "dry_no_fx=True, live_fx=True, contracts=True"
+    },
+    {
+      "check": "replay_idempotency_invariants",
+      "verdict": "PASS",
+      "detail": "first=success, second=skipped_duplicate"
+    },
+    {
+      "check": "retry_taxonomy_completeness",
+      "verdict": "PASS",
+      "detail": "complete=True, covered=8, deterministic=True"
+    },
+    {
+      "check": "breaker_fsm_transition_determinism",
+      "verdict": "PASS",
+      "detail": "deterministic=True, illegal_blocked=True, legal_ok=True"
+    },
+    {
+      "check": "incident_lineage_completeness",
+      "verdict": "PASS",
+      "detail": "i1_complete=True, i2_complete=True, continuous=True, chain=True"
+    }
+  ],
+  "timestamp": "20260217-060510"
+}

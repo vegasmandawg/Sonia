@@ -1,0 +1,55 @@
+{
+  "version": "4.1.0",
+  "type": "post-ga-integrity",
+  "timestamp": "20260216-120708",
+  "checks": [
+    {
+      "check": "v4.1.0-rc1 resolves",
+      "ok": true,
+      "detail": "de2b9539a05a"
+    },
+    {
+      "check": "v4.1.0 resolves",
+      "ok": true,
+      "detail": "8b9ed089dd48"
+    },
+    {
+      "check": "main has GA merge",
+      "ok": true,
+      "detail": "3714717 docs(v4.1.0): GA closure report and final summary"
+    },
+    {
+      "check": "main has closure docs",
+      "ok": true,
+      "detail": "found"
+    },
+    {
+      "check": "release/v4.1.x exists",
+      "ok": true,
+      "detail": "e6da1faa6834"
+    },
+    {
+      "check": "v4.2-dev exists",
+      "ok": true,
+      "detail": "e6da1faa6834"
+    },
+    {
+      "check": "v4.2-dev tracks origin",
+      "ok": true,
+      "detail": "origin"
+    },
+    {
+      "check": "Release bundle present",
+      "ok": true,
+      "detail": "S:\\releases\\v4.1.0"
+    },
+    {
+      "check": "Evidence frozen",
+      "ok": true,
+      "detail": "manifest found"
+    }
+  ],
+  "passed": 9,
+  "total": 9,
+  "verdict": "PASS"
+}

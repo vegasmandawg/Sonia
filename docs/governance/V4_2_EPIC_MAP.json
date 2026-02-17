@@ -1,0 +1,66 @@
+{
+  "version": "4.2.0",
+  "schema": "epic-map-v2",
+  "epics": {
+    "E1": {
+      "title": "Identity/Session/Memory Sovereignty Hardening",
+      "branch": "v4.2-e1-identity-memory",
+      "gate": "scripts/gates/v42-epic1-gate.py",
+      "checks_required": 10,
+      "test_budget": 30,
+      "modules": [
+        "services/api-gateway/session_manager.py",
+        "services/api-gateway/memory_policy.py",
+        "services/memory-engine/hybrid_search.py",
+        "services/memory-engine/provenance.py",
+        "services/shared/events.py"
+      ],
+      "status": "completed",
+      "evidence": "reports/audit/v42-epic1-identity-memory-*.json"
+    },
+    "E2": {
+      "title": "Chaos Recovery Determinism at Scale",
+      "branch": "v4.2-e2-chaos-recovery",
+      "gate": "scripts/gates/v42-epic2-gate.py",
+      "checks_required": 10,
+      "test_budget": 30,
+      "modules": [
+        "services/api-gateway/recovery.py",
+        "services/api-gateway/circuit_breaker.py",
+        "services/api-gateway/dead_letter.py",
+        "services/eva-os/supervisor.py",
+        "services/shared/retry_taxonomy.py"
+      ],
+      "status": "completed",
+      "evidence": "reports/audit/v42-epic2-chaos-recovery-*.json"
+    },
+    "E3": {
+      "title": "Reproducible Release + Cleanroom Parity",
+      "branch": "v4.2-e3-repro-release",
+      "gate": "scripts/gates/v42-epic3-gate.py",
+      "checks_required": 10,
+      "test_budget": 30,
+      "modules": [
+        "scripts/release/gate-v42.py",
+        "scripts/gates/v42-evidence-integrity-gate.py",
+        "scripts/release/dual-pass-v42.py",
+        "dependency-lock.json",
+        "requirements-frozen.txt"
+      ],
+      "status": "completed",
+      "evidence": "reports/audit/v42-epic3-repro-release-*.json"
+    }
+  },
+  "inherited": {
+    "gates": 41,
+    "tests": 753,
+    "source_tag": "v4.1.0"
+  },
+  "targets": {
+    "total_gates": 45,
+    "total_tests_minimum": 843,
+    "dual_pass_floor": 495,
+    "max_gap": 6,
+    "deterministic_failures": 0
+  }
+}
