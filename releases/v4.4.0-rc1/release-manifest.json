@@ -1,0 +1,29 @@
+{
+  "version": "4.4.0-rc1",
+  "tag": "v4.4.0-rc1",
+  "commit": "52f14610e1b4da32a1b2747abc0c11bfa82adf10",
+  "commit_short": "52f1461",
+  "timestamp": "2026-02-17T20:16:02Z",
+  "schema": "11.0",
+  "gates": "33/33 PROMOTE",
+  "epics": {
+    "A": "Secure Exposure (bind audit, TLS passthrough, CORS env, auth)",
+    "B": "Voice Pipeline (concrete providers, factory, binary WS framing)",
+    "C": "Supervision + Restart (subprocess restart, policy, auto-restart)"
+  },
+  "files": {
+    "services/api-gateway/main.py": "372dadb940c2cd72993ea496c809556a0615a5e3bc9daa59172d78f11c956fb9",
+    "services/pipecat/main.py": "0142c5129cdf2289cdd9e7b693654b41f6c44ef1b93b6753415638018a71b11b",
+    "services/pipecat/app/voice_backends.py": "a9c6b34ae7a8425cf2572d84ac8b80af0e0427ebb7c6171bbc0679ea7e88192a",
+    "services/eva-os/main.py": "88048a4494f389a5b2e8c799ad9cdfc2d6feafee22126c23539c5370a05dbbd7",
+    "services/eva-os/service_supervisor.py": "6380f0a5ef407327b9db50b45b9f0e8e07d9f2c8fadb3089e610d497b07a8493",
+    "services/tool-service/tool_service.py": "023f4bf7f10e9be9dc0b5472a9f0e5e56281fe87889559ca79e6a5563f66cd89",
+    "services/orchestrator/orchestrator_service.py": "318dc04da4535b8a268f73ce1226780cfb408260ea7c55a3f86646330e03f7a8",
+    "services/api-gateway/auth.py": "5a25c8d53f828cd0d5e9a3251fef8f631e973ade0d39d77914a3c6e27f298b84",
+    "services/pipecat/pipeline/asr.py": "a9f2baa93a315708859a6a5b6ec8b59b3c70df21765527f2e92d52e888e5aa9a",
+    "services/pipecat/pipeline/tts.py": "bc8aa13efe2c65c838d93df15f1429e154d1bfb7d379fdf0aa665a007f999555",
+    "tests/integration/test_voice_roundtrip.py": "69feb36f00d64b56591874ee92c5a17ffbadbec12efed4781ff0851506021afc",
+    "scripts/release/gate-v44.py": "5947d8390a2f8b4b0cc1876596d771d89226c88a76233e8b92fc88782334b8ff",
+    "requirements-frozen.txt": "463170ef7796ae94df34816aa3c8f265a74621c6fc542ee2c31e64470de24916"
+  }
+}
