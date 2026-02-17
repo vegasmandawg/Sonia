@@ -1,0 +1,42 @@
+{
+  "version": "4.2.0-rc1",
+  "evidence_count": 9,
+  "files": {
+    "dualpass-report.json": {
+      "sha256": "d193ec902d00a6f1ce6a16f4a4163978296c4d086e7b609cbd1760c2a8f6d6b5",
+      "size_bytes": 3305
+    },
+    "epic1-identity-memory.json": {
+      "sha256": "eb0de5bd2e4cb5e4d75977dc4a105b58c13d209a4e2bac68d5a26adbd488019e",
+      "size_bytes": 1861
+    },
+    "epic2-chaos-recovery.json": {
+      "sha256": "335efc3312fee8985683b932a0ac2f36dd26cbe919fac460536ffd6facd1a9fa",
+      "size_bytes": 1883
+    },
+    "epic3-repro-release.json": {
+      "sha256": "685e29e01fea0ce0ecd6c5e1ccf0d67e2ab5250102a40e63abc97c8a9195d3dd",
+      "size_bytes": 1868
+    },
+    "evidence-integrity.json": {
+      "sha256": "3920a80029284bb894abcbe1746a5860e7101fefdabe3e3b38e551e691c42016",
+      "size_bytes": 69
+    },
+    "gate-matrix-pass1.json": {
+      "sha256": "17d811339b21d264fb0e5c35584d08059beb0291b866f979a1fe67b2e05d3f57",
+      "size_bytes": 65690
+    },
+    "gate-matrix-pass2.json": {
+      "sha256": "db01d9ceb280ddc8a452fed7ea5c6fa9d6bee4044717f33726ecbac33a59a670",
+      "size_bytes": 65701
+    },
+    "soak-report.json": {
+      "sha256": "3920a80029284bb894abcbe1746a5860e7101fefdabe3e3b38e551e691c42016",
+      "size_bytes": 69
+    },
+    "test-results.json": {
+      "sha256": "31ef65560cc8cf95fb834366c3f458d39fad2c251177b0807ef10c9c53936c85",
+      "size_bytes": 150
+    }
+  }
+}

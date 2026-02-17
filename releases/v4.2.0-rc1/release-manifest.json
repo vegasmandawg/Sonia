@@ -1,0 +1,26 @@
+{
+  "sonia_version": "4.2.0-rc1",
+  "tag": "v4.2.0-rc1",
+  "commit": "30cc036e8890b8b52bdc988cc59850bb7551b03e",
+  "timestamp": "2026-02-17T06:06:27.597025+00:00",
+  "file_count": 17,
+  "files": {
+    "changelog.md": "aa3505a4dd5934076b3038a163c47b7a6fa0835c19a34e047c148a685fe33d60",
+    "dependency-lock.json": "bd67ea71c03f4ec37da85f0535b690a39888916358e1300212882ca35700272e",
+    "dualpass-summary.json": "f11f21a4097afdaeafe9e0dc9df3d287341e7158bac165e9fef6d7a41229d79b",
+    "evidence-manifest.json": "236befb3ccd81b35dd46c5930f7a87b0d4b3640c7b51948f868151b06793e4f0",
+    "FINAL_SCORECARD.json": "d66952276d23b4a492b2d02dd1dff52bc5af8601ad9fe9d02867eafef7574c96",
+    "FINAL_SCORECARD.md": "1b8054976cc99f518e15b506bbba29b9c1d2ed232bc4fcf6fc647c3405cc9e50",
+    "gate-report.json": "17d811339b21d264fb0e5c35584d08059beb0291b866f979a1fe67b2e05d3f57",
+    "requirements-frozen.txt": "24330beab15a8acd931d8a1cbdd11b7ab196927c383732b8fce316f90eee3d1a",
+    "evidence\\dualpass-report.json": "d193ec902d00a6f1ce6a16f4a4163978296c4d086e7b609cbd1760c2a8f6d6b5",
+    "evidence\\epic1-identity-memory.json": "eb0de5bd2e4cb5e4d75977dc4a105b58c13d209a4e2bac68d5a26adbd488019e",
+    "evidence\\epic2-chaos-recovery.json": "335efc3312fee8985683b932a0ac2f36dd26cbe919fac460536ffd6facd1a9fa",
+    "evidence\\epic3-repro-release.json": "685e29e01fea0ce0ecd6c5e1ccf0d67e2ab5250102a40e63abc97c8a9195d3dd",
+    "evidence\\evidence-integrity.json": "3920a80029284bb894abcbe1746a5860e7101fefdabe3e3b38e551e691c42016",
+    "evidence\\gate-matrix-pass1.json": "17d811339b21d264fb0e5c35584d08059beb0291b866f979a1fe67b2e05d3f57",
+    "evidence\\gate-matrix-pass2.json": "db01d9ceb280ddc8a452fed7ea5c6fa9d6bee4044717f33726ecbac33a59a670",
+    "evidence\\soak-report.json": "3920a80029284bb894abcbe1746a5860e7101fefdabe3e3b38e551e691c42016",
+    "evidence\\test-results.json": "31ef65560cc8cf95fb834366c3f458d39fad2c251177b0807ef10c9c53936c85"
+  }
+}
