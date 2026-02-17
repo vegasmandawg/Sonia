@@ -42,7 +42,7 @@ RELEASE_DIR = REPO_ROOT / "scripts" / "release"
 UNIT_TEST_DIR = REPO_ROOT / "tests" / "unit"
 
 SCHEMA_VERSION = "9.0"
-VERSION = "4.2.0-dev"
+VERSION = "4.2.0-rc1"
 
 # ---- Class A: Inherited baseline gates (41 from v4.1.0) ---------------------
 # 24 original (v3.7) + 4 release-dir + 4 delta (v3.9) + 3 delta (v4.0) + 1 evidence (v4.0)
@@ -118,9 +118,9 @@ INHERITED_UNIT_TEST_FLOOR = 753
 # ---- Class B: v4.2 delta gates (epic-owned) ---------------------------------
 
 CLASS_B_GATES = [
-    ("v42-epic1-gate.py", "gates", "E1: TBD"),
-    ("v42-epic2-gate.py", "gates", "E2: TBD"),
-    ("v42-epic3-gate.py", "gates", "E3: TBD"),
+    ("v42-epic1-gate.py", "gates", "E1: Identity/Session/Memory Sovereignty Hardening"),
+    ("v42-epic2-gate.py", "gates", "E2: Chaos Recovery Determinism at Scale"),
+    ("v42-epic3-gate.py", "gates", "E3: Reproducible Release + Cleanroom Parity"),
 ]
 
 CLASS_B_COUNT = len(CLASS_B_GATES)
