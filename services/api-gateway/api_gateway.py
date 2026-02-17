@@ -35,7 +35,7 @@ class APIGatewayConfig:
         # Service URLs
         self.voice_service_url = os.getenv("VOICE_SERVICE_URL", "http://localhost:7030")
         self.memory_service_url = os.getenv("MEMORY_SERVICE_URL", "http://localhost:7000")
-        self.tool_service_url = os.getenv("TOOL_SERVICE_URL", "http://localhost:7040")
+        self.tool_service_url = os.getenv("TOOL_SERVICE_URL", "http://localhost:7080")
         
         # Vision settings
         self.default_vision_provider = os.getenv("VISION_PROVIDER", "ollama")

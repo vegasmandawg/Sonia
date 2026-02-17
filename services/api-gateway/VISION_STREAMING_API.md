@@ -556,7 +556,7 @@ LOG_LEVEL=INFO
 # Service URLs
 VOICE_SERVICE_URL=http://localhost:7030
 MEMORY_SERVICE_URL=http://localhost:7000
-TOOL_SERVICE_URL=http://localhost:7040
+TOOL_SERVICE_URL=http://localhost:7080
 
 # Vision Settings
 VISION_PROVIDER=ollama          # ollama, openai, claude, qwen

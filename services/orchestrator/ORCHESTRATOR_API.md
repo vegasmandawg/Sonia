@@ -468,7 +468,7 @@ ENABLE_TOOLS=true
 # Voice Service: http://localhost:7030
 # Vision Service: http://localhost:7010
 # Memory Service: http://localhost:7000
-# Tool Service: http://localhost:7040
+# Tool Service: http://localhost:7080
 ```
 
 ---
