@@ -49,6 +49,8 @@ from memory_policy import set_memory_policy_state_store
 from jsonl_logger import session_log, error_log
 from auth import AuthMiddleware
 
+# v4.4 Epic A: TLS env vars — SONIA_TLS_CERT / SONIA_TLS_KEY passed to uvicorn ssl_certfile/ssl_keyfile
+
 logger = logging.getLogger("api-gateway")
 
 # ============================================================================
@@ -269,16 +271,21 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ── CORS middleware for local UI ──
+# v4.4 Epic A: CORS origins configurable via SONIA_CORS_ORIGINS env var (comma-separated)
+import os as _cors_os
+_default_cors = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+_cors_env = _cors_os.environ.get("SONIA_CORS_ORIGINS", "")
+_cors_origins = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env else _default_cors
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1406,9 +1413,20 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 if __name__ == "__main__":
     import uvicorn
+    import os as _os_main
+
+    # v4.4 Epic A: TLS passthrough config
+    _tls_cert = _os_main.environ.get("SONIA_TLS_CERT")
+    _tls_key = _os_main.environ.get("SONIA_TLS_KEY")
+    _ssl_kwargs = {}
+    if _tls_cert and _tls_key:
+        _ssl_kwargs["ssl_certfile"] = _tls_cert
+        _ssl_kwargs["ssl_keyfile"] = _tls_key
+
     uvicorn.run(
         "main:app",
         host="127.0.0.1",
         port=7000,
-        reload=False
+        reload=False,
+        **_ssl_kwargs,
     )
