@@ -160,6 +160,14 @@ recovery exit criteria.
 
 ---
 
+## Gap Closure Evidence
+
+### Baseline (pre-implementation)
+- Floor: 66/66 PASS
+- Delta: 15/18 PASS (B4 idempotency-store-durable FAIL, C3 recovery-exit-criteria FAIL, C4 slo-diagnostics-endpoint FAIL)
+
+---
+
 ## Execution Choreography
 
 1. `v4.7-m0-scope-lock` -- this commit (scope lock + gate scaffold + baseline)
