@@ -1,8 +1,9 @@
 """
-API Gateway — Tool Safety Gate (Stage 3)
+API Gateway — Tool Safety Gate (Stage 3, v4.3 Epic A durability)
 
 Classifies tool calls as safe_read / guarded_write / blocked
-and manages confirmation tokens in-memory.
+and manages confirmation tokens in-memory with optional write-through
+to DurableStateStore for restart recovery.
 
 This is the *gateway-side* policy layer.  It complements openclaw's
 own PolicyEngine; the gateway gate runs first and can short-circuit
@@ -114,7 +115,7 @@ class ConfirmationToken:
 
 class GatewayConfirmationManager:
     """
-    Hardened confirmation queue for the gateway (Stage 4).
+    Hardened confirmation queue for the gateway (Stage 4, v4.3 durability).
 
     Features:
       - Idempotent approve/deny: repeated calls on same id return
@@ -122,6 +123,7 @@ class GatewayConfirmationManager:
       - Expiry: expired tokens return CONFIRMATION_EXPIRED code.
       - Per-session pending limits (max_guarded_requests_pending).
       - Per-turn tool-time budget (max_total_tool_runtime_ms).
+      - Write-through to DurableStateStore for crash recovery.
     """
 
     def __init__(
@@ -137,6 +139,63 @@ class GatewayConfirmationManager:
         self._max_pending = max_pending
         self._max_guarded_per_session = max_guarded_requests_pending
         self._max_tool_runtime_ms = max_total_tool_runtime_ms
+        self._state_store = None  # v4.3: DurableStateStore
+
+    def set_state_store(self, store) -> None:
+        """Inject DurableStateStore for write-through persistence (v4.3 Epic A)."""
+        self._state_store = store
+
+    async def restore_confirmations(self) -> int:
+        """
+        Restore pending confirmations from durable state store on startup.
+        Recalculates TTL based on created_at + ttl_seconds - now.
+        Returns count of restored tokens.
+        """
+        if not self._state_store:
+            return 0
+        try:
+            records = await self._state_store.load_pending_confirmations()
+            count = 0
+            now = datetime.now(timezone.utc)
+            for rec in records:
+                created_at_str = rec.get("created_at", "")
+                ttl_seconds = rec.get("ttl_seconds", 120.0)
+                # Calculate remaining TTL
+                try:
+                    created_at = datetime.fromisoformat(created_at_str)
+                    if created_at.tzinfo is None:
+                        created_at = created_at.replace(tzinfo=timezone.utc)
+                    elapsed = (now - created_at).total_seconds()
+                    remaining = ttl_seconds - elapsed
+                except (ValueError, TypeError):
+                    remaining = 0.0
+
+                if remaining <= 0:
+                    # Token already expired, skip restoration
+                    continue
+
+                token = ConfirmationToken(
+                    session_id=rec.get("session_id", ""),
+                    turn_id=rec.get("turn_id", ""),
+                    tool_name=rec.get("tool_name", ""),
+                    args=rec.get("args", {}),
+                    ttl_seconds=remaining,  # use remaining TTL
+                )
+                # Overwrite generated fields with persisted values
+                token.confirmation_id = rec["confirmation_id"]
+                token.summary = rec.get("summary", token.summary)
+                token.status = rec.get("status", "pending")
+                token.created_at = created_at_str
+                token.decided_at = rec.get("decided_at")
+
+                self._tokens[token.confirmation_id] = token
+                count += 1
+
+            logger.info("Restored %d pending confirmations from durable state store", count)
+            return count
+        except Exception as e:
+            logger.warning("Confirmation restore failed (non-fatal): %s", e)
+            return 0
 
     async def create(
         self,
@@ -169,17 +228,36 @@ class GatewayConfirmationManager:
                 "confirmation minted: %s tool=%s session=%s",
                 token.confirmation_id, tool_name, session_id,
             )
-            return token
+
+        # v4.3: write-through to durable state store (best-effort, outside lock)
+        if self._state_store:
+            try:
+                await self._state_store.persist_confirmation({
+                    "confirmation_id": token.confirmation_id,
+                    "session_id": token.session_id,
+                    "turn_id": token.turn_id,
+                    "tool_name": token.tool_name,
+                    "args": token.args,
+                    "summary": token.summary,
+                    "status": token.status,
+                    "created_at": token.created_at,
+                    "ttl_seconds": token.ttl_seconds,
+                    "decided_at": token.decided_at,
+                })
+            except Exception as e:
+                logger.warning("Confirmation persist failed for %s: %s", token.confirmation_id, e)
+
+        return token
 
     async def approve(self, confirmation_id: str) -> Dict[str, Any]:
         async with self._lock:
             token = self._tokens.get(confirmation_id)
             if not token:
                 return {"ok": False, "status": "not_found", "reason": "Token not found"}
-            # Idempotent: already approved → return same result
+            # Idempotent: already approved -> return same result
             if token.status == "approved":
                 return {"ok": True, "status": "approved", "reason": "Already approved (idempotent)", "token": token, "idempotent": True}
-            # Idempotent: already denied → return deterministic
+            # Idempotent: already denied -> return deterministic
             if token.status == "denied":
                 return {"ok": False, "status": "denied", "reason": "Already denied (idempotent)", "idempotent": True}
             # Check expiry with explicit code
@@ -193,17 +271,25 @@ class GatewayConfirmationManager:
             token.status = "approved"
             token.decided_at = datetime.now(timezone.utc).isoformat()
             logger.info("confirmation approved: %s", confirmation_id)
-            return {"ok": True, "status": "approved", "reason": "Approved", "token": token}
+
+        # v4.3: persist status change
+        if self._state_store:
+            try:
+                await self._state_store.update_confirmation(confirmation_id, "approved", token.decided_at)
+            except Exception as e:
+                logger.warning("Confirmation approve persist failed for %s: %s", confirmation_id, e)
+
+        return {"ok": True, "status": "approved", "reason": "Approved", "token": token}
 
     async def deny(self, confirmation_id: str, reason: str = "User denied") -> Dict[str, Any]:
         async with self._lock:
             token = self._tokens.get(confirmation_id)
             if not token:
                 return {"ok": False, "status": "not_found", "reason": "Token not found"}
-            # Idempotent: already denied → return same result
+            # Idempotent: already denied -> return same result
             if token.status == "denied":
                 return {"ok": False, "status": "denied", "reason": f"Already denied (idempotent)", "idempotent": True}
-            # Idempotent: already approved → return deterministic
+            # Idempotent: already approved -> return deterministic
             if token.status == "approved":
                 return {"ok": False, "status": "approved", "reason": "Already approved (idempotent)", "idempotent": True}
             # Check expiry
@@ -217,7 +303,15 @@ class GatewayConfirmationManager:
             token.status = "denied"
             token.decided_at = datetime.now(timezone.utc).isoformat()
             logger.info("confirmation denied: %s reason=%s", confirmation_id, reason)
-            return {"ok": False, "status": "denied", "reason": reason}
+
+        # v4.3: persist status change
+        if self._state_store:
+            try:
+                await self._state_store.update_confirmation(confirmation_id, "denied", token.decided_at)
+            except Exception as e:
+                logger.warning("Confirmation deny persist failed for %s: %s", confirmation_id, e)
+
+        return {"ok": False, "status": "denied", "reason": reason}
 
     async def get(self, confirmation_id: str) -> Optional[ConfirmationToken]:
         async with self._lock:

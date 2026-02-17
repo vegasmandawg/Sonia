@@ -1,9 +1,13 @@
 """
-API Gateway — Memory Quality Policy (Stage 4)
+API Gateway — Memory Quality Policy (Stage 4, v4.3 Epic A outbox)
 
 Write policy: stores raw transcript + compact summary with typed tags.
 Retrieval policy: bounded context with type filters and token budget.
 Conflict-safe: memory failures are non-fatal (return memory.written=false).
+
+v4.3: Outbox pattern for at-least-once memory write-back.
+Memory writes are first enqueued to a durable outbox, then delivered
+to memory-engine. Failed deliveries can be retried via flush_outbox().
 """
 
 import json
@@ -22,6 +26,15 @@ logger = logging.getLogger("api-gateway.memory_policy")
 
 DEFAULT_WRITE_POLICY = MemoryWritePolicy()
 DEFAULT_RETRIEVAL_POLICY = MemoryRetrievalPolicy()
+
+# v4.3: module-level state store reference for outbox pattern
+_outbox_state_store = None
+
+
+def set_memory_policy_state_store(store) -> None:
+    """Inject DurableStateStore for outbox persistence (v4.3 Epic A)."""
+    global _outbox_state_store
+    _outbox_state_store = store
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -68,6 +81,23 @@ async def write_turn_memories(
         meta = {**base_meta, "type": mem_type}
         if extra_meta:
             meta.update(extra_meta)
+
+        # v4.3: enqueue to outbox before attempting delivery
+        outbox_id = None
+        if _outbox_state_store:
+            try:
+                outbox_id = await _outbox_state_store.enqueue_outbox(
+                    entry_type=f"turn_memory:{mem_type}",
+                    payload={
+                        "content": content,
+                        "memory_type": mem_type,
+                        "metadata": meta,
+                        "correlation_id": correlation_id,
+                    },
+                )
+            except Exception as e:
+                logger.warning("outbox enqueue failed for %s (non-fatal): %s", mem_type, e)
+
         try:
             resp = await memory_client.store(
                 content=content,
@@ -77,6 +107,12 @@ async def write_turn_memories(
             )
             if resp.get("status") == "stored":
                 result["items_written"] += 1
+                # v4.3: mark outbox entry as delivered
+                if _outbox_state_store and outbox_id:
+                    try:
+                        await _outbox_state_store.mark_delivered(outbox_id)
+                    except Exception as e:
+                        logger.warning("outbox mark_delivered failed for %s: %s", outbox_id, e)
                 return True
         except MemoryClientError as exc:
             err_info = {"type": mem_type, "code": exc.code, "message": exc.message}
@@ -160,6 +196,26 @@ async def write_typed_memory(
 ) -> Dict[str, Any]:
     """Helper for structured typed memory writes. Never raises."""
     result = {"written": False, "memory_id": None, "conflicts": [], "errors": []}
+
+    # v4.3: enqueue to outbox before attempting delivery
+    outbox_id = None
+    if _outbox_state_store:
+        try:
+            outbox_id = await _outbox_state_store.enqueue_outbox(
+                entry_type=f"typed_memory:{memory_type}:{subtype}",
+                payload={
+                    "memory_type": memory_type,
+                    "subtype": subtype,
+                    "content": content,
+                    "metadata": metadata,
+                    "valid_from": valid_from,
+                    "valid_until": valid_until,
+                    "correlation_id": correlation_id,
+                },
+            )
+        except Exception as e:
+            logger.warning("outbox enqueue failed for typed %s:%s (non-fatal): %s", memory_type, subtype, e)
+
     try:
         resp = await memory_client.store_typed(
             memory_type=memory_type,
@@ -173,6 +229,13 @@ async def write_typed_memory(
         result["written"] = resp.get("status") == "stored"
         result["memory_id"] = resp.get("id")
         result["conflicts"] = resp.get("conflicts", [])
+
+        # v4.3: mark outbox entry as delivered on success
+        if result["written"] and _outbox_state_store and outbox_id:
+            try:
+                await _outbox_state_store.mark_delivered(outbox_id)
+            except Exception as e:
+                logger.warning("outbox mark_delivered failed for %s: %s", outbox_id, e)
     except MemoryClientError as exc:
         result["errors"].append({"code": exc.code, "message": exc.message})
         logger.warning("typed memory write failed: %s", exc)
@@ -232,3 +295,102 @@ async def retrieve_context(
         logger.warning("memory retrieval failed (non-fatal): %s", exc)
 
     return out
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# v4.3: Outbox flush (at-least-once delivery retry)
+# ──────────────────────────────────────────────────────────────────────────────
+
+MAX_OUTBOX_RETRY_ATTEMPTS = 5
+
+
+async def flush_outbox(
+    memory_client: MemoryClient,
+    limit: int = 50,
+) -> Dict[str, Any]:
+    """
+    Retry undelivered outbox entries (at-least-once delivery).
+    Reads pending entries from DurableStateStore, attempts memory write,
+    marks delivered on success. Skips entries that exceed max retry attempts.
+
+    Returns {"flushed": int, "failed": int, "skipped": int}.
+    """
+    if not _outbox_state_store:
+        return {"flushed": 0, "failed": 0, "skipped": 0}
+
+    result = {"flushed": 0, "failed": 0, "skipped": 0}
+
+    try:
+        pending = await _outbox_state_store.get_pending_outbox(limit=limit)
+    except Exception as e:
+        logger.warning("flush_outbox: failed to load pending entries: %s", e)
+        return result
+
+    for entry in pending:
+        outbox_id = entry.get("outbox_id", "")
+        attempts = entry.get("attempts", 0)
+        entry_type = entry.get("entry_type", "")
+        payload = entry.get("payload", {})
+
+        if attempts >= MAX_OUTBOX_RETRY_ATTEMPTS:
+            result["skipped"] += 1
+            continue
+
+        try:
+            if entry_type.startswith("turn_memory:"):
+                # Re-attempt turn memory store
+                resp = await memory_client.store(
+                    content=payload.get("content", ""),
+                    memory_type=payload.get("memory_type", ""),
+                    metadata=payload.get("metadata", {}),
+                    correlation_id=payload.get("correlation_id", ""),
+                )
+                if resp.get("status") == "stored":
+                    await _outbox_state_store.mark_delivered(outbox_id)
+                    result["flushed"] += 1
+                else:
+                    await _outbox_state_store.increment_attempt(outbox_id)
+                    result["failed"] += 1
+            elif entry_type.startswith("typed_memory:"):
+                # Re-attempt typed memory store
+                resp = await memory_client.store_typed(
+                    memory_type=payload.get("memory_type", ""),
+                    subtype=payload.get("subtype", ""),
+                    content=payload.get("content", ""),
+                    metadata=payload.get("metadata"),
+                    valid_from=payload.get("valid_from"),
+                    valid_until=payload.get("valid_until"),
+                    correlation_id=payload.get("correlation_id", ""),
+                )
+                if resp.get("status") == "stored":
+                    await _outbox_state_store.mark_delivered(outbox_id)
+                    result["flushed"] += 1
+                else:
+                    await _outbox_state_store.increment_attempt(outbox_id)
+                    result["failed"] += 1
+            else:
+                # Unknown entry type, skip
+                logger.warning("flush_outbox: unknown entry type '%s', skipping %s", entry_type, outbox_id)
+                result["skipped"] += 1
+        except MemoryClientError as exc:
+            logger.warning("flush_outbox: delivery failed for %s: %s", outbox_id, exc)
+            try:
+                await _outbox_state_store.increment_attempt(outbox_id)
+            except Exception:
+                pass
+            result["failed"] += 1
+        except Exception as exc:
+            logger.warning("flush_outbox: unexpected error for %s: %s", outbox_id, exc)
+            try:
+                await _outbox_state_store.increment_attempt(outbox_id)
+            except Exception:
+                pass
+            result["failed"] += 1
+
+    if result["flushed"] > 0 or result["failed"] > 0:
+        logger.info(
+            "flush_outbox complete: flushed=%d failed=%d skipped=%d",
+            result["flushed"], result["failed"], result["skipped"],
+        )
+
+    return result

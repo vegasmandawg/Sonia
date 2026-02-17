@@ -249,6 +249,61 @@ class Retriever:
 
         return combined
 
+    @staticmethod
+    def budget_tokens(
+        results: List[Dict[str, Any]],
+        max_tokens: int,
+    ) -> List[Dict[str, Any]]:
+        """Apply deterministic token budget to ranked search results.
+
+        Greedily fills budget from highest-scored results (caller must
+        pre-sort by score descending).  Token estimate uses len(content)/4,
+        which is a conservative approximation for English text.
+
+        Guarantees:
+        - Deterministic: identical input always produces identical output.
+        - At least one result is returned if results is non-empty, even
+          if that single result exceeds the budget.
+
+        Args:
+            results: List of result dicts, each must have 'content' key.
+                     Expected to be sorted by relevance/score descending.
+            max_tokens: Maximum token budget for the returned results.
+
+        Returns:
+            Subset of results that fits within the budget (preserving order).
+        """
+        if not results or max_tokens <= 0:
+            return results if not results else results[:1]
+
+        budgeted: List[Dict[str, Any]] = []
+        tokens_used = 0
+        tokens_excluded = 0
+        excluded_count = 0
+
+        for result in results:
+            content = result.get("content", "")
+            est_tokens = max(1, len(content) // 4)
+
+            if tokens_used + est_tokens > max_tokens and budgeted:
+                # Budget exhausted -- count remaining exclusions
+                tokens_excluded += est_tokens
+                excluded_count += 1
+                continue
+
+            budgeted.append(result)
+            tokens_used += est_tokens
+
+        logger.info(
+            "Token budget: used=%d/%d tokens, included=%d, excluded=%d (%d tokens)",
+            tokens_used,
+            max_tokens,
+            len(budgeted),
+            excluded_count,
+            tokens_excluded,
+        )
+        return budgeted
+
     async def search_by_entity(
         self, entity_id: str, limit: int = 50
     ) -> List[Dict[str, Any]]:

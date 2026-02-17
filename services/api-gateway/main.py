@@ -44,6 +44,8 @@ from dead_letter import get_dead_letter_queue
 from health_supervisor import get_health_supervisor
 from action_audit import get_audit_logger
 from state_backup import get_backup_manager
+from durable_state import get_durable_state_store
+from memory_policy import set_memory_policy_state_store
 from jsonl_logger import session_log, error_log
 from auth import AuthMiddleware
 
@@ -129,15 +131,44 @@ async def lifespan(a):
     # v3.0: inject clients into UI stream handler for conversation bridge
     inject_ui_clients(memory_client, router_client, openclaw_client)
 
-    # M2: wire session manager to memory client for persistence
+    # v4.3 Epic A: initialize durable state store (SQLite write-through)
+    durable_store = get_durable_state_store()
+    session_mgr.set_state_store(durable_store)
+    confirmation_mgr.set_state_store(durable_store)
+    dead_letter_queue_ref = get_dead_letter_queue()
+    dead_letter_queue_ref.set_state_store(durable_store)
+    set_memory_policy_state_store(durable_store)
+
+    # M2: wire session manager to memory client for persistence (legacy fallback)
     session_mgr.set_memory_client(memory_client)
 
-    # M2: restore persisted sessions from memory-engine
+    # v4.3: restore all persisted state from durable store
+    try:
+        restore_counts = await durable_store.restore_all()
+        log_event({"level": "INFO", "service": "api-gateway", "event": "durable_state_restore", "counts": restore_counts})
+    except Exception as e:
+        log_event({"level": "WARN", "service": "api-gateway", "event": "durable_state_restore_failed", "reason": str(e)})
+
+    # Restore sessions (prefers durable store, falls back to memory-engine)
     try:
         restored = await session_mgr.restore_sessions()
         log_event({"level": "INFO", "service": "api-gateway", "event": "sessions_restored", "count": restored})
     except Exception as e:
         log_event({"level": "WARN", "service": "api-gateway", "event": "session_restore_failed", "reason": str(e)})
+
+    # Restore confirmations from durable store
+    try:
+        cfm_restored = await confirmation_mgr.restore_confirmations()
+        log_event({"level": "INFO", "service": "api-gateway", "event": "confirmations_restored", "count": cfm_restored})
+    except Exception as e:
+        log_event({"level": "WARN", "service": "api-gateway", "event": "confirmation_restore_failed", "reason": str(e)})
+
+    # Restore dead letters from durable store
+    try:
+        dl_restored = await dead_letter_queue_ref.restore_dead_letters()
+        log_event({"level": "INFO", "service": "api-gateway", "event": "dead_letters_restored", "count": dl_restored})
+    except Exception as e:
+        log_event({"level": "WARN", "service": "api-gateway", "event": "dead_letter_restore_failed", "reason": str(e)})
 
     # M2: configure auth middleware (v3.5: default-on with SONIA_DEV_MODE bypass)
     auth_cfg = {}
@@ -209,6 +240,12 @@ async def lifespan(a):
     # Stop health supervisor
     if health_supervisor:
         await health_supervisor.stop()
+
+    # v4.3: close durable state store
+    try:
+        durable_store.close()
+    except Exception:
+        pass
 
     if memory_client:
         await memory_client.close()

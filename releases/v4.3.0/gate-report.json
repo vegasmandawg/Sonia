@@ -1,0 +1,159 @@
+{
+  "schema_version": "10.0",
+  "version": "4.3.0",
+  "verdict": "PROMOTE",
+  "timestamp": "2026-02-17T15:35:08.914734+00:00",
+  "elapsed_s": 0.04,
+  "summary": {
+    "pass": 18,
+    "fail": 0,
+    "skip": 0,
+    "total": 18
+  },
+  "gates": [
+    {
+      "name": "file-exists",
+      "class": "A",
+      "epic": "",
+      "status": "PASS",
+      "detail": "All 15 files exist",
+      "duration_s": 0.0
+    },
+    {
+      "name": "compile-all",
+      "class": "A",
+      "epic": "",
+      "status": "PASS",
+      "detail": "15 files compile OK",
+      "duration_s": 0.04
+    },
+    {
+      "name": "durable-state-tables",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "All 4 tables defined",
+      "duration_s": 0.0
+    },
+    {
+      "name": "wal-mode",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "WAL mode configured",
+      "duration_s": 0.0
+    },
+    {
+      "name": "session-restore",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "Session restore integration present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "confirmation-restore",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "Confirmation restore integration present",
+      "duration_s": 0.0
+    },
+    {
+      "name": "outbox-pattern",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "Outbox pattern wired end-to-end",
+      "duration_s": 0.0
+    },
+    {
+      "name": "lifespan-wiring",
+      "class": "B",
+      "epic": "A",
+      "status": "PASS",
+      "detail": "main.py lifespan wires DurableStateStore",
+      "duration_s": 0.0
+    },
+    {
+      "name": "hnsw-wired",
+      "class": "B",
+      "epic": "B",
+      "status": "PASS",
+      "detail": "HNSW fully wired into hybrid search",
+      "duration_s": 0.0
+    },
+    {
+      "name": "index-manifest",
+      "class": "B",
+      "epic": "B",
+      "status": "PASS",
+      "detail": "Index manifest with SHA-256 verification",
+      "duration_s": 0.0
+    },
+    {
+      "name": "token-budget",
+      "class": "B",
+      "epic": "B",
+      "status": "PASS",
+      "detail": "Deterministic token budget in retriever",
+      "duration_s": 0.0
+    },
+    {
+      "name": "memory-lifespan",
+      "class": "B",
+      "epic": "B",
+      "status": "PASS",
+      "detail": "Memory-engine lifespan: vector init + save",
+      "duration_s": 0.0
+    },
+    {
+      "name": "consent-fsm",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "Consent FSM: 5 states + inference gate",
+      "duration_s": 0.0
+    },
+    {
+      "name": "consent-fail-closed",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "Fail-closed consent (returns False on error)",
+      "duration_s": 0.0
+    },
+    {
+      "name": "perception-consent",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "Perception consent gate active",
+      "duration_s": 0.0
+    },
+    {
+      "name": "backpressure",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "Backpressure policy with oldest-first shedding",
+      "duration_s": 0.0
+    },
+    {
+      "name": "latency-budget",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "Latency budget: per-stage p95/p99 + SLO",
+      "duration_s": 0.0
+    },
+    {
+      "name": "stream-backpressure",
+      "class": "B",
+      "epic": "C",
+      "status": "PASS",
+      "detail": "stream.py: backpressure + latency wired",
+      "duration_s": 0.0
+    }
+  ]
+}
