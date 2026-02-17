@@ -470,7 +470,72 @@ async def voice_stream_endpoint(websocket: WebSocket, session_id: str):
         })
 
         while True:
-            raw = await websocket.receive_text()
+            # v4.4 Epic B: Accept both text (JSON) and binary (PCM audio) frames
+            message = await websocket.receive()
+
+            if message.get("type") == "websocket.receive":
+                if "bytes" in message and message["bytes"]:
+                    # Binary audio frame (raw PCM bytes)
+                    pcm_bytes = message["bytes"]
+
+                    # Route through ASR if available
+                    try:
+                        from app.voice_backends import create_asr, create_vad
+                        asr = create_asr()
+                        vad = create_vad()
+
+                        if asr.available:
+                            asr_result = await asr.transcribe(pcm_bytes)
+                            if asr_result.text:
+                                # Process transcribed text through turn pipeline
+                                turn_corr = generate_correlation_id()
+                                record = await voice_turn_router.process_turn(
+                                    user_text=asr_result.text,
+                                    pipecat_session_id=session_id,
+                                    correlation_id=turn_corr,
+                                )
+
+                                if record.ok:
+                                    # Try TTS on response
+                                    from app.voice_backends import create_tts
+                                    tts = create_tts()
+                                    tts_audio = b""
+                                    if tts.available:
+                                        tts_result = await tts.synthesize(record.assistant_text)
+                                        tts_audio = tts_result.audio_bytes
+
+                                    await websocket.send_json({
+                                        "type": "response.final",
+                                        "text": record.assistant_text,
+                                        "turn_id": record.turn_id,
+                                        "latency_ms": round(record.latency_ms, 1),
+                                        "has_audio": len(tts_audio) > 0,
+                                    })
+
+                                    # Send TTS audio as binary frame
+                                    if tts_audio:
+                                        await websocket.send_bytes(tts_audio)
+                                else:
+                                    await websocket.send_json({
+                                        "type": "error",
+                                        "message": record.error,
+                                    })
+                        else:
+                            await websocket.send_json({
+                                "type": "error",
+                                "message": "ASR backend not configured",
+                            })
+                    except Exception as e:
+                        await websocket.send_json({
+                            "type": "error",
+                            "message": f"Audio processing error: {e}",
+                        })
+                    continue
+
+                raw = message.get("text", "")
+            else:
+                raw = await websocket.receive_text()
+
             try:
                 msg = json.loads(raw)
             except json.JSONDecodeError:
