@@ -1,4 +1,43 @@
 {
-  "status": "pending",
-  "note": "Will be filled in Phase 4/5"
+  "schema_version": "4.2",
+  "version": "4.2.0-rc1",
+  "timestamp": "2026-02-17T06:08:42.155700+00:00",
+  "duration_s": 0.137,
+  "phases": [
+    {
+      "name": "warm-up",
+      "ops_per_epic": 50
+    },
+    {
+      "name": "steady-state",
+      "ops_per_epic": 200
+    },
+    {
+      "name": "stress",
+      "ops_per_epic": 100
+    }
+  ],
+  "total_operations": 1050,
+  "invariant_count": 15,
+  "invariants": {
+    "session_namespace_violation_count": 0,
+    "memory_write_bypass_count": 0,
+    "token_budget_overshoot_count": 0,
+    "provenance_chain_break_count": 0,
+    "cross_session_leak_count": 0,
+    "breaker_state_inconsistency_count": 0,
+    "dlq_replay_divergence_count": 0,
+    "adapter_timeout_unhandled_count": 0,
+    "correlation_id_lost_count": 0,
+    "recovery_state_mismatch_count": 0,
+    "gate_determinism_violation_count": 0,
+    "dep_lock_integrity_failure_count": 0,
+    "evidence_hash_mismatch_count": 0,
+    "cleanroom_parity_failure_count": 0,
+    "manifest_field_missing_count": 0
+  },
+  "violations": {},
+  "violation_count": 0,
+  "all_zero": true,
+  "verdict": "PASS"
 }

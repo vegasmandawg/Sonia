@@ -19,8 +19,8 @@
       "size_bytes": 1868
     },
     "evidence-integrity.json": {
-      "sha256": "3920a80029284bb894abcbe1746a5860e7101fefdabe3e3b38e551e691c42016",
-      "size_bytes": 69
+      "sha256": "90fc8051f1169452e3041c920366d38f9222b736b550f3fe5acd82974f035906",
+      "size_bytes": 915
     },
     "gate-matrix-pass1.json": {
       "sha256": "17d811339b21d264fb0e5c35584d08059beb0291b866f979a1fe67b2e05d3f57",
@@ -31,8 +31,8 @@
       "size_bytes": 65701
     },
     "soak-report.json": {
-      "sha256": "3920a80029284bb894abcbe1746a5860e7101fefdabe3e3b38e551e691c42016",
-      "size_bytes": 69
+      "sha256": "cca006477c17ff9a7a796b7503eb912700149d299700e20c99c7d98c95472218",
+      "size_bytes": 1142
     },
     "test-results.json": {
       "sha256": "31ef65560cc8cf95fb834366c3f458d39fad2c251177b0807ef10c9c53936c85",
